@@ -109,11 +109,15 @@ public class DatabaseWriter extends ClassWriter {
     }
 
     private MethodSpec createClearAllTablesMethod() {
-        return MethodSpec.methodBuilder("clearAllTables")
+        MethodSpec.Builder builder =  MethodSpec.methodBuilder("clearAllTables")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PROTECTED)
-                .returns(TypeName.VOID)
-                .build();
+                .returns(TypeName.VOID);
+        mDatabase.getDataTableList().forEach(dataTable -> {
+            builder.addStatement("this.destroyTable($S)", dataTable.getTableName());
+        });
+
+        return builder.build();
     }
 
     static class IntShareFieldSpec extends SharedFieldSpec {

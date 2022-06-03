@@ -128,7 +128,8 @@ public abstract class LightDatabase {
         return stmt;
     }
 
-    protected abstract void clearAllTables();
+    protected void clearAllTables() {
+    }
 
     protected void destroyTable(String tableName) {
         executeRawSqlWithNoReturn(mDialectProvider.destroyTable(tableName));

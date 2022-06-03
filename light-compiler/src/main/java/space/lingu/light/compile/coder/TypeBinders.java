@@ -25,10 +25,7 @@ import space.lingu.light.compile.coder.query.result.SingleEntityQueryResultConve
 import space.lingu.light.compile.coder.query.row.PojoRowConverter;
 import space.lingu.light.compile.coder.query.row.RowConverter;
 import space.lingu.light.compile.coder.query.row.SingleColumnRowConverter;
-import space.lingu.light.compile.coder.type.BoxedPrimitiveColumnTypeBinder;
-import space.lingu.light.compile.coder.type.PrimitiveColumnTypeBinder;
-import space.lingu.light.compile.coder.type.StringColumnTypeBinder;
-import space.lingu.light.compile.coder.type.VoidColumnTypeBinder;
+import space.lingu.light.compile.coder.type.*;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
@@ -36,6 +33,7 @@ import space.lingu.light.compile.processor.PojoProcessor;
 import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.SQLDataType;
 
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -50,6 +48,7 @@ public class TypeBinders {
     private final ProcessEnv mEnv;
     private final List<ColumnTypeBinder> mColumnTypeBinders = new ArrayList<>();
     private final List<QueryResultConverter> mQueryResultConverters = new ArrayList<>();
+    private VoidColumnTypeBinder mVoidColumnTypeBinder;
 
     public TypeBinders(ProcessEnv env) {
         mEnv = env;
@@ -61,7 +60,7 @@ public class TypeBinders {
         List<PrimitiveColumnTypeBinder> primitiveColumnTypeBinders = PrimitiveColumnTypeBinder.create(mEnv);
         mColumnTypeBinders.addAll(primitiveColumnTypeBinders);
         mColumnTypeBinders.addAll(BoxedPrimitiveColumnTypeBinder.create(primitiveColumnTypeBinders, mEnv));
-        mColumnTypeBinders.add(new VoidColumnTypeBinder(mEnv));
+        mVoidColumnTypeBinder = new VoidColumnTypeBinder();
     }
 
     private void addBinder(ColumnTypeBinder binder) {
@@ -147,7 +146,11 @@ public class TypeBinders {
             return null;
         }
         if (type.getKind() == TypeKind.VOID) {
-            return new VoidColumnTypeBinder(mEnv);
+            return mVoidColumnTypeBinder;
+        }
+        if (!TypeUtil.isPrimitive(type) &&
+                ElementUtil.asTypeElement(type).getKind() == ElementKind.ENUM) {
+            return new EnumColumnTypeBinder(type);
         }
 
         for (ColumnTypeBinder binder : getAllColumnBinders(type)) {

@@ -27,17 +27,17 @@ import javax.lang.model.type.TypeKind;
  * @author RollW
  */
 public class VoidColumnTypeBinder extends ColumnTypeBinder {
-    public VoidColumnTypeBinder(ProcessEnv env) {
-        super(env.getTypeUtils().getNoType(TypeKind.VOID), null);
+    public VoidColumnTypeBinder() {
+        super(null, null);
     }
 
     @Override
     public void readFromResultSet(String outVarName, String resultSetName, String indexName, GenerateCodeBlock block) {
-
+        // no-op
     }
 
     @Override
     public void bindToStatement(String stmtVarName, String indexVarName, String valueVarName, GenerateCodeBlock block) {
-
+        // no-op
     }
 }

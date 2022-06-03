@@ -34,7 +34,7 @@ public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueRe
     public ColumnTypeBinder(TypeMirror type, SQLDataType dataType) {
         this.type = type;
         this.dataType = dataType;
-        typeName = ClassName.get(type);
+        typeName = type == null ? null: ClassName.get(type);
     }
 
     @Override
