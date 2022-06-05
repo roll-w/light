@@ -127,11 +127,41 @@ public abstract class ClassWriter {
     }
 
     private void addGenerated(TypeSpec.Builder builder) {
-        AnnotationSpec anno = AnnotationSpec.builder(Generated.class)
+        ClassName generated;
+        if (getJdkVersion() < 9) {
+            generated = ClassName.get("javax.annotation", "Generated");
+        } else {
+            generated = ClassName.get("javax.annotation.processing", "Generated");
+        }
+        AnnotationSpec anno = AnnotationSpec.builder(generated)
                 .addMember("value", "$S", LightProcessor.class.getCanonicalName())
                 .build();
         builder.addAnnotation(anno);
     }
+
+    private static int getJdkVersion() {
+        // 1.8 -> 8
+        // 11 -> 11
+        // higher than 11 we don't consider it
+        if (JDK_VERSION.contains("1.7.")) {
+            return 7;
+        }
+        if (JDK_VERSION.contains("1.8.")) {
+            return 8;
+        }
+        if (JDK_VERSION.startsWith("9.")) {
+            return 9;
+        }
+        if (JDK_VERSION.startsWith("10.")) {
+            return 10;
+        }
+        if (JDK_VERSION.startsWith("11.")) {
+            return 11;
+        }
+
+        return 12;
+    }
+
 
     public abstract static class SharedFieldSpec {
         final String baseName;

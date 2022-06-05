@@ -38,7 +38,7 @@ import java.util.Set;
  */
 @AutoService(javax.annotation.processing.Processor.class)
 @SupportedAnnotationTypes("space.lingu.light.Database")
-@SupportedSourceVersion(SourceVersion.RELEASE_11)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class LightProcessor extends JavacBaseProcessor {
 
     @Override
