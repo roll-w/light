@@ -68,12 +68,12 @@ public class DatabaseProcessor implements Processor<Database> {
             dialectClass = e.getTypeMirror();
         }
 
-        List<? extends TypeMirror> tableClassMirror = null;
+        List<TypeMirror> tableClassMirror = new ArrayList<>();
         try {
             Class<?>[] tableClasses = anno.tables();
         } catch (MirroredTypesException e) {
             // it will and should be caught
-            tableClassMirror = e.getTypeMirrors();
+            tableClassMirror.addAll(e.getTypeMirrors());
         }
 
         TypeElement dialectElement = (TypeElement) mEnv.getTypeUtils().asElement(dialectClass);
@@ -148,6 +148,7 @@ public class DatabaseProcessor implements Processor<Database> {
 
     private List<DatabaseDaoMethod> getAllDaoMethods() {
         List<DatabaseDaoMethod> daoMethods = new ArrayList<>();
+
         for (Element e : enclosedElements) {
             if (e.getKind() != ElementKind.METHOD && !ElementUtil.isAbstract(e)) continue;
 
