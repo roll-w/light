@@ -41,7 +41,7 @@
         <dependency>
             <groupId>space.lingu.light</groupId>
             <artifactId>light-core</artifactId>
-            <version>0.2.0</version>
+            <version>0.2.4</version>
         </dependency>
 
         <dependency>
