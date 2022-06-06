@@ -18,7 +18,7 @@ package space.lingu.light.connect;
 
 /**
  * 数据库连接配置
- * @author Kai
+ * @author RollW
  */
 public class DatasourceConfig {
     private final String url;
