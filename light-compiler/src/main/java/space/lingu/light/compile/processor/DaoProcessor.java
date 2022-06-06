@@ -31,10 +31,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -47,7 +44,7 @@ public class DaoProcessor implements Processor<Dao> {
     private final Dao dao = new Dao();
 
     public static final List<Class<? extends Annotation>> PROCESS_ANNOTATIONS =
-            List.of(Insert.class, Query.class, Delete.class, Update.class);
+            Arrays.asList(Insert.class, Query.class, Delete.class, Update.class);
 
     public DaoProcessor(TypeElement daoElement, ProcessEnv env) {
         mDaoElement = daoElement;

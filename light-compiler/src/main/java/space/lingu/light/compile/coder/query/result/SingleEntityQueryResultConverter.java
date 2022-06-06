@@ -23,6 +23,7 @@ import space.lingu.light.compile.coder.query.row.RowConverter;
 
 import javax.lang.model.type.TypeMirror;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -33,7 +34,7 @@ public class SingleEntityQueryResultConverter extends QueryResultConverter {
     private final RowConverter mConverter;
 
     public SingleEntityQueryResultConverter(RowConverter converter) {
-        super(List.of(converter));
+        super(Collections.singletonList(converter));
         mConverter = converter;
     }
 

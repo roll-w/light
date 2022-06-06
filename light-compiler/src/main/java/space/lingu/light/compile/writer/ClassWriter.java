@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.processing.Generated;
 import javax.annotation.processing.Filer;
 import javax.tools.Diagnostic;
 

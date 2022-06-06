@@ -103,7 +103,7 @@ public class FieldProcessor implements Processor<Field> {
         return SQLDataType.TEXT;
     }
 
-    private boolean isEqualBothBox(TypeName value, TypeName type) {
+    private static boolean isEqualBothBox(TypeName value, TypeName type) {
         return value.equals(type) || value.equals(type.box());
     }
 

@@ -25,10 +25,7 @@ import space.lingu.light.compile.struct.*;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -74,7 +71,7 @@ public class DataTableProcessor implements Processor<DataTable> {
     }
 
     private List<PrimaryKey> getPrimaryKeysFromDataEntity(List<Field> fields) {
-        List<String> keys = List.of(anno.primaryKeys());
+        List<String> keys = Arrays.asList(anno.primaryKeys());
         if (keys.isEmpty()) {
             return new ArrayList<>();
         }
@@ -148,7 +145,7 @@ public class DataTableProcessor implements Processor<DataTable> {
             }
 
             indices.add(new Index(index.name(), index.unique(),
-                    new Field.Fields(indexFields), List.of(index.orders())));
+                    new Field.Fields(indexFields), Arrays.asList(index.orders())));
         }
 
         return indices;
