@@ -150,7 +150,9 @@ public class DatabaseProcessor implements Processor<Database> {
         List<DatabaseDaoMethod> daoMethods = new ArrayList<>();
 
         for (Element e : enclosedElements) {
-            if (e.getKind() != ElementKind.METHOD && !ElementUtil.isAbstract(e)) continue;
+            if (e.getKind() != ElementKind.METHOD || !ElementUtil.isAbstract(e)) {
+                continue;
+            }
 
             ExecutableElement method = (ExecutableElement) e;
             TypeElement returnType = (TypeElement) mEnv.getTypeUtils().asElement(method.getReturnType());
