@@ -98,7 +98,6 @@ public abstract class ClassWriter {
     public void write() {
         TypeSpec.Builder builder = createTypeSpecBuilder();
 
-        addGenerated(builder);
         addSuppressWarnings(builder);
         addNote(builder);
 
