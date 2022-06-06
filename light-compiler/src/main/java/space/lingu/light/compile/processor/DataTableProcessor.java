@@ -43,6 +43,9 @@ public class DataTableProcessor implements Processor<DataTable> {
     public DataTableProcessor(TypeElement element, ProcessEnv env) {
         mElement = element;
         anno = element.getAnnotation(space.lingu.light.DataTable.class);
+        if (anno == null) {
+            throw new LightCompileException("A data table class must be annotated with @DataTable.");
+        }
         mEnv = env;
     }
 
