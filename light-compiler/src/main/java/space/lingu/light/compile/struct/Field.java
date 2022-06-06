@@ -25,11 +25,12 @@ import space.lingu.light.compile.javac.Nullability;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.util.StringUtil;
 
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Field - DataColumn
@@ -63,7 +64,7 @@ public class Field {
     }
 
     public List<String> getPossibleCandidateName() {
-        List<String> result = new ArrayList<>(List.of(name));
+        List<String> result = new ArrayList<>(Collections.singletonList(name));
         if (name.length() > 1) {
             if (name.startsWith("_")) {
                 result.add(name.substring(1));
@@ -72,7 +73,7 @@ public class Field {
                 result.add(StringUtil.firstLowerCase(name.substring(1)));
             }
             TypeName typeName = ClassName.get(type);
-            if (typeName == TypeName.BOOLEAN || typeName == TypeName.BOOLEAN.box()) {
+            if (typeMirror.getKind() == TypeKind.BOOLEAN || typeName.equals(TypeName.BOOLEAN.box())) {
                 if (name.length() > 2 && name.startsWith("is") && Character.isUpperCase(name.charAt(2))) {
                     result.add(StringUtil.firstLowerCase(name.substring(2)));
                 }
@@ -95,10 +96,13 @@ public class Field {
         final List<String> getterNames = new ArrayList<>();
         getPossibleCandidateName().forEach(s -> {
             getterNames.add("get" + StringUtil.firstUpperCase(s));
-            TypeName typeName = ClassName.get(type);
-            if (typeName == TypeName.BOOLEAN || typeName == TypeName.BOOLEAN.box()) {
-                getterNames.addAll(List.of("is" + StringUtil.firstUpperCase(s),
-                        "has" + StringUtil.firstUpperCase(s)));
+            TypeName typeName = ClassName.get(typeMirror);
+            if (typeMirror.getKind() == TypeKind.BOOLEAN ||
+                    typeName.equals(TypeName.BOOLEAN.box())) {
+                getterNames.addAll(Arrays.asList(
+                        "is" + StringUtil.firstUpperCase(s),
+                        "has" + StringUtil.firstUpperCase(s))
+                );
             }
         });
 
