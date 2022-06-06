@@ -112,7 +112,7 @@ public final class Light {
             throw new LightRuntimeException("Cannot find a parameterless constructor of "
                     + clazz.getCanonicalName());
         } catch (InvocationTargetException e) {
-            throw new LightRuntimeException("Invocation target exception.");
+            throw new LightRuntimeException("Invocation target exception.", e.getTargetException());
         }
     }
 

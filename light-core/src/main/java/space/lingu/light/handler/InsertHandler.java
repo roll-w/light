@@ -17,6 +17,7 @@
 package space.lingu.light.handler;
 
 import space.lingu.light.LightDatabase;
+import space.lingu.light.LightRuntimeException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             stmt.execute();
         } catch (SQLException e) {
             printError(e);
+            throw new LightRuntimeException(e);
         } finally {
             release(stmt);
         }
@@ -71,6 +73,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
 
         } catch (SQLException e) {
             printError(e);
+            throw new LightRuntimeException(e);
         } finally {
             release(stmt);
         }
@@ -88,6 +91,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             set.close();
         } catch (SQLException e) {
             printError(e);
+            throw new LightRuntimeException(e);
         } finally {
             release(stmt);
         }
@@ -112,10 +116,10 @@ public abstract class InsertHandler<T> extends Handler<T> {
             return result;
         } catch (SQLException e) {
             printError(e);
+            throw new LightRuntimeException(e);
         } finally {
             release(stmt);
         }
-        return new long[0];
     }
 
     public final long[] insertAndReturnIdsArray(T[] entities) {
@@ -140,10 +144,10 @@ public abstract class InsertHandler<T> extends Handler<T> {
             return result;
         } catch (SQLException e) {
             printError(e);
+            throw new LightRuntimeException(e);
         } finally {
             release(stmt);
         }
-        return new Long[0];
     }
 
     public final Long[] insertAndReturnIdsArrayBox(T[] entities) {

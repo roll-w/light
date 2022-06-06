@@ -17,11 +17,11 @@
 package space.lingu.light.handler;
 
 import space.lingu.light.LightDatabase;
+import space.lingu.light.LightRuntimeException;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collection;
 
 /**
  * 处理删除或更新操作
@@ -49,7 +49,7 @@ public abstract class DeleteUpdateHandler<T> extends Handler<T> {
             return stmt.executeUpdate();
         } catch (SQLException e) {
             printError(e);
-            return 0;
+            throw new LightRuntimeException(e);
         } finally {
             release(stmt);
         }
@@ -70,7 +70,7 @@ public abstract class DeleteUpdateHandler<T> extends Handler<T> {
             return count;
         } catch (SQLException e) {
             printError(e);
-            return 0;
+            throw new LightRuntimeException(e);
         } finally {
             release(stmt);
         }

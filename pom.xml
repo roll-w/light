@@ -23,15 +23,15 @@
     <groupId>space.lingu.light</groupId>
     <artifactId>light-data</artifactId>
     <packaging>pom</packaging>
-    <version>0.2.2</version>
+    <version>0.2.3</version>
 
     <modules>
         <module>light-parent</module>
     </modules>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <dependencies>
