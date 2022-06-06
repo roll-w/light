@@ -26,6 +26,7 @@ import space.lingu.light.compile.coder.query.row.RowConverter;
 import javax.lang.model.type.TypeMirror;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,7 +37,7 @@ public class ListQueryResultConverter extends QueryResultConverter {
     private final RowConverter mConverter;
 
     public ListQueryResultConverter(TypeMirror type, RowConverter converter) {
-        super(List.of(converter));
+        super(Collections.singletonList(converter));
         mConverter = converter;
         mType = type;
     }

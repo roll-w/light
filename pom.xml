@@ -23,7 +23,7 @@
     <groupId>space.lingu.light</groupId>
     <artifactId>light-data</artifactId>
     <packaging>pom</packaging>
-    <version>0.2.3</version>
+    <version>0.2.4</version>
 
     <modules>
         <module>light-parent</module>
@@ -33,9 +33,5 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-
-    <dependencies>
-
-    </dependencies>
 
 </project>

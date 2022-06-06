@@ -22,11 +22,11 @@
     <parent>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-parent</artifactId>
-        <version>0.2.3</version>
+        <version>0.2.4</version>
         <relativePath>../light-parent</relativePath>
     </parent>
     <artifactId>light-core</artifactId>
-    <version>0.2.3</version>
+    <version>0.2.4</version>
     <packaging>jar</packaging>
 
     <properties>

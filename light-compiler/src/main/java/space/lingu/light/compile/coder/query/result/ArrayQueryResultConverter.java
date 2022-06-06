@@ -25,6 +25,8 @@ import space.lingu.light.compile.coder.query.row.RowConverter;
 import space.lingu.light.compile.javac.TypeUtil;
 
 import javax.lang.model.type.TypeMirror;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,7 +37,7 @@ public class ArrayQueryResultConverter extends QueryResultConverter {
     private final TypeMirror type;
 
     public ArrayQueryResultConverter(RowConverter converter) {
-        super(List.of(converter));
+        super(Collections.singletonList(converter));
         this.converter = converter;
         this.type = converter.getOutType();
     }
