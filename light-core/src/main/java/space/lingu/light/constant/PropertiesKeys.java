@@ -22,6 +22,7 @@ package space.lingu.light.constant;
  */
 public class PropertiesKeys {
     public static final String URL_KEY = "light.data.url";
+    public static final String JDBC_NAME_KEY = "light.data.jdbcName";
     public static final String USERNAME_KEY = "light.data.username";
     public static final String PASSWORD_KEY = "light.data.password";
     public static final String MODIFIER_KEY = "light.data.modifier";

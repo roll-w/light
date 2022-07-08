@@ -16,19 +16,23 @@
 
 package space.lingu.light.connect;
 
+import java.util.Objects;
+
 /**
  * 数据库连接配置
  * @author RollW
  */
 public class DatasourceConfig {
     private final String url;
+    private final String jdbcName;
     private final String username;// optional
     private final String password;// optional
     private final String modifier;
 
-    public DatasourceConfig(String url, String username,
+    public DatasourceConfig(String url, String jdbcName, String username,
                             String password, String modifier) {
         this.url = url;
+        this.jdbcName = jdbcName;
         this.username = username;
         this.password = password;
         this.modifier = modifier;
@@ -50,10 +54,32 @@ public class DatasourceConfig {
         return modifier;
     }
 
+    public String getJdbcName() {
+        return jdbcName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DatasourceConfig config = (DatasourceConfig) o;
+        return Objects.equals(url, config.url) &&
+                Objects.equals(jdbcName, config.jdbcName) &&
+                Objects.equals(username, config.username) &&
+                Objects.equals(password, config.password) &&
+                Objects.equals(modifier, config.modifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url, jdbcName, username, password, modifier);
+    }
+
     @Override
     public String toString() {
         return "DataSourceConfig{" +
                 "url='" + url + '\'' +
+                "jdbcName='" + jdbcName + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", modifier='" + modifier + '\'' +

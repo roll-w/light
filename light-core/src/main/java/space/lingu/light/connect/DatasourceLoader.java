@@ -49,10 +49,11 @@ public class DatasourceLoader {
                     "If you enter a custom path, check whether the path is correct.");
         }
         final String url = properties.getProperty(PropertiesKeys.URL_KEY);
+        final String jdbcName = properties.getProperty(PropertiesKeys.JDBC_NAME_KEY);
         final String username = properties.getProperty(PropertiesKeys.USERNAME_KEY, null);
         final String password = properties.getProperty(PropertiesKeys.PASSWORD_KEY, null);
         final String modifier = properties.getProperty(PropertiesKeys.MODIFIER_KEY, null);
-        return new DatasourceConfig(url, username, password, modifier);
+        return new DatasourceConfig(url, jdbcName, username, password, modifier);
 
         // TODO: 多数据配置读取
     }

@@ -16,6 +16,7 @@
 
 package space.lingu.light.connect.simple;
 
+import space.lingu.light.Light;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.connect.DatasourceConfig;
 import space.lingu.light.log.JdkDefaultLogger;
@@ -52,6 +53,11 @@ public class DisposableConnectionPool implements ConnectionPool {
     public Connection requireConnection() {
         if (mDatasourceConfig == null || mDatasourceConfig.getUrl() == null) {
             throw new IllegalStateException("DataSourceConfig is null or URL is null.");
+        }
+        try {
+            Class.forName(mDatasourceConfig.getJdbcName());
+        } catch (ClassNotFoundException e) {
+            throw new LightRuntimeException("Jdbc driver class not found, please check properties.", e);
         }
         if (StringUtil.isEmpty(mDatasourceConfig.getPassword()) ||
                 StringUtil.isEmpty(mDatasourceConfig.getUsername()) ) {

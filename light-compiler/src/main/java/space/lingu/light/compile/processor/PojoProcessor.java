@@ -77,7 +77,7 @@ public class PojoProcessor implements Processor<Pojo> {
     }
 
     private Constructor chooseConstructor(List<Field> fields) {
-        // 从参数数量由低到高寻找
+        // 从参数数量由少到多寻找
         List<? extends Element> elements = mElement.getEnclosedElements();
         Constructor constructor = new Constructor();
         List<ExecutableElement> constructorsForChoose = new ArrayList<>();
