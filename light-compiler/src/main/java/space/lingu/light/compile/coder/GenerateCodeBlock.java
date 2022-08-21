@@ -58,7 +58,7 @@ public class GenerateCodeBlock {
         }
         if (prefix.startsWith(CLASS_PROPERTY_PREFIX)) {
             throw new LightCompileException(
-                    new IllegalArgumentException("cannot use "+ CLASS_PROPERTY_PREFIX +" for tmp variables"));
+                    new IllegalArgumentException("cannot use " + CLASS_PROPERTY_PREFIX + " for tmp variables"));
         }
         int idx = tempVars.getOrDefault(prefix, 0);
         String res = generateTmpVarName(prefix, idx);
