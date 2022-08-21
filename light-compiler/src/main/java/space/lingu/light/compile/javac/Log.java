@@ -39,7 +39,7 @@ public class Log {
 
     public void log(Diagnostic.Kind kind, CharSequence charSequence,
                     Element element) {
-        mMessager.printMessage(kind, charSequence);
+        mMessager.printMessage(kind, charSequence, element);
     }
 
     public void log(Diagnostic.Kind kind, CharSequence msg,
