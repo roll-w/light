@@ -108,7 +108,6 @@ public abstract class ClassWriter {
                     .build()
                     .writeTo(filer);
         } catch (IOException e) {
-            mEnv.getLog().error("Generate java file failed");
             throw new LightCompileException("Generate java file failed.", e);
         }
     }

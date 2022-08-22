@@ -19,6 +19,7 @@ package space.lingu.light.compile.processor;
 import com.squareup.javapoet.ClassName;
 import space.lingu.light.Dao;
 import space.lingu.light.DataConverters;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -117,7 +118,7 @@ public class DatabaseProcessor implements Processor<Database> {
         if (dataConvertersAnno == null) {
             return Collections.emptyList();
         }
-        List<? extends TypeMirror> convertersClassMirror = null;
+        List<? extends TypeMirror> convertersClassMirror = Collections.emptyList();
         try {
             Class<?>[] classes = dataConvertersAnno.value();
         } catch (MirroredTypesException e) {
@@ -158,8 +159,10 @@ public class DatabaseProcessor implements Processor<Database> {
             TypeElement returnType = (TypeElement) mEnv.getTypeUtils().asElement(method.getReturnType());
             Dao daoAnno = returnType.getAnnotation(Dao.class);
             if (daoAnno == null) {
-                throw new LightCompileException("An abstract method in a database class whose return type " +
-                        "must be an abstract class or interface annotated with @Dao");
+                mEnv.getLog().error(
+                        CompileErrors.DATABASE_ABSTRACT_METHOD_RETURN_TYPE,
+                        method
+                );
             }
             DaoProcessor daoProcessor = new DaoProcessor(returnType, mEnv);
             DatabaseDaoMethod daoMethod = new DatabaseDaoMethod()

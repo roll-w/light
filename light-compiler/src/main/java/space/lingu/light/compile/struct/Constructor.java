@@ -73,7 +73,8 @@ public class Constructor {
 
     public void writeConstructor(String out, String args, CodeBlock.Builder builder) {
         if (element == null) {
-            throw new IllegalStateException("Must set execute element first.");
+            throw new LightCompileException(
+                    new IllegalStateException("Must set execute element first."));
         }
         if (element.getKind() == ElementKind.CONSTRUCTOR) {
             builder.addStatement("$L = new $T($L)", out, ClassName.get(element.getEnclosingElement().asType()), args);

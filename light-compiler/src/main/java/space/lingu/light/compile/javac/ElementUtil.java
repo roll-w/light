@@ -143,4 +143,6 @@ public class ElementUtil {
         return MoreTypes.asDeclared(mirror).getTypeArguments();
     }
 
+    private ElementUtil() {
+    }
 }

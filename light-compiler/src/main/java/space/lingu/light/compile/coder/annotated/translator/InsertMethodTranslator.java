@@ -17,6 +17,7 @@
 package space.lingu.light.compile.coder.annotated.translator;
 
 import com.squareup.javapoet.*;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
@@ -40,15 +41,26 @@ import java.util.Map;
 public class InsertMethodTranslator {
     private final InsertType insertType;
 
-    public static InsertMethodTranslator create(TypeMirror typeMirror, ProcessEnv env,
+    public static InsertMethodTranslator create(ExecutableElement methodElement,
+                                                ProcessEnv env,
                                                 List<AnnotateParameter> params) {
-        InsertType insertType = getInsertType((TypeElement) env.getTypeUtils().asElement(typeMirror), typeMirror);
+        TypeMirror returnType = methodElement.getReturnType();
+        InsertType insertType = getInsertType((TypeElement) env.getTypeUtils().asElement(returnType), returnType);
+        if (insertType == null) {
+            env.getLog().error(
+                    CompileErrors.INSERT_RETURN_TYPE,
+                    methodElement
+            );
+        }
         if (checkType(insertType, params)) {
             return new InsertMethodTranslator(insertType);
         }
-        env.getLog().error("Could not get a method that matches the given argument. The parameter can be empty or only one parameter.",
-                env.getTypeUtils().asElement(typeMirror));
-        throw new LightCompileException("Insert method parameter and return type not match.");
+        env.getLog().error(
+                CompileErrors.INSERT_RETURN_TYPE_NOT_MATCHED,
+                methodElement
+        );
+
+        return null;
     }
 
     private static boolean checkType(InsertType type, List<AnnotateParameter> params) {
@@ -59,28 +71,24 @@ public class InsertMethodTranslator {
             return type == InsertType.VOID || type == InsertType.VOID_OBJECT;
         }
         if (params.get(0).isMultiple()) {
-            return MULTIPLE_LIST.contains(type);
+            return sMultipleList.contains(type);
         }
         return type == InsertType.VOID ||
                 type == InsertType.VOID_OBJECT ||
                 type == InsertType.SINGLE_ID;
     }
 
-    private static final List<InsertType> MULTIPLE_LIST = new ArrayList<>();
+    private static final List<InsertType> sMultipleList = new ArrayList<>();
     static {
-        MULTIPLE_LIST.add(InsertType.VOID);
-        MULTIPLE_LIST.add(InsertType.VOID_OBJECT);
-        MULTIPLE_LIST.add(InsertType.ID_ARRAY);
-        MULTIPLE_LIST.add(InsertType.ID_ARRAY_BOXED);
-        MULTIPLE_LIST.add(InsertType.ID_LIST);
+        sMultipleList.add(InsertType.VOID);
+        sMultipleList.add(InsertType.VOID_OBJECT);
+        sMultipleList.add(InsertType.ID_ARRAY);
+        sMultipleList.add(InsertType.ID_ARRAY_BOXED);
+        sMultipleList.add(InsertType.ID_LIST);
     }
 
-    public static InsertMethodTranslator create(ExecutableElement element, ProcessEnv env,
-                                                List<AnnotateParameter> params) {
-        return create(element.getReturnType(), env, params);
-    }
-
-    private static InsertType getInsertType(TypeElement typeElement, TypeMirror typeMirror) {
+    private static InsertType getInsertType(TypeElement typeElement,
+                                            TypeMirror typeMirror) {
         if (typeElement == null) {
             if (typeMirror.getKind() == TypeKind.LONG) {
                 return InsertType.SINGLE_ID;
@@ -97,7 +105,7 @@ public class InsertMethodTranslator {
                     return InsertType.ID_ARRAY_BOXED;
                 }
             }
-            throw new LightCompileException("Cannot parse return type.");
+            return null;
         }
 
         if (ElementUtil.isLong(typeElement)) {

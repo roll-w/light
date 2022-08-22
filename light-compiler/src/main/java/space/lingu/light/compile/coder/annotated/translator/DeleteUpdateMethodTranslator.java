@@ -20,9 +20,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.struct.AnnotateParameter;
 import space.lingu.light.util.Pair;
@@ -41,13 +39,12 @@ public class DeleteUpdateMethodTranslator {
         mReturnType = mirror;
     }
 
-    public static DeleteUpdateMethodTranslator create(TypeMirror typeMirror, ProcessEnv env,
+    public static DeleteUpdateMethodTranslator create(TypeMirror typeMirror,
                                                       List<AnnotateParameter> params) {
         if (check(typeMirror, params)) {
             return new DeleteUpdateMethodTranslator(typeMirror);
         }
-
-        throw new LightCompileException("Delete or update method invalid, please check the return type and parameter.");
+        return null;
     }
 
     private static boolean check(TypeMirror mirror, List<AnnotateParameter> params) {

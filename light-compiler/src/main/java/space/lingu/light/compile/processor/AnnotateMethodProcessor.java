@@ -16,8 +16,7 @@
 
 package space.lingu.light.compile.processor;
 
-import space.lingu.light.compile.LightCompileException;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.struct.AnnotateParameter;
@@ -29,6 +28,7 @@ import space.lingu.light.util.Pair;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +36,7 @@ import java.util.Map;
 
 /**
  * 提供给解析直接使用注解无方法体的方法处理器的通用处理器
+ *
  * @author RollW
  */
 public class AnnotateMethodProcessor {
@@ -70,15 +71,18 @@ public class AnnotateMethodProcessor {
             }
 
             if (entityTypeElement == null) {
-                mEnv.getLog().error("Invalid Method parameter, must be a class or interface.", mElement);
-                throw new LightCompileException("Invalid Method parameter, must be a class or interface.");
+                mEnv.getLog().error(
+                        CompileErrors.DAO_INVALID_METHOD_PARAMETER,
+                        mElement
+                );
+                return;
             }
 
             // TODO 支持实体类片段
             Pojo pojo = new PojoProcessor(entityTypeElement, mEnv).process();
             if (entityTypeElement.getAnnotation(space.lingu.light.DataTable.class) == null) {
-                mEnv.getLog().error("The actual parameter type should be annotated with @DataTable.", mElement);
-                throw new LightCompileException("The actual parameter type should be annotated with @DataTable.");
+                mEnv.getLog().error(CompileErrors.ACTUAL_PARAM_ANNOTATED_DATATABLE, mElement);
+                return;
             }
             DataTable dataTable = new DataTableProcessor(param.getWrappedType(), mEnv).process();
 

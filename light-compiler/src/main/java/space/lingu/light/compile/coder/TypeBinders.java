@@ -16,6 +16,7 @@
 
 package space.lingu.light.compile.coder;
 
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.query.binder.*;
 import space.lingu.light.compile.coder.query.result.ArrayQueryResultConverter;
@@ -78,6 +79,10 @@ public class TypeBinders {
     }
 
     public QueryParameterBinder findQueryParameterBinder(TypeMirror typeMirror) {
+        if (typeMirror == null) {
+            throw new LightCompileException(CompileErrors.BUG_REPORT);
+        }
+
         if (TypeUtil.isCollection(typeMirror)) {
             TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(ElementUtil.getGenericTypes(typeMirror).get(0));
             StatementBinder binder = findStatementBinder(typeArg, null);
@@ -98,7 +103,7 @@ public class TypeBinders {
             }
         }
 
-        throw new LightCompileException("Cannot find a query parameter binder.");
+        return null;
     }
 
     public QueryResultBinder findQueryResultBinder(TypeMirror typeMirror) {
@@ -107,6 +112,8 @@ public class TypeBinders {
     }
 
     public QueryResultConverter findQueryResultConverter(TypeMirror type) {
+
+
         if (TypeUtil.isArray(type) && TypeUtil.getArrayElementType(type).getKind() != TypeKind.BYTE) {
             RowConverter converter = findRowConverter(TypeUtil.getArrayElementType(type));
             if (converter != null) {
@@ -150,6 +157,7 @@ public class TypeBinders {
         }
         if (!TypeUtil.isPrimitive(type) &&
                 ElementUtil.asTypeElement(type).getKind() == ElementKind.ENUM) {
+            // basically it will not be null
             return new EnumColumnTypeBinder(type);
         }
 
@@ -165,7 +173,7 @@ public class TypeBinders {
 
     private List<ColumnTypeBinder> getAllColumnBinders(TypeMirror element) {
         return mColumnTypeBinders.stream().filter(binder ->
-                TypeUtil.equalTypeMirror(binder.type, element))
+                        TypeUtil.equalTypeMirror(binder.type, element))
                 .collect(Collectors.toList());
     }
 }

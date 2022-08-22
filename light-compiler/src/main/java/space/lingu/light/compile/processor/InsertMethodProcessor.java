@@ -17,6 +17,7 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.Insert;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.annotated.binder.DirectInsertMethodBinder;
 import space.lingu.light.compile.coder.annotated.translator.InsertMethodTranslator;
@@ -33,6 +34,7 @@ import java.util.Map;
 
 /**
  * 插入方法处理器
+ *
  * @author RollW
  */
 public class InsertMethodProcessor implements Processor<InsertMethod> {
@@ -56,13 +58,15 @@ public class InsertMethodProcessor implements Processor<InsertMethod> {
 
         Insert insertAnno = mExecutable.getAnnotation(Insert.class);
         if (insertAnno == null) {
+            // but this will never happen.
             throw new LightCompileException("An insertion method must be annotated with @Insert.");
         }
-        DaoProcessor.PROCESS_ANNOTATIONS.forEach(anno -> {
-            if (anno != Insert.class) {
-                if (mExecutable.getAnnotation(anno) != null) {
-                    throw new LightCompileException("Only can have one of annotations below : @Insert, @Update, @Query, @Delete.");
-                }
+        DaoProcessor.sHandleAnnotations.forEach(anno -> {
+            if (anno != Insert.class && mExecutable.getAnnotation(anno) != null) {
+                mEnv.getLog().error(
+                        CompileErrors.DUPLICATED_METHOD_ANNOTATION,
+                        mExecutable
+                );
             }
         });
 
@@ -74,10 +78,12 @@ public class InsertMethodProcessor implements Processor<InsertMethod> {
                 .setOnConflict(insertAnno.onConflict())
                 .setEntities(pair.first)
                 .setParameters(pair.second)
-                .setBinder(new DirectInsertMethodBinder(
-                        InsertMethodTranslator.create(
-                                insertMethod.getReturnType(),
-                                mEnv,
-                                insertMethod.getParameters())));
+                .setBinder(
+                        new DirectInsertMethodBinder(
+                                InsertMethodTranslator.create(
+                                        insertMethod.getElement(),
+                                        mEnv,
+                                        insertMethod.getParameters()))
+                );
     }
 }

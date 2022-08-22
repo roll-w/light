@@ -50,7 +50,8 @@ public class TypeUtil {
             @Override
             public TypeMirror visitWildcard(WildcardType t, Void unused) {
                 return t.getExtendsBound() == null ? t.getSuperBound() : t.getExtendsBound();
-            }}, null);
+            }
+        }, null);
     }
 
     public static TypeMirror getExtendBoundOrSelf(TypeMirror mirror) {
@@ -96,14 +97,14 @@ public class TypeUtil {
                 mirror.getKind() == TypeKind.BOOLEAN;
     }
 
-    private TypeUtil() {
-    }
-
     public static boolean isVoid(TypeMirror typeMirror) {
         return typeMirror.getKind() == TypeKind.VOID;
     }
 
     public static boolean isInt(TypeMirror typeMirror) {
         return typeMirror.getKind() == TypeKind.INT;
+    }
+
+    private TypeUtil() {
     }
 }

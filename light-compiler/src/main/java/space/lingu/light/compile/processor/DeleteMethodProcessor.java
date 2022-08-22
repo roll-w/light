@@ -17,7 +17,7 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.Delete;
-import space.lingu.light.compile.LightCompileException;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.coder.annotated.translator.DeleteUpdateMethodTranslator;
 import space.lingu.light.compile.coder.annotated.binder.DirectDeleteUpdateMethodBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -35,7 +35,7 @@ import java.util.Map;
  * @author RollW
  */
 public class DeleteMethodProcessor implements Processor<DeleteMethod> {
-    private final ExecutableElement mElement;
+    private final ExecutableElement mExecutable;
     private final TypeElement mContaining;
     private final ProcessEnv mEnv;
     private final DeleteMethod method = new DeleteMethod();
@@ -43,33 +43,38 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
     public DeleteMethodProcessor(ExecutableElement element,
                                  TypeElement containing,
                                  ProcessEnv env) {
-        mElement = element;
+        mExecutable = element;
         mContaining = containing;
         mEnv = env;
     }
 
     @Override
     public DeleteMethod process() {
-        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(mElement, mEnv);
+        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(mExecutable, mEnv);
 
-        DaoProcessor.PROCESS_ANNOTATIONS.forEach(anno -> {
-            if (anno != Delete.class) {
-                if (mElement.getAnnotation(anno) != null) {
-                    throw new LightCompileException("Only can have one of annotations below : @Insert, @Update, @Query, @Delete.");
-                }
+        DaoProcessor.sHandleAnnotations.forEach(anno -> {
+            if (anno != Delete.class && mExecutable.getAnnotation(anno) != null) {
+                mEnv.getLog().error(
+                        CompileErrors.DUPLICATED_METHOD_ANNOTATION,
+                        mExecutable
+                );
             }
         });
         Pair<Map<String, ParamEntity>, List<AnnotateParameter>> pair =
                 delegate.extractParameters(mContaining);
-
-        return method.setElement(mElement)
+        method.setElement(mExecutable)
                 .setEntities(pair.first)
                 .setParameters(pair.second)
-                .setReturnType(mElement.getReturnType())
-                .setBinder(new DirectDeleteUpdateMethodBinder(
-                        DeleteUpdateMethodTranslator.create(
-                                method.getReturnType(),
-                                mEnv,
-                                method.getParameters())));
+                .setReturnType(mExecutable.getReturnType());
+        DeleteUpdateMethodTranslator translator = DeleteUpdateMethodTranslator.create(
+                method.getReturnType(),
+                method.getParameters()
+        );
+        if (translator == null) {
+            mEnv.getLog().error(CompileErrors.DELETE_INVALID_RETURN, mExecutable);
+        }
+        return method.setBinder(
+                new DirectDeleteUpdateMethodBinder(translator)
+        );
     }
 }

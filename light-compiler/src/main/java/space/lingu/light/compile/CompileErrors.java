@@ -19,7 +19,10 @@ package space.lingu.light.compile;
 /**
  * @author RollW
  */
+
 public class CompileErrors {
+    public static final String BUG_REPORT =
+            "If you see this message, means you have found a bug. Please report it to us.";
 
     public static final String DATABASE_NOT_CLASS =
             "@Database must be annotated on a class.";
@@ -28,8 +31,19 @@ public class CompileErrors {
     public static final String DATABASE_NOT_EXTENDS_BASE =
             "Database class must extends LightDatabase class.";
 
-    public static final String INVALID_METHOD_PARAMETER =
+    public static final String DATABASE_ABSTRACT_METHOD_RETURN_TYPE =
+            "An abstract method in a database class whose return type " +
+                    "must be an abstract class or interface annotated with @Dao";
+
+    public static final String DAO_INVALID_ABSTRACT_METHOD =
+            "An abstract method in a dao class must be annotated with one of the annotations below: \n" +
+                    "@Insert, @Delete, @Update, @Query";
+
+    public static final String DAO_INVALID_METHOD_PARAMETER =
             "Invalid Method parameter, must be a class or interface.";
+
+    public static final String ACTUAL_PARAM_ANNOTATED_DATATABLE =
+            "The actual parameter type should be annotated with @DataTable.";
 
     public static final String DUPLICATED_METHOD_ANNOTATION =
             "The method only can have one of annotations below : @Insert, @Update, @Query, @Delete.";
@@ -53,6 +67,8 @@ public class CompileErrors {
     public static final String QUERY_UNKNOWN_PARAM =
             "Unknown parameter type.";
 
-    public static final String BUG_REPORT =
-            "If you see this message, means you have found a bug.";
+    public static final String PARAM_NON_COMPLIANCE =
+            "Query/Insert method parameters cannot start with underscore (_).";
+
+
 }

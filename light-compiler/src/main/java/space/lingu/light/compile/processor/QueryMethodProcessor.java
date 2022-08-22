@@ -17,7 +17,7 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.Query;
-import space.lingu.light.Transaction;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.QueryMethod;
@@ -34,32 +34,35 @@ import java.util.List;
  * @author RollW
  */
 public class QueryMethodProcessor implements Processor<QueryMethod> {
-    private final ExecutableElement mElement;
+    private final ExecutableElement mExecutable;
     private final TypeElement mContaining;
     private final ProcessEnv mEnv;
     private final QueryMethod method = new QueryMethod();
 
-    public QueryMethodProcessor(ExecutableElement element, TypeElement containing, ProcessEnv env) {
-        mElement = element;
+    public QueryMethodProcessor(ExecutableElement element,
+                                TypeElement containing,
+                                ProcessEnv env) {
+        mExecutable = element;
         mContaining = containing;
         mEnv = env;
     }
 
     @Override
     public QueryMethod process() {
-        Query queryAnno = mElement.getAnnotation(Query.class);
+        Query queryAnno = mExecutable.getAnnotation(Query.class);
         if (queryAnno.value().isEmpty()) {
             throw new LightCompileException("Query method value cannot be empty, must be a sql sentence.");
         }
-        DaoProcessor.PROCESS_ANNOTATIONS.forEach(anno -> {
-            if (anno != Query.class) {
-                if (mElement.getAnnotation(anno) != null) {
-                    throw new LightCompileException("Only can have one of annotations below : @Insert, @Update, @Query, @Delete.");
-                }
+        DaoProcessor.sHandleAnnotations.forEach(anno -> {
+            if (anno != Query.class && mExecutable.getAnnotation(anno) != null) {
+                mEnv.getLog().error(
+                        CompileErrors.DUPLICATED_METHOD_ANNOTATION,
+                        mExecutable
+                );
             }
         });
 
-        List<? extends VariableElement> parameters = mElement.getParameters();
+        List<? extends VariableElement> parameters = mExecutable.getParameters();
         List<QueryParameter> queryParameters = new ArrayList<>();
         parameters.forEach(variableElement -> {
             Processor<QueryParameter> parameterProcessor =
@@ -67,11 +70,12 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
             queryParameters.add(parameterProcessor.process());
         });
 
-        return method.setElement(mElement)
+        return method.setElement(mExecutable)
                 .setQuery(queryAnno.value())
-                .setReturnType(mElement.getReturnType())
+                .setReturnType(mExecutable.getReturnType())
                 .setParameters(queryParameters)
-                .setTransaction(mElement.getAnnotation(Transaction.class) != null)
+                .setTransaction(true)
+                //.setTransaction(mExecutable.getAnnotation(Transaction.class) != null)
                 .setBinder(mEnv.getBinderCache().findQueryResultBinder(method.getReturnType()));
         // TODO 解析SQL
     }

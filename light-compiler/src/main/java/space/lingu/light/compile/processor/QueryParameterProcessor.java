@@ -16,6 +16,8 @@
 
 package space.lingu.light.compile.processor;
 
+import space.lingu.light.compile.CompileErrors;
+import space.lingu.light.compile.coder.query.binder.QueryParameterBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.QueryParameter;
 
@@ -40,14 +42,23 @@ public class QueryParameterProcessor implements Processor<QueryParameter> {
 
     @Override
     public QueryParameter process() {
+        QueryParameterBinder binder = mEnv
+                .getBinderCache()
+                .findQueryParameterBinder(mElement.asType());
+        if (binder == null) {
+            mEnv.getLog().error(
+                    CompileErrors.QUERY_UNKNOWN_PARAM,
+                    mElement
+            );
+        }
 
-
-        return parameter.setElement(mElement)
+        return parameter
+                .setElement(mElement)
                 .setName(mElement.getSimpleName().toString())
                 .setSqlName(parameter.getName())
                 .setTypeMirror(mElement.asType())
                 .setType((TypeElement) mEnv.getTypeUtils().asElement(parameter.getTypeMirror()))
-                .setBinder(mEnv.getBinderCache().findQueryParameterBinder(parameter.getTypeMirror()));
+                .setBinder(binder);
     }
 
 }

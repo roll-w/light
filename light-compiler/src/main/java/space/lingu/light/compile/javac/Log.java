@@ -16,6 +16,8 @@
 
 package space.lingu.light.compile.javac;
 
+import space.lingu.light.compile.LightCompileException;
+
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -66,7 +68,14 @@ public class Log {
     }
 
     public void error(CharSequence s, Element element) {
+        error(s, element, true);
+    }
+
+    public void error(CharSequence s, Element element, boolean throwsException) {
         log(Diagnostic.Kind.ERROR, s, element);
+        if (throwsException) {
+            throw new LightCompileException(s.toString());
+        }
     }
 
     public void note(CharSequence s, Element element) {

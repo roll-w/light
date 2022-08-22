@@ -20,7 +20,6 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
 
 /**
  * @author RollW
@@ -33,7 +32,6 @@ public abstract class JavacBaseProcessor extends AbstractProcessor {
     protected Types typeUtils;
     protected ProcessEnv env;
 
-
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
@@ -44,15 +42,8 @@ public abstract class JavacBaseProcessor extends AbstractProcessor {
         env = new ProcessEnv(filer, messager, elementUtils, typeUtils);
     }
 
-    protected void error(String message) {
-        messager.printMessage(Diagnostic.Kind.ERROR, message);
+    public ProcessEnv getEnv() {
+        return env;
     }
 
-    protected void warning(String message) {
-        messager.printMessage(Diagnostic.Kind.WARNING, message);
-    }
-
-    protected void note(String message) {
-        messager.printMessage(Diagnostic.Kind.NOTE, message);
-    }
 }

@@ -77,6 +77,9 @@ public abstract class DeleteUpdateHandler<T> extends Handler<T> {
     }
 
     private void printError(Throwable throwable) {
+        if (mDatabase.getLogger() == null) {
+            return;
+        }
         mDatabase.getLogger().error("An error occurred while delete or update.", throwable);
     }
 

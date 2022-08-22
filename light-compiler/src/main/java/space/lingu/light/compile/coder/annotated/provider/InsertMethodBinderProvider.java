@@ -19,6 +19,7 @@ package space.lingu.light.compile.coder.annotated.provider;
 import space.lingu.light.compile.coder.annotated.binder.InsertMethodBinder;
 import space.lingu.light.compile.struct.AnnotateParameter;
 
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
 
@@ -28,5 +29,6 @@ import java.util.List;
 public interface InsertMethodBinderProvider {
     boolean matches(TypeMirror typeMirror);
 
-    InsertMethodBinder provide(TypeMirror typeMirror, List<AnnotateParameter> params);
+    InsertMethodBinder provide(ExecutableElement executableElement,
+                               List<AnnotateParameter> params);
 }

@@ -77,7 +77,7 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
 
     public static List<PrimitiveColumnTypeBinder> create(ProcessEnv env) {
         List<PrimitiveColumnTypeBinder> binderList = new ArrayList<>();
-        CANDIDATE_TYPE_MAPPING.forEach((parseDataType, triple) -> {
+        sCandicateTypeMapping.forEach((parseDataType, triple) -> {
             SQLDataType sqlDataType;
             switch (parseDataType) {
                 case SHORT:
@@ -94,7 +94,9 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
                     sqlDataType = SQLDataType.CHAR; break;
                 case BOOLEAN:
                     sqlDataType = SQLDataType.BOOLEAN; break;
-                default: throw new LightCompileException("Illegal type.");
+                default: {
+                    throw new LightCompileException("Illegal type.");
+                }
             }
 
             binderList.add(new PrimitiveColumnTypeBinder(env.getTypeUtils().getPrimitiveType(TypeKind.valueOf(triple.first.toString().toUpperCase(Locale.US))),
@@ -103,16 +105,16 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
         return binderList;
     }
 
-    private static final Map<ParseDataType, Triple<TypeName, String, String>> CANDIDATE_TYPE_MAPPING = new EnumMap<>(ParseDataType.class);
+    private static final Map<ParseDataType, Triple<TypeName, String, String>> sCandicateTypeMapping = new EnumMap<>(ParseDataType.class);
     static {
-        CANDIDATE_TYPE_MAPPING.put(ParseDataType.INT, Triple.createTriple(TypeName.INT, "setInt", "getInt"));
-        CANDIDATE_TYPE_MAPPING.put(ParseDataType.SHORT, Triple.createTriple(TypeName.SHORT, "setShort", "getShort"));
-        CANDIDATE_TYPE_MAPPING.put(ParseDataType.LONG, Triple.createTriple(TypeName.LONG, "setLong", "getLong"));
-        CANDIDATE_TYPE_MAPPING.put(ParseDataType.CHAR, Triple.createTriple(TypeName.CHAR, "setChar", "getChar"));
-        CANDIDATE_TYPE_MAPPING.put(ParseDataType.BYTE, Triple.createTriple(TypeName.BYTE, "setByte", "getByte"));
-        CANDIDATE_TYPE_MAPPING.put(ParseDataType.DOUBLE, Triple.createTriple(TypeName.DOUBLE, "setDouble", "getDouble"));
-        CANDIDATE_TYPE_MAPPING.put(ParseDataType.FLOAT, Triple.createTriple(TypeName.FLOAT, "setFloat", "getFloat"));
-        CANDIDATE_TYPE_MAPPING.put(ParseDataType.BOOLEAN, Triple.createTriple(TypeName.BOOLEAN, "setBoolean", "getBoolean"));
+        sCandicateTypeMapping.put(ParseDataType.INT, Triple.createTriple(TypeName.INT, "setInt", "getInt"));
+        sCandicateTypeMapping.put(ParseDataType.SHORT, Triple.createTriple(TypeName.SHORT, "setShort", "getShort"));
+        sCandicateTypeMapping.put(ParseDataType.LONG, Triple.createTriple(TypeName.LONG, "setLong", "getLong"));
+        sCandicateTypeMapping.put(ParseDataType.CHAR, Triple.createTriple(TypeName.CHAR, "setChar", "getChar"));
+        sCandicateTypeMapping.put(ParseDataType.BYTE, Triple.createTriple(TypeName.BYTE, "setByte", "getByte"));
+        sCandicateTypeMapping.put(ParseDataType.DOUBLE, Triple.createTriple(TypeName.DOUBLE, "setDouble", "getDouble"));
+        sCandicateTypeMapping.put(ParseDataType.FLOAT, Triple.createTriple(TypeName.FLOAT, "setFloat", "getFloat"));
+        sCandicateTypeMapping.put(ParseDataType.BOOLEAN, Triple.createTriple(TypeName.BOOLEAN, "setBoolean", "getBoolean"));
     }
 
 }

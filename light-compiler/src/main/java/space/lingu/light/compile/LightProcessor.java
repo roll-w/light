@@ -45,26 +45,35 @@ public class LightProcessor extends JavacBaseProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (TypeElement element : annotations) {
             Set<? extends Element> annotatedClass = roundEnv.getElementsAnnotatedWith(element);
+
             for (Element e : annotatedClass) {
                 TypeElement classElement = (TypeElement) e;
                 if (!classElement.getKind().isClass()) {
-                    throw new LightCompileException("@Database must be annotated on a class");
+                    getEnv().getLog().error(
+                            CompileErrors.DATABASE_NOT_CLASS,
+                            classElement
+                    );
                 }
 
                 if (!ElementUtil.isAbstract(classElement)) {
-                    throw new LightCompileException("The " + classElement.getQualifiedName().toString()
-                            +" Database class must extend LightDatabase class and be abstract.");
+                    getEnv().getLog().error(
+                            CompileErrors.DATABASE_NOT_ABSTRACT_CLASS,
+                            classElement
+                    );
                 }
 
                 if (!checkSuperClass(classElement)) {
-                    throw new LightCompileException("The " + classElement.getQualifiedName().toString()
-                            +" Database class must extend LightDatabase class.");
+                    getEnv().getLog().error(
+                            CompileErrors.DATABASE_NOT_EXTENDS_BASE,
+                            classElement
+                    );
                 }
 
                 Processor<Database> databaseProcessor = new DatabaseProcessor(classElement, env);
                 DatabaseWriter writer = new DatabaseWriter(
-                        databaseProcessor.process()
-                        , env);
+                        databaseProcessor.process(),
+                        env
+                );
                 writer.write();
             }
         }

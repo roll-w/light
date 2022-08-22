@@ -16,7 +16,7 @@
 
 package space.lingu.light.compile.processor;
 
-import com.google.auto.common.MoreTypes;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -27,7 +27,6 @@ import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
 
@@ -54,7 +53,7 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
 
         String name = mElement.getSimpleName().toString();
         if (name.startsWith(ClassWriter.CLASS_MEMBER_PREFIX)) {
-            throw new LightCompileException("Query/Insert method parameters cannot start with underscore (_).");
+            mEnv.getLog().error(CompileErrors.PARAM_NON_COMPLIANCE, mElement);
         }
         Pair<TypeElement, Boolean> pair = extractPojo(asContaining);
 
@@ -76,7 +75,7 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
                 return ElementUtil.getGenericElements(TypeUtil.asExecutable(asMember).getReturnType()).get(0);
             }
         }
-        throw new LightCompileException(new IllegalArgumentException("iterator() not found in Iterable " + type.getQualifiedName()));
+        throw new LightCompileException("iterator() not found in Iterable " + type.getQualifiedName());
     }
 
     private Pair<TypeElement, Boolean> extractPojo(TypeMirror typeMirror) {

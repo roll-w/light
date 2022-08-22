@@ -18,6 +18,7 @@ package space.lingu.light.compile.processor;
 
 import com.squareup.javapoet.ClassName;
 import space.lingu.light.*;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -29,7 +30,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,7 +43,7 @@ public class DaoProcessor implements Processor<Dao> {
     private final ProcessEnv mEnv;
     private final Dao dao = new Dao();
 
-    public static final List<Class<? extends Annotation>> PROCESS_ANNOTATIONS =
+    public static final List<Class<? extends Annotation>> sHandleAnnotations =
             Arrays.asList(Insert.class, Query.class, Delete.class, Update.class);
 
     public DaoProcessor(TypeElement daoElement, ProcessEnv env) {
@@ -77,22 +77,24 @@ public class DaoProcessor implements Processor<Dao> {
 
         boolean isInterface = mDaoElement.getKind() == ElementKind.INTERFACE;
 
-        PROCESS_ANNOTATIONS.forEach(anno ->
+        sHandleAnnotations.forEach(anno ->
                 methods.put(anno, new ArrayList<>()));
 
         allMethods.forEach(method -> {
             if ((isInterface && !ElementUtil.isDefault(method)) ||
                     ElementUtil.isAbstract(method)) {
                 AtomicBoolean annotatedFlag = new AtomicBoolean(false);
-                PROCESS_ANNOTATIONS.forEach(anno -> {
+                sHandleAnnotations.forEach(anno -> {
                     if (method.getAnnotation(anno) != null) {
                         methods.get(anno).add(method);
                         annotatedFlag.set(true);
                     }
                 });
                 if (!annotatedFlag.get()) {
-                    throw new LightCompileException("An abstract method must be annotated with one of the annotations below: \n" +
-                            "@Insert, @Delete, @Update, @Query");
+                    mEnv.getLog().error(
+                            CompileErrors.DAO_INVALID_ABSTRACT_METHOD,
+                            method
+                    );
                 }
             }
         });
@@ -110,8 +112,8 @@ public class DaoProcessor implements Processor<Dao> {
             if (element.getAnnotation(Transaction.class) == null) {
                 return;
             }
-            for (Class<? extends Annotation> processAnnotation : PROCESS_ANNOTATIONS) {
-                if (element.getAnnotation(processAnnotation) != null) {
+            for (Class<? extends Annotation> annotation : sHandleAnnotations) {
+                if (element.getAnnotation(annotation) != null) {
                     return;
                 }
             }
