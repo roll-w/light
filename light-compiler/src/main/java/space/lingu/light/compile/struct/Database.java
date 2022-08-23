@@ -27,7 +27,6 @@ import java.util.List;
  */
 public class Database {
     private TypeElement superClassElement;// represents super class
-    private TypeElement dialectElement;
 
     private List<DataTable> dataTableList;
     private List<DatabaseDaoMethod> databaseDaoMethods;
@@ -88,12 +87,4 @@ public class Database {
         return this;
     }
 
-    public TypeElement getDialectElement() {
-        return dialectElement;
-    }
-
-    public Database setDialectElement(TypeElement dialectElement) {
-        this.dialectElement = dialectElement;
-        return this;
-    }
 }

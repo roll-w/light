@@ -28,8 +28,6 @@ import space.lingu.light.struct.Table;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author RollW
@@ -72,8 +70,9 @@ public abstract class LightDatabase {
         if (conf.logger != null) {
             this.mLogger = conf.logger;
         }
-        this.mDialectProvider = Light.createDialectProviderInstance(conf.dialectProviderClass);
-        this.mConnectionPool = Light.createConnectionPoolInstance(conf.connectionPoolClass, conf.datasourceConfig);
+        this.mDialectProvider = conf.dialectProvider;
+        conf.connectionPool.setDataSourceConfig(mSourceConfig);
+        this.mConnectionPool = conf.connectionPool;
     }
 
     public void executeRawSqlWithNoReturn(String sql) {
@@ -156,22 +155,26 @@ public abstract class LightDatabase {
         private final String mName;
         private final Database database;
         private DatasourceConfig mConfig;
-        private final Class<? extends DialectProvider> mProviderClass;
-        private Class<? extends ConnectionPool> mPoolClass;
+        private final DialectProvider mProvider;
+        private ConnectionPool mConnectionPool;
         private LightLogger mLogger;
 
-        Builder(Class<T> clazz, Class<? extends DialectProvider> providerClass) {
-            if (clazz == null || providerClass == null) {
+        Builder(Class<T> clazz, DialectProvider provider) {
+            if (clazz == null || provider == null) {
                 throw new IllegalArgumentException("Cannot be null!");
             }
             mDatabaseClass = clazz;
-            mProviderClass = providerClass;
+            mProvider = provider;
             database = clazz.getAnnotation(Database.class);
             if (database == null) {
                 throw new IllegalStateException("Must be annotated with '@Database'!");
             }
             mName = database.name();
 
+        }
+
+        Builder(Class<T> clazz, Class<? extends DialectProvider> providerClass) {
+            this(clazz, Light.createDialectProviderInstance(providerClass));
         }
 
         public Builder<T> setLogger(LightLogger logger) {
@@ -205,7 +208,12 @@ public abstract class LightDatabase {
         }
 
         public Builder<T> setConnectionPool(Class<? extends ConnectionPool> poolClass) {
-            mPoolClass = poolClass;
+            mConnectionPool = Light.createConnectionPoolInstance(poolClass);
+            return this;
+        }
+
+        public Builder<T> setConnectionPool(ConnectionPool connectionPool) {
+            mConnectionPool = connectionPool;
             return this;
         }
 
@@ -223,8 +231,8 @@ public abstract class LightDatabase {
             return new DatabaseConfiguration(
                     mName,
                     mConfig,
-                    mPoolClass,
-                    mProviderClass,
+                    mConnectionPool,
+                    mProvider,
                     mLogger
             );
         }

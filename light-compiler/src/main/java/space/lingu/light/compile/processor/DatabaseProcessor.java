@@ -62,13 +62,6 @@ public class DatabaseProcessor implements Processor<Database> {
         String packageName = superClass.packageName();
         String implName = superClass.simpleName() + ClassWriter.CLASS_SUFFIX;
 
-        TypeMirror dialectClass = null;
-        try {
-            Class<?> clz = anno.dialect();
-        } catch (MirroredTypeException e) {
-            dialectClass = e.getTypeMirror();
-        }
-
         List<TypeMirror> tableClassMirror = new ArrayList<>();
         try {
             Class<?>[] tableClasses = anno.tables();
@@ -77,14 +70,11 @@ public class DatabaseProcessor implements Processor<Database> {
             tableClassMirror.addAll(e.getTypeMirrors());
         }
 
-        TypeElement dialectElement = (TypeElement) mEnv.getTypeUtils().asElement(dialectClass);
-
         database.setDataTableList(processDataTables(tableClassMirror))
                 .setSuperClassElement(mElement)
                 .setImplName(implName)
                 .setDatabaseDaoMethods(getAllDaoMethods())
-                .setImplClassName(ClassName.get(packageName, implName))
-                .setDialectElement(dialectElement);
+                .setImplClassName(ClassName.get(packageName, implName));
         return database;
     }
 

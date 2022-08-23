@@ -21,27 +21,25 @@ import space.lingu.light.connect.DatasourceConfig;
 import space.lingu.light.log.LightLogger;
 import space.lingu.light.sql.DialectProvider;
 
-import java.util.List;
-
 /**
  * @author RollW
  */
 public class DatabaseConfiguration {
     public final String name;
     public final DatasourceConfig datasourceConfig;
-    public final Class<? extends ConnectionPool> connectionPoolClass;
-    public final Class<? extends DialectProvider> dialectProviderClass;
+    public final ConnectionPool connectionPool;
+    public final DialectProvider dialectProvider;
     public final LightLogger logger;
 
     public DatabaseConfiguration(String name,
                                  DatasourceConfig datasourceConfig,
-                                 Class<? extends ConnectionPool> connectionPoolClass,
-                                 Class<? extends DialectProvider> dialectProviderClass,
+                                 ConnectionPool connectionPool,
+                                 DialectProvider dialectProvider,
                                  LightLogger logger) {
         this.name = name;
         this.datasourceConfig = datasourceConfig;
-        this.connectionPoolClass = connectionPoolClass;
-        this.dialectProviderClass = dialectProviderClass;
+        this.connectionPool = connectionPool;
+        this.dialectProvider = dialectProvider;
         this.logger = logger;
     }
 }

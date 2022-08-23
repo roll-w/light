@@ -16,13 +16,12 @@
 
 package space.lingu.light;
 
-import space.lingu.light.sql.DialectProvider;
-
 import java.lang.annotation.*;
 
 /**
  * 标注为一个数据库。如存在多个数据库标记，则名称不能相同。
  * 名称标注规范须遵循所用数据库规范。
+ *
  * @author RollW
  */
 @Documented
@@ -32,12 +31,14 @@ public @interface Database {
     /**
      * 数据库名称。如存在多个数据库标记，则名称不能相同。
      * 名称标注规范须遵循所用数据库规范。
+     *
      * @return 数据库名称
      */
     String name();
 
     /**
      * 数据连接配置读取路径
+     *
      * @return 数据连接配置读取路径
      */
     String datasourceConfig() default "/light.properties";
@@ -45,6 +46,4 @@ public @interface Database {
     int version();
 
     Class<?>[] tables();
-
-    Class<? extends DialectProvider> dialect() default DialectProvider.class;
 }
