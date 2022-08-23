@@ -20,6 +20,7 @@ import java.lang.annotation.*;
 
 /**
  * 标记{@link Dao}中的查询方法。
+ *
  * @author RollW
  */
 @Documented
@@ -28,6 +29,7 @@ import java.lang.annotation.*;
 public @interface Query {
     /**
      * 需要执行的SQL查询语句
+     *
      * @return 需要执行的SQL查询语句
      */
     String value();

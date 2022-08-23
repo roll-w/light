@@ -20,10 +20,19 @@ import java.lang.annotation.*;
 
 /**
  * 标记{@link Dao}中的删除方法。
+ *
  * @author RollW
  */
 @Documented
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Delete {
+    /**
+     * 自定SQL删除语句
+     *
+     * @return 需要执行的SQL删除语句
+     */
+    String value() default AUTO_GENERATION;
+
+    String AUTO_GENERATION = "[Auto-Generation]";
 }
