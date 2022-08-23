@@ -27,9 +27,5 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Update {
-    String value() default AUTO_GENERATION;
-
     OnConflictStrategy onConflict() default OnConflictStrategy.ABORT;
-
-    String AUTO_GENERATION = "[Auto-Generation]";
 }
