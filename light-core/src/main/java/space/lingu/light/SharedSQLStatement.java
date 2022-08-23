@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 共享{@code PreparedStatement}减少内存和时间开销，同时保证线程安全。
+ *
  * @author RollW
  */
 public abstract class SharedSQLStatement {
@@ -87,6 +88,15 @@ public abstract class SharedSQLStatement {
 
     public final void release(PreparedStatement statement) {
         if (statement == mStatement) {
+            try {
+                mStatement.clearWarnings();
+                if (supportsBatch()) {
+                    mStatement.clearBatch();
+                }
+            } catch (SQLException e) {
+                throw new LightRuntimeException(e);
+            }
+
             mLock.set(false);
             mSharedConnection.release(mConnection);
         }

@@ -22,16 +22,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 对连接进一步包装
+ *
  * @author RollW
  */
 public class SharedConnection {
     private final AtomicBoolean mLock = new AtomicBoolean(false);
     private volatile Connection mConnection = null;
     protected final LightDatabase mDatabase;
-    private Metadata metadata;
+    private final LightDatabase.Metadata metadata;
 
     public SharedConnection(LightDatabase database) {
         mDatabase = database;
+        metadata = database.getMetadata();
     }
 
     public Connection acquire() {
@@ -48,18 +50,14 @@ public class SharedConnection {
         } else {
             conn = requireFromDatabase();
         }
-        try {
-            return conn;
-        } finally {
-            metadata = new Metadata(supportsBatch(), supportsTransaction());
-        }
+        return conn;
     }
 
     private Connection requireFromDatabase() {
         return mDatabase.requireConnection();
     }
 
-    public Metadata getMetadata() {
+    public LightDatabase.Metadata getMetadata() {
         return metadata;
     }
 
@@ -116,43 +114,7 @@ public class SharedConnection {
     }
 
     private boolean checkSupportTransaction() {
-        if (metadata == null) {
-            release(acquire());
-        }
-
         return metadata.supportsTransaction;
-    }
-
-    private boolean supportsTransaction() {
-        try {
-            if (mConnection.getMetaData().supportsTransactions()) {
-                return true;
-            }
-        } catch (SQLException e) {
-            return false;
-        }
-        return false;
-    }
-
-    private boolean supportsBatch() {
-        try {
-            if (mConnection.getMetaData().supportsBatchUpdates()) {
-                return true;
-            }
-        } catch (SQLException e) {
-            return false;
-        }
-        return false;
-    }
-
-    public static class Metadata {
-        public final boolean supportsBatch;
-        public final boolean supportsTransaction;
-
-        Metadata(boolean supportsBatch, boolean supportsTransaction) {
-            this.supportsBatch = supportsBatch;
-            this.supportsTransaction = supportsTransaction;
-        }
     }
 
 }

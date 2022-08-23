@@ -150,6 +150,47 @@ public abstract class LightDatabase {
         return mTableStructCache.get(tableName);
     }
 
+    private volatile Metadata mMetadata;
+    private final byte[] mLock = new byte[0];
+
+    public Metadata getMetadata() {
+        if (mMetadata == null) {
+            synchronized (mLock) {
+                if (mMetadata == null) {
+                    boolean supportsBatch;
+                    boolean supportsTransaction;
+                    try {
+                        Connection connection =
+                                getConnectionPool().requireConnection();
+                        DatabaseMetaData databaseMetaData =
+                                connection.getMetaData();
+                        supportsBatch =
+                                databaseMetaData.supportsBatchUpdates();
+                        supportsTransaction =
+                                databaseMetaData.supportsTransactions();
+                        getConnectionPool().release(connection);
+                    } catch (SQLException e) {
+                        throw new LightRuntimeException(e);
+                    }
+
+                    mMetadata = new Metadata(supportsBatch, supportsTransaction);
+                }
+            }
+        }
+
+        return mMetadata;
+    }
+
+    public static class Metadata {
+        public final boolean supportsBatch;
+        public final boolean supportsTransaction;
+
+        Metadata(boolean supportsBatch, boolean supportsTransaction) {
+            this.supportsBatch = supportsBatch;
+            this.supportsTransaction = supportsTransaction;
+        }
+    }
+
     public static class Builder<T extends LightDatabase> {
         private final Class<T> mDatabaseClass;
         private final String mName;
