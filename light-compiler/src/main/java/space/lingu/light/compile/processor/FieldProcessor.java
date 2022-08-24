@@ -57,19 +57,21 @@ public class FieldProcessor implements Processor<Field> {
         if (field.getColumnName() == null || field.getColumnName().isEmpty()) {
             throw new LightCompileException("Field cannot have an empty column name!");
         }
-
+        String defaultValue = dataColumn.defaultValue().equals(DataColumn.NO_DEFAULT_VALUE)
+                ? null
+                : dataColumn.defaultValue();
         TypeElement typeElement = (TypeElement) mElement.getEnclosingElement();
         field.setType(typeElement)
                 .setDataType(recognizeSQLDataType(mElement))
                 .setTypeMirror(mElement.asType())
-                .setDefaultValue(dataColumn.defaultValue())
+                .setDefaultValue(defaultValue)
                 .setColumnValueReader(mEnv.getBinderCache()
                         .findColumnTypeBinder(field.getTypeMirror(), field.getDataType()))
                 .setStatementBinder(mEnv.getBinderCache()
                         .findColumnTypeBinder(field.getTypeMirror(), field.getDataType()));
 
         return field;
-        // TODO 嵌套类，默认值等处理。
+        // TODO 嵌套类 等处理。
     }
 
     private SQLDataType recognizeSQLDataType(VariableElement variable) {

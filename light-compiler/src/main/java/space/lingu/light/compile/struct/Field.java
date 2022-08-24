@@ -42,7 +42,7 @@ public class Field {
     private TypeMirror typeMirror;
 
     private String columnName;
-    private String defaultValue;
+    private String defaultValue = null;
 
     private SQLDataType dataType;
 

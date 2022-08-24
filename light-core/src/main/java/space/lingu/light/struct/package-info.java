@@ -14,32 +14,9 @@
  * limitations under the License.
  */
 
-package space.lingu.light;
-
-import java.lang.annotation.*;
-
 /**
- * 标记数据表中的列
+ * 数据库结构
+ *
  * @author RollW
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.FIELD})
-public @interface DataColumn {
-    String name() default "";
-
-    String description() default "";
-
-    boolean index() default false;
-
-    boolean nullable() default true;
-
-    /**
-     * 是否有默认值
-     */
-    String defaultValue() default NO_DEFAULT_VALUE;
-
-    SQLDataType dataType() default SQLDataType.UNDEFINED;
-
-    String NO_DEFAULT_VALUE = "[LIGHT_No-Default-Value]";
-}
+package space.lingu.light.struct;
