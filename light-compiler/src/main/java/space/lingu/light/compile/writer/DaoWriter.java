@@ -18,9 +18,9 @@ package space.lingu.light.compile.writer;
 
 import com.squareup.javapoet.*;
 import space.lingu.light.DaoConnectionGetter;
-import space.lingu.light.compile.LightCompileException;
-import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.JavaPoetClass;
+import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
@@ -77,7 +77,6 @@ public class DaoWriter extends ClassWriter {
         mDao.getTransactionMethods().forEach(method ->
                 builder.addMethod(createTransactionMethodBody(method)));
 
-        boolean callSuper;
 
         if (ElementUtil.isInterface(mDao.getElement())) {
             builder.addSuperinterface(ClassName.get(mDao.getElement()))
@@ -90,7 +89,7 @@ public class DaoWriter extends ClassWriter {
                     .addMethod(createConstructor(dbParam,
                             autoMethodPairs,
                             sqlMethodPairs,
-                            checkConstructorCallSuper()));// TODO 识别父类构造函数参数
+                            checkConstructorCallSuper()));
         }
 
         if (checkConnectionGetterInterface(mDao)) {
@@ -142,10 +141,14 @@ public class DaoWriter extends ClassWriter {
         }
 
         if (constructors.size() > 1) {
-            throw new LightCompileException("Only can have one constructor that is parameterless or have a Database parameter.");
+            mEnv.getLog().error(
+                    CompileErrors.DAO_TOO_MANY_CONSTRUCTORS,
+                    mDao.getElement()
+            );
         }
-        TypeElement lightDatabaseElement = mEnv.getElementUtils()
-                .getTypeElement(JavaPoetClass.LIGHT_DATABASE.canonicalName());
+
+        TypeElement lightDatabaseElement =
+                mEnv.getElementUtils().getTypeElement(JavaPoetClass.LIGHT_DATABASE.canonicalName());
 
         for (ExecutableElement constructor : constructors) {
             isSuper = true;
@@ -155,12 +158,18 @@ public class DaoWriter extends ClassWriter {
                 break;
             }
             if (params.size() > 1) {
-                throw new LightCompileException("One constructor in DAO can only have one Database parameter or is parameterless.");
+                mEnv.getLog().error(
+                        CompileErrors.DAO_CONSTRUCTOR_TOO_MANY_PARAMS,
+                        constructor
+                );
             }
             for (VariableElement param : params) {
-                if (!ElementUtil.equalTypeElement(dbElement, ElementUtil.asTypeElement(param.asType())) &&
-                        !ElementUtil.equalTypeElement(dbElement, lightDatabaseElement)) {
-                    throw new LightCompileException("Parameter must be of type LightDatabase.");
+                if (!ElementUtil.equalTypeElement(lightDatabaseElement,
+                        ElementUtil.asTypeElement(param.asType()))) {
+                    mEnv.getLog().error(
+                            CompileErrors.DAO_CONSTRUCTOR_PARAM_TYPE,
+                            param
+                    );
                 }
             }
         }

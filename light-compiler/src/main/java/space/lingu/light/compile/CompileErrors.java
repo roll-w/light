@@ -28,6 +28,14 @@ public class CompileErrors {
         return BUG_REPORT + "\nError Message: " + message;
     }
 
+    public static String buildSuccess() {
+       return "Light: Light module build success.";
+    }
+
+    public static String buildFailed() {
+       return "Light: Light module build failed.";
+    }
+
     public static final String DATABASE_NOT_CLASS =
             "@Database must be annotated on a class.";
     public static final String DATABASE_NOT_ABSTRACT_CLASS =
@@ -38,6 +46,14 @@ public class CompileErrors {
     public static final String DATABASE_ABSTRACT_METHOD_RETURN_TYPE =
             "An abstract method in a database class whose return type " +
                     "must be an abstract class or interface annotated with @Dao";
+
+    public static final String DAO_TOO_MANY_CONSTRUCTORS =
+            "Only can have one constructor that is parameterless or have a Database parameter.";
+    public static final String DAO_CONSTRUCTOR_TOO_MANY_PARAMS =
+            "One constructor in DAO can only have one Database parameter or is parameterless.";
+    public static final String DAO_CONSTRUCTOR_PARAM_TYPE =
+            "Parameter must be of type LightDatabase.";
+
 
     public static final String DAO_INVALID_ABSTRACT_METHOD =
             "An abstract method in a dao class must be annotated with one of the annotations below: \n" +

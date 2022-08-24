@@ -19,7 +19,6 @@ package space.lingu.light.compile.struct;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import space.lingu.light.compile.LightCompileException;
-import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.TypeUtil;
 
 import javax.lang.model.element.ElementKind;
@@ -73,8 +72,7 @@ public class Constructor {
 
     public void writeConstructor(String out, String args, CodeBlock.Builder builder) {
         if (element == null) {
-            throw new LightCompileException(
-                    new IllegalStateException("Must set execute element first."));
+            throw new IllegalStateException("Must set execute element first.");
         }
         if (element.getKind() == ElementKind.CONSTRUCTOR) {
             builder.addStatement("$L = new $T($L)", out, ClassName.get(element.getEnclosingElement().asType()), args);
