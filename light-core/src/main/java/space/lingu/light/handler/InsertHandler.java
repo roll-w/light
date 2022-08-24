@@ -54,7 +54,6 @@ public abstract class InsertHandler<T> extends Handler<T> {
     }
 
     public final void insert(Iterable<? extends T> entities) {
-        // TODO 不支持批处理的则使用事务，不支持事务则每个单独提交
         final PreparedStatement stmt = acquire();
         try {
             if (mSharedConnection.getMetadata().supportsBatch) {

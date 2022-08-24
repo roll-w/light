@@ -18,17 +18,11 @@ package space.lingu.light.compile.writer;
 
 import com.squareup.javapoet.*;
 import space.lingu.light.compile.JavaPoetClass;
-import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.ParamEntity;
 import space.lingu.light.compile.struct.Pojo;
-import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.Modifier;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.StringJoiner;
-import java.util.stream.IntStream;
 
 /**
  * @author RollW
@@ -58,7 +52,7 @@ public class DeleteHandlerWriter {
                                 .addAnnotation(Override.class)
                                 .returns(ClassName.get("java.lang", "String"))
                                 .addStatement("return $N.getDialectProvider().getGenerator().generateDelete($S, $L)",
-                                        DaoWriter.DATABASE_FIELD, tableName, args.toString())
+                                        DaoWriter.sDatabaseField, tableName, args.toString())
                                 .build());
 
         builder.addMethod(delegate.createBindMethod(writer, mPojo.getFields()));

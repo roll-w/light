@@ -24,6 +24,10 @@ public class CompileErrors {
     public static final String BUG_REPORT =
             "If you see this message, means you have found a bug. Please report it to us.";
 
+    public static String bugReportWithMessage(String message) {
+        return BUG_REPORT + "\nError Message: " + message;
+    }
+
     public static final String DATABASE_NOT_CLASS =
             "@Database must be annotated on a class.";
     public static final String DATABASE_NOT_ABSTRACT_CLASS =
@@ -70,5 +74,8 @@ public class CompileErrors {
     public static final String PARAM_NON_COMPLIANCE =
             "Query/Insert method parameters cannot start with underscore (_).";
 
+    public static final String SQL_CANNOT_BE_EMPTY =
+            "The SQL expression in the annotation cannot be empty " +
+                    "and must be a meaningful SQL expression.";
 
 }

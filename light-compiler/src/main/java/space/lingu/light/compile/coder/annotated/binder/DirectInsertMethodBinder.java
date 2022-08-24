@@ -20,7 +20,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.annotated.translator.InsertMethodTranslator;
-import space.lingu.light.compile.struct.AnnotateParameter;
+import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
 
 import java.util.List;
@@ -35,7 +35,7 @@ public class DirectInsertMethodBinder extends InsertMethodBinder {
     }
 
     @Override
-    public void writeBlock(List<AnnotateParameter> params, Map<String, Pair<FieldSpec, TypeSpec>> handlers, GenerateCodeBlock block) {
+    public void writeBlock(List<Parameter> params, Map<String, Pair<FieldSpec, TypeSpec>> handlers, GenerateCodeBlock block) {
         mTranslator.createMethodBody(params, handlers, block);
     }
 }

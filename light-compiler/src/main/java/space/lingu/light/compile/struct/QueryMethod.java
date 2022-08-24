@@ -16,7 +16,7 @@
 
 package space.lingu.light.compile.struct;
 
-import space.lingu.light.compile.coder.query.binder.QueryResultBinder;
+import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
@@ -26,11 +26,11 @@ import java.util.List;
  * 查询方法
  * @author RollW
  */
-public class QueryMethod implements Method<QueryParameter> {
+public class QueryMethod implements SQLCustomMethod {
     private ExecutableElement element;
     private TypeMirror returnType;
-    private List<QueryParameter> parameters;
-    private String query;
+    private List<SQLCustomParameter> parameters;
+    private String sql;
     private boolean isTransaction;
     private QueryResultBinder binder;
 
@@ -44,6 +44,7 @@ public class QueryMethod implements Method<QueryParameter> {
         return this;
     }
 
+    @Override
     public boolean isTransaction() {
         return isTransaction;
     }
@@ -54,21 +55,22 @@ public class QueryMethod implements Method<QueryParameter> {
     }
 
     @Override
-    public List<QueryParameter> getParameters() {
+    public List<SQLCustomParameter> getParameters() {
         return parameters;
     }
 
-    public QueryMethod setParameters(List<QueryParameter> parameters) {
+    public QueryMethod setParameters(List<SQLCustomParameter> parameters) {
         this.parameters = parameters;
         return this;
     }
 
-    public String getQuery() {
-        return query;
+    @Override
+    public String getSql() {
+        return sql;
     }
 
-    public QueryMethod setQuery(String query) {
-        this.query = query;
+    public QueryMethod setSql(String sql) {
+        this.sql = sql;
         return this;
     }
 
@@ -82,11 +84,12 @@ public class QueryMethod implements Method<QueryParameter> {
         return this;
     }
 
-    public QueryResultBinder getBinder() {
+    @Override
+    public QueryResultBinder getResultBinder() {
         return binder;
     }
 
-    public QueryMethod setBinder(QueryResultBinder binder) {
+    public QueryMethod setResultBinder(QueryResultBinder binder) {
         this.binder = binder;
         return this;
     }

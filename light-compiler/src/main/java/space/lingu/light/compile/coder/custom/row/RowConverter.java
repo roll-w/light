@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.binder;
+package space.lingu.light.compile.coder.custom.row;
 
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.coder.query.result.QueryResultConverter;
+
+import javax.lang.model.type.TypeMirror;
 
 /**
  * @author RollW
  */
-public abstract class QueryResultBinder {
-    protected final QueryResultConverter mConverter;
+public abstract class RowConverter {
+    protected final TypeMirror outType;
 
-    public QueryResultBinder(QueryResultConverter mConverter) {
-        this.mConverter = mConverter;
+    protected RowConverter(TypeMirror outType) {
+        this.outType = outType;
     }
 
+    public abstract void onResultSetReady(String resultSetName, GenerateCodeBlock block);
 
-    public abstract void writeBlock(String handlerName,
-                                    String stmtVarName,
-                                    boolean canReleaseSet,
-                                    boolean isReturn,
-                                    boolean inTransaction,
-                                    GenerateCodeBlock block);
+    public abstract void convert(String outVarName, String resultSetName, GenerateCodeBlock block);
 
+    public abstract void onResultSetFinish(GenerateCodeBlock block);
+
+    public TypeMirror getOutType() {
+        return outType;
+    }
 }

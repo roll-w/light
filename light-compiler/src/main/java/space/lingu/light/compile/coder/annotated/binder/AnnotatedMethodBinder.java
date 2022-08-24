@@ -19,7 +19,7 @@ package space.lingu.light.compile.coder.annotated.binder;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.struct.AnnotateParameter;
+import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
 
 import java.util.List;
@@ -29,7 +29,7 @@ import java.util.Map;
  * @author RollW
  */
 public interface AnnotatedMethodBinder {
-    void writeBlock(List<AnnotateParameter> params,
+    void writeBlock(List<Parameter> params,
                     Map<String, Pair<FieldSpec, TypeSpec>> handlers,
                     GenerateCodeBlock block);
 }

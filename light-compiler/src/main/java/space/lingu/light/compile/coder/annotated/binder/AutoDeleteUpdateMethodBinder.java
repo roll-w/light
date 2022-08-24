@@ -19,8 +19,8 @@ package space.lingu.light.compile.coder.annotated.binder;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.coder.annotated.translator.DeleteUpdateMethodTranslator;
-import space.lingu.light.compile.struct.AnnotateParameter;
+import space.lingu.light.compile.coder.annotated.translator.AutoDeleteUpdateMethodTranslator;
+import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
 
 import java.util.List;
@@ -29,15 +29,15 @@ import java.util.Map;
 /**
  * @author RollW
  */
-public abstract class DeleteUpdateMethodBinder implements AnnotatedMethodBinder {
-    protected final DeleteUpdateMethodTranslator mTranslator;
+public abstract class AutoDeleteUpdateMethodBinder implements AnnotatedMethodBinder {
+    protected final AutoDeleteUpdateMethodTranslator mTranslator;
 
-    public DeleteUpdateMethodBinder(DeleteUpdateMethodTranslator translator) {
+    public AutoDeleteUpdateMethodBinder(AutoDeleteUpdateMethodTranslator translator) {
         mTranslator = translator;
     }
 
     @Override
-    public abstract void writeBlock(List<AnnotateParameter> params,
+    public abstract void writeBlock(List<Parameter> params,
                                     Map<String, Pair<FieldSpec, TypeSpec>> handlers,
                                     GenerateCodeBlock block);
 }

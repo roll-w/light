@@ -16,27 +16,19 @@
 
 package space.lingu.light.compile.struct;
 
-import space.lingu.light.compile.coder.annotated.binder.AnnotatedMethodBinder;
+import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author RollW
  */
-public interface AnnotatedMethod<P extends Parameter> extends Method<P> {
-    @Override
-    ExecutableElement getElement();
+public interface SQLCustomMethod extends Method<SQLCustomParameter> {
+    List<SQLCustomParameter> getParameters();
 
-    Map<String, ParamEntity> getEntities();
+    QueryResultBinder getResultBinder();
 
-    AnnotatedMethodBinder getBinder();
+    boolean isTransaction();
 
-    @Override
-    List<P> getParameters();
-
-    @Override
-    TypeMirror getReturnType();
+    String getSql();
 }

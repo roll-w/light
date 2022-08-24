@@ -20,12 +20,11 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.StatementBinder;
-import space.lingu.light.compile.coder.indentity.Identity;
+import space.lingu.light.compile.indentity.Identity;
 import space.lingu.light.compile.javac.Nullability;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.util.StringUtil;
 
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;

@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.result;
+package space.lingu.light.compile.struct;
 
-import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.coder.query.row.RowConverter;
+import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.lang.model.element.TypeElement;
 
 /**
  * @author RollW
  */
-public abstract class QueryResultConverter {
-    protected final List<RowConverter> mConverters = new ArrayList<>();
+public interface SQLCustomParameter extends Parameter {
 
-    public QueryResultConverter(List<RowConverter> converters) {
-        mConverters.addAll(converters);
+    QueryParameterBinder getBinder();
+
+    @Override
+    default boolean isMultiple() {
+        return false;
     }
 
-    public abstract void convert(String outVarName, String resultSetName, GenerateCodeBlock block);
+    default TypeElement getWrappedType() {
+        return null;
+    }
 }

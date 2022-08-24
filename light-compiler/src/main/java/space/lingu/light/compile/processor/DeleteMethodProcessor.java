@@ -17,17 +17,20 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.Delete;
+import space.lingu.light.Transaction;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.coder.annotated.translator.DeleteUpdateMethodTranslator;
-import space.lingu.light.compile.coder.annotated.binder.DirectDeleteUpdateMethodBinder;
+import space.lingu.light.compile.coder.annotated.binder.AnnotatedMethodBinder;
+import space.lingu.light.compile.coder.annotated.binder.DirectAutoDeleteUpdateMethodBinder;
+import space.lingu.light.compile.coder.annotated.translator.AutoDeleteUpdateMethodTranslator;
+import space.lingu.light.compile.coder.custom.binder.DeleteResultBinder;
+import space.lingu.light.compile.coder.custom.binder.HandlerDeleteResultBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.struct.AnnotateParameter;
-import space.lingu.light.compile.struct.DeleteMethod;
-import space.lingu.light.compile.struct.ParamEntity;
+import space.lingu.light.compile.struct.*;
 import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +41,6 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
     private final ExecutableElement mExecutable;
     private final TypeElement mContaining;
     private final ProcessEnv mEnv;
-    private final DeleteMethod method = new DeleteMethod();
 
     public DeleteMethodProcessor(ExecutableElement element,
                                  TypeElement containing,
@@ -50,6 +52,7 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
 
     @Override
     public DeleteMethod process() {
+        DeleteMethod method = new DeleteMethod();
         AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(mExecutable, mEnv);
 
         DaoProcessor.sHandleAnnotations.forEach(anno -> {
@@ -60,21 +63,65 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
                 );
             }
         });
-        Pair<Map<String, ParamEntity>, List<AnnotateParameter>> pair =
-                delegate.extractParameters(mContaining);
+        Delete anno = mExecutable.getAnnotation(Delete.class);
         method.setElement(mExecutable)
-                .setEntities(pair.first)
-                .setParameters(pair.second)
                 .setReturnType(mExecutable.getReturnType());
-        DeleteUpdateMethodTranslator translator = DeleteUpdateMethodTranslator.create(
-                method.getReturnType(),
-                method.getParameters()
-        );
+        boolean isAutoGenerate = anno.value().equals(Delete.AUTO_GENERATION);
+        if (!isAutoGenerate) {
+            if (anno.value().isEmpty()) {
+                mEnv.getLog().error(
+                        CompileErrors.SQL_CANNOT_BE_EMPTY,
+                        mExecutable
+                );
+            }
+
+            List<SQLCustomParameter> deleteParameters = new ArrayList<>();
+            mExecutable.getParameters().forEach(variableElement -> {
+                Processor<DeleteParameter> deleteParameterProcessor =
+                        new DeleteParameterProcessor(variableElement, mContaining, mEnv);
+                deleteParameters.add(deleteParameterProcessor.process());
+            });
+            method.setSql(anno.value())
+                    .setParameters(deleteParameters);
+        } else {
+            Pair<Map<String, ParamEntity>, List<Parameter>> pair =
+                    delegate.extractParameters(mContaining);
+            method.setEntities(pair.first)
+                    .setParameters(toDeleteParameters(pair.second));
+        }
+
+        AutoDeleteUpdateMethodTranslator translator =
+                AutoDeleteUpdateMethodTranslator.create(
+                        method.getReturnType(),
+                        toParameters(method.getParameters())
+                );
         if (translator == null) {
             mEnv.getLog().error(CompileErrors.DELETE_INVALID_RETURN, mExecutable);
         }
-        return method.setBinder(
-                new DirectDeleteUpdateMethodBinder(translator)
-        );
+
+        if (isAutoGenerate) {
+            AnnotatedMethodBinder methodBinder = new DirectAutoDeleteUpdateMethodBinder(translator);
+            return method
+                    .setBinder(methodBinder)
+                    .setTransaction(mExecutable.getAnnotation(Transaction.class) != null)
+                    .setResultBinder(
+                            new HandlerDeleteResultBinder(method, methodBinder));
+        } else {
+            return method
+                    .setResultBinder(DeleteResultBinder.getInstance());
+        }
+    }
+
+    private List<Parameter> toParameters(List<SQLCustomParameter> sqlCustomParameters) {
+        return new ArrayList<>(sqlCustomParameters);
+    }
+
+    private List<SQLCustomParameter> toDeleteParameters(List<Parameter> parameters) {
+        List<SQLCustomParameter> sqlCustomParameters = new ArrayList<>();
+        parameters.forEach(parameter -> {
+            DeleteParameter deleteParameter = new DeleteParameter(parameter);
+            sqlCustomParameters.add(deleteParameter);
+        });
+        return sqlCustomParameters;
     }
 }

@@ -58,7 +58,7 @@ public class UpdateHandlerWriter {
                                 .addAnnotation(Override.class)
                                 .returns(ClassName.get("java.lang", "String"))
                                 .addStatement("return $N.getDialectProvider().getGenerator().generateUpdate($S, $L)",
-                                        DaoWriter.DATABASE_FIELD, tableName, args.toString())
+                                        DaoWriter.sDatabaseField, tableName, args.toString())
                                 .build()
                 );
 

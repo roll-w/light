@@ -16,7 +16,7 @@
 
 package space.lingu.light.compile.struct;
 
-import space.lingu.light.compile.coder.query.binder.QueryParameterBinder;
+import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -27,7 +27,7 @@ import java.util.Objects;
  * 查询参数
  * @author RollW
  */
-public class QueryParameter implements Parameter {
+public class QueryParameter implements SQLCustomParameter {
     private VariableElement element;
     private String name;
     private String sqlName;
@@ -86,6 +86,7 @@ public class QueryParameter implements Parameter {
         return this;
     }
 
+    @Override
     public QueryParameterBinder getBinder() {
         return binder;
     }

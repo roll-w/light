@@ -19,7 +19,6 @@ package space.lingu.light.compile.javac;
 import com.google.auto.common.MoreTypes;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
-import space.lingu.light.util.StringUtil;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
@@ -80,38 +79,51 @@ public class ElementUtil {
         return element.getModifiers().contains(Modifier.DEFAULT);
     }
 
-    public static boolean isInterface(TypeElement element) {
+    public static boolean isInterface(Element element) {
         return element.getKind() == ElementKind.INTERFACE;
     }
 
-    public static boolean isLong(TypeElement element) {
+    public static boolean isClass(Element element) {
+        return element.getKind() == ElementKind.CLASS;
+    }
+
+    public static boolean isLong(Element element) {
         return isLongBoxed(element) || isLongUnboxed(element);
     }
 
-    public static boolean isLongUnboxed(TypeElement element) {
+    public static boolean isLongUnboxed(Element element) {
         return element.asType().getKind() == TypeKind.LONG;
     }
 
-    public static boolean isLongBoxed(TypeElement element) {
-        return ClassName.get(element).equals(TypeName.LONG.box());
+    public static boolean isLongBoxed(Element element) {
+        if (!(element instanceof TypeElement)) {
+            return false;
+        }
+        return ClassName.get((TypeElement) element).equals(TypeName.LONG.box());
     }
 
-    public static boolean isVoidBoxed(TypeElement element) {
-        return ClassName.get(element).equals(TypeName.VOID.box());
+    public static boolean isVoidBoxed(Element element) {
+        if (!(element instanceof TypeElement)) {
+            return false;
+        }
+        return ClassName.get((TypeElement) element).equals(TypeName.VOID.box());
     }
 
-    public static boolean isCollection(TypeElement element) {
+    public static boolean isCollection(Element element) {
+        if (!(element instanceof TypeElement)) {
+            return false;
+        }
         return isTypeOf(Collection.class, element);
     }
 
-    public static boolean isList(TypeElement element) {
+    public static boolean isList(Element element) {
         if (element == null) {
             return false;
         }
         return isTypeOf(List.class, element);
     }
 
-    public static boolean isTypeOf(Class<?> clazz, TypeElement element) {
+    public static boolean isTypeOf(Class<?> clazz, Element element) {
         if (element == null) {
             return false;
         }
@@ -145,4 +157,5 @@ public class ElementUtil {
 
     private ElementUtil() {
     }
+
 }

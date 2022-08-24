@@ -23,7 +23,14 @@ import javax.lang.model.type.TypeMirror;
  * @author RollW
  */
 public interface Parameter {
+
     String getName();
+
     TypeElement getType();
+
     TypeMirror getTypeMirror();
+
+    boolean isMultiple();
+
+    TypeElement getWrappedType();
 }

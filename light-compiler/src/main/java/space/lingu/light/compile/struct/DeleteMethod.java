@@ -16,7 +16,8 @@
 
 package space.lingu.light.compile.struct;
 
-import space.lingu.light.compile.coder.annotated.binder.DeleteUpdateMethodBinder;
+import space.lingu.light.compile.coder.annotated.binder.AnnotatedMethodBinder;
+import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
@@ -26,12 +27,16 @@ import java.util.Map;
 /**
  * @author RollW
  */
-public class DeleteMethod extends AnnotatedMethod implements Method<AnnotateParameter> {
+public class DeleteMethod implements SQLCustomMethod, AnnotatedMethod<SQLCustomParameter> {
     private ExecutableElement element;
     private Map<String, ParamEntity> entities;
     private TypeMirror returnType;
-    private List<AnnotateParameter> parameters;
-    private DeleteUpdateMethodBinder binder;
+    private String sql = null;
+
+    private boolean isTransaction;
+    private List<SQLCustomParameter> parameters;
+    private QueryResultBinder resultBinder;
+    private AnnotatedMethodBinder binder;
 
     public DeleteMethod() {
     }
@@ -46,10 +51,20 @@ public class DeleteMethod extends AnnotatedMethod implements Method<AnnotatePara
         return this;
     }
 
-    @Override
     public Map<String, ParamEntity> getEntities() {
         return entities;
     }
+
+    public DeleteMethod setBinder(AnnotatedMethodBinder binder) {
+        this.binder = binder;
+        return this;
+    }
+
+    @Override
+    public AnnotatedMethodBinder getBinder() {
+        return binder;
+    }
+
 
     public DeleteMethod setEntities(Map<String, ParamEntity> entities) {
         this.entities = entities;
@@ -67,22 +82,46 @@ public class DeleteMethod extends AnnotatedMethod implements Method<AnnotatePara
     }
 
     @Override
-    public List<AnnotateParameter> getParameters() {
+    public List<SQLCustomParameter> getParameters() {
         return parameters;
     }
 
-    public DeleteMethod setParameters(List<AnnotateParameter> parameters) {
+    public DeleteMethod setParameters(List<SQLCustomParameter> parameters) {
         this.parameters = parameters;
         return this;
     }
 
     @Override
-    public DeleteUpdateMethodBinder getBinder() {
-        return binder;
+    public QueryResultBinder getResultBinder() {
+        return resultBinder;
     }
 
-    public DeleteMethod setBinder(DeleteUpdateMethodBinder binder) {
-        this.binder = binder;
+    @Override
+    public boolean isTransaction() {
+        if (sql == null) {
+            return false;
+        }
+        return isTransaction;
+    }
+
+    public DeleteMethod setTransaction(boolean transaction) {
+        isTransaction = transaction;
         return this;
     }
+
+    public DeleteMethod setResultBinder(QueryResultBinder binder) {
+        this.resultBinder = binder;
+        return this;
+    }
+
+    public String getSql() {
+        return sql;
+    }
+
+    public DeleteMethod setSql(String sql) {
+        this.sql = sql;
+        return this;
+    }
+
+
 }

@@ -19,7 +19,8 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标记SQL事务
+ * 标记SQL事务。除{@link Query}方法外，默认启用事务。
+ *
  * @author RollW
  */
 @Documented

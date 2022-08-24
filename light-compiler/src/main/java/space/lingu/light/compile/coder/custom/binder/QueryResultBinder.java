@@ -14,44 +14,44 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.binder;
+package space.lingu.light.compile.coder.custom.binder;
 
 import space.lingu.light.LightRuntimeException;
-import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.coder.query.result.QueryResultConverter;
+import space.lingu.light.compile.coder.custom.result.QueryResultConverter;
 
 import java.sql.SQLException;
 
 /**
  * @author RollW
  */
-public class InstantQueryResultBinder extends QueryResultBinder {
-    public InstantQueryResultBinder(QueryResultConverter mConverter) {
-        super(mConverter);
+public abstract class QueryResultBinder {
+    protected final QueryResultConverter mConverter;
+
+    public QueryResultBinder(QueryResultConverter converter) {
+        this.mConverter = converter;
     }
 
-    @Override
-    public void writeBlock(String handlerName, String stmtVarName,
-                           boolean canReleaseSet, boolean isReturn,
-                           boolean inTransaction,
-                           GenerateCodeBlock block) {
-        if (inTransaction) {
-            block.builder().addStatement("$N.beginTransaction()", handlerName);
-        }
-        final String outVar = block.getTempVar("_result");
-        final String setVar = block.getTempVar("_resultSet");
 
-        block.builder().beginControlFlow("try ($T $L = $N.executeQuery())",
-                        JavaPoetClass.JdbcNames.RESULT_SET, setVar, stmtVarName);
-        if (isReturn) {
-            mConverter.convert(outVar, setVar, block);
-        }
+    public abstract void writeBlock(String handlerName,
+                                    String stmtVarName,
+                                    boolean canReleaseSet,
+                                    boolean isReturn,
+                                    boolean inTransaction,
+                                    GenerateCodeBlock block);
+
+    protected void end(String handlerName,
+                       String stmtVarName,
+                       String outVarName,
+                       boolean canReleaseSet,
+                       boolean isReturn,
+                       boolean inTransaction,
+                       GenerateCodeBlock block) {
         if (inTransaction) {
             block.builder().addStatement("$N.endTransaction()", handlerName);
         }
         if (isReturn) {
-            block.builder().addStatement("return $L", outVar);
+            block.builder().addStatement("return $L", outVarName);
         }
         block.builder()
                 .nextControlFlow("catch($T e)", SQLException.class)

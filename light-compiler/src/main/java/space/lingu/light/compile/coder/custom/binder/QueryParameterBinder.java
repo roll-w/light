@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.binder;
+package space.lingu.light.compile.coder.custom.binder;
 
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 
@@ -25,27 +24,21 @@ import javax.lang.model.type.TypeMirror;
 /**
  * @author RollW
  */
-public class BasicQueryParameterBinder extends QueryParameterBinder {
-    public final StatementBinder binder;
+public abstract class QueryParameterBinder implements StatementBinder {
+    public final boolean isMultiple;
 
-    public BasicQueryParameterBinder(StatementBinder binder) {
-        super(false);
-        this.binder = binder;
+    public QueryParameterBinder(boolean isMultiple) {
+        this.isMultiple = isMultiple;
     }
 
     @Override
     public TypeMirror type() {
-        return binder.type();
+        return null;
     }
 
     @Override
-    public void bindToStatement(String stmtVarName, String indexVarName, String valueVarName, GenerateCodeBlock block) {
-        binder.bindToStatement(stmtVarName, indexVarName, valueVarName, block);
-    }
+    public abstract void bindToStatement(String stmtVarName, String indexVarName,
+                         String valueVarName, GenerateCodeBlock block);
 
-    @Override
-    public void getArgsCount(String inputVarName, String outVarName, GenerateCodeBlock block) {
-        throw new LightCompileException("Should not call getArgCount on basic adapters." +
-                "It is always one.");
-    }
+    public abstract void getArgsCount(String inputVarName, String outVarName, GenerateCodeBlock block);
 }

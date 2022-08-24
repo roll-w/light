@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.binder;
+package space.lingu.light.compile.coder.custom.binder;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;

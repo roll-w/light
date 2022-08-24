@@ -18,12 +18,11 @@ package space.lingu.light.compile.coder.annotated.translator;
 
 import com.squareup.javapoet.*;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
-import space.lingu.light.compile.struct.AnnotateParameter;
+import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.ExecutableElement;
@@ -43,7 +42,7 @@ public class InsertMethodTranslator {
 
     public static InsertMethodTranslator create(ExecutableElement methodElement,
                                                 ProcessEnv env,
-                                                List<AnnotateParameter> params) {
+                                                List<Parameter> params) {
         TypeMirror returnType = methodElement.getReturnType();
         InsertType insertType = getInsertType((TypeElement) env.getTypeUtils().asElement(returnType), returnType);
         if (insertType == null) {
@@ -63,7 +62,7 @@ public class InsertMethodTranslator {
         return null;
     }
 
-    private static boolean checkType(InsertType type, List<AnnotateParameter> params) {
+    private static boolean checkType(InsertType type, List<Parameter> params) {
         if (type == null) {
             return false;
         }
@@ -121,7 +120,7 @@ public class InsertMethodTranslator {
         return null;
     }
 
-    public void createMethodBody(List<AnnotateParameter> params,
+    public void createMethodBody(List<Parameter> params,
                                  Map<String, Pair<FieldSpec, TypeSpec>> insertHandlers,
                                  GenerateCodeBlock block) {
         boolean needsReturn = insertType != InsertType.VOID &&

@@ -54,6 +54,7 @@ public class AnnotateParameter implements Parameter {
         return this;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -63,6 +64,7 @@ public class AnnotateParameter implements Parameter {
         return this;
     }
 
+    @Override
     public TypeElement getType() {
         return type;
     }

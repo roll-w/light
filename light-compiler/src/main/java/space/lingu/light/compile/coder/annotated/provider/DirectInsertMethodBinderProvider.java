@@ -20,7 +20,7 @@ import space.lingu.light.compile.coder.annotated.binder.DirectInsertMethodBinder
 import space.lingu.light.compile.coder.annotated.binder.InsertMethodBinder;
 import space.lingu.light.compile.coder.annotated.translator.InsertMethodTranslator;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.struct.AnnotateParameter;
+import space.lingu.light.compile.struct.Parameter;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
@@ -42,7 +42,8 @@ public class DirectInsertMethodBinderProvider implements InsertMethodBinderProvi
     }
 
     @Override
-    public InsertMethodBinder provide(ExecutableElement executableElement, List<AnnotateParameter> params) {
+    public InsertMethodBinder provide(ExecutableElement executableElement,
+                                      List<Parameter> params) {
         return new DirectInsertMethodBinder(InsertMethodTranslator.create(
                 executableElement,
                 mEnv,

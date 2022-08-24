@@ -22,7 +22,7 @@ import space.lingu.light.LightDatabase;
 import space.lingu.light.SharedConnection;
 import space.lingu.light.handler.DeleteUpdateHandler;
 import space.lingu.light.handler.InsertHandler;
-import space.lingu.light.handler.QueryHandler;
+import space.lingu.light.handler.SQLHandler;
 import space.lingu.light.util.ResultSetUtil;
 import space.lingu.light.util.StringUtil;
 
@@ -42,7 +42,7 @@ public class JavaPoetClass {
 
     public static final ClassName INSERT_HANDLER = ClassName.get(InsertHandler.class);
     public static final ClassName DELETE_UPDATE_HANDLER = ClassName.get(DeleteUpdateHandler.class);
-    public static final ClassName QUERY_HANDLER = ClassName.get(QueryHandler.class);
+    public static final ClassName SQL_HANDLER = ClassName.get(SQLHandler.class);
 
     public static class UtilNames {
         public static final ClassName STRING_UTIL = ClassName.get(StringUtil.class);

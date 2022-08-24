@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.result;
+package space.lingu.light.compile.coder.custom.result;
 
 import com.squareup.javapoet.ClassName;
-import space.lingu.light.LightRuntimeException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.coder.query.row.RowConverter;
+import space.lingu.light.compile.coder.custom.row.RowConverter;
 
 import javax.lang.model.type.TypeMirror;
-import java.sql.SQLException;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * 只有一个实体返回值

@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.result;
+package space.lingu.light.compile.coder.custom.result;
 
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.coder.query.row.RowConverter;
+import space.lingu.light.compile.coder.custom.row.RowConverter;
 import space.lingu.light.compile.javac.TypeUtil;
 
 import javax.lang.model.type.TypeMirror;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author RollW

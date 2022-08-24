@@ -14,31 +14,34 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.binder;
+package space.lingu.light.compile.coder.custom.row;
 
+import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.coder.StatementBinder;
-
-import javax.lang.model.type.TypeMirror;
 
 /**
  * @author RollW
  */
-public abstract class QueryParameterBinder implements StatementBinder {
-    public final boolean isMultiple;
+public class SingleColumnRowConverter extends RowConverter {
+    public final ColumnValueReader reader;
 
-    public QueryParameterBinder(boolean isMultiple) {
-        this.isMultiple = isMultiple;
+    public SingleColumnRowConverter(ColumnValueReader reader) {
+        super(reader.type());
+        this.reader = reader;
     }
 
     @Override
-    public TypeMirror type() {
-        return null;
+    public void onResultSetReady(String resultSetName, GenerateCodeBlock block) {
+
     }
 
     @Override
-    public abstract void bindToStatement(String stmtVarName, String indexVarName,
-                         String valueVarName, GenerateCodeBlock block);
+    public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
+        reader.readFromResultSet(outVarName, resultSetName, "0", block);
+    }
 
-    public abstract void getArgsCount(String inputVarName, String outVarName, GenerateCodeBlock block);
+    @Override
+    public void onResultSetFinish(GenerateCodeBlock block) {
+
+    }
 }

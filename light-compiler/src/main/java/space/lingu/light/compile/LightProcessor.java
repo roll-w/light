@@ -25,7 +25,9 @@ import space.lingu.light.compile.processor.Processor;
 import space.lingu.light.compile.struct.Database;
 import space.lingu.light.compile.writer.DatabaseWriter;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -68,13 +70,22 @@ public class LightProcessor extends JavacBaseProcessor {
                             classElement
                     );
                 }
-
-                Processor<Database> databaseProcessor = new DatabaseProcessor(classElement, env);
-                DatabaseWriter writer = new DatabaseWriter(
-                        databaseProcessor.process(),
-                        env
-                );
-                writer.write();
+                try {
+                    Processor<Database> databaseProcessor = new DatabaseProcessor(classElement, env);
+                    DatabaseWriter writer = new DatabaseWriter(
+                            databaseProcessor.process(),
+                            env
+                    );
+                    writer.write();
+                } catch (LightCompileException ex) {
+                    throw ex;
+                } catch (Exception ex) {
+                    getEnv().getLog().warn(
+                            CompileErrors.bugReportWithMessage(ex.getMessage()),
+                            classElement
+                    );
+                    throw new LightCompileException(ex);
+                }
             }
         }
 

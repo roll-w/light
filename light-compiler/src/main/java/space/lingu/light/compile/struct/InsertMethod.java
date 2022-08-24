@@ -28,11 +28,11 @@ import java.util.Map;
  * 一个具有{@code @Insert}注解的方法
  * @author RollW
  */
-public class InsertMethod extends AnnotatedMethod implements Method<AnnotateParameter> {
+public class InsertMethod implements AnnotatedMethod<Parameter> {
     private ExecutableElement element;
     private Map<String, ParamEntity> entities;
     private TypeMirror returnType;
-    private List<AnnotateParameter> parameters;
+    private List<Parameter> parameters;
     private InsertMethodBinder binder;
     private OnConflictStrategy onConflict;
 
@@ -75,11 +75,11 @@ public class InsertMethod extends AnnotatedMethod implements Method<AnnotatePara
         return this;
     }
 
-    public List<AnnotateParameter> getParameters() {
+    public List<Parameter> getParameters() {
         return parameters;
     }
 
-    public InsertMethod setParameters(List<AnnotateParameter> parameters) {
+    public InsertMethod setParameters(List<Parameter> parameters) {
         this.parameters = parameters;
         return this;
     }

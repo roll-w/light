@@ -17,7 +17,7 @@
 package space.lingu.light.compile.struct;
 
 import space.lingu.light.OnConflictStrategy;
-import space.lingu.light.compile.coder.annotated.binder.DeleteUpdateMethodBinder;
+import space.lingu.light.compile.coder.annotated.binder.AutoDeleteUpdateMethodBinder;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
@@ -27,12 +27,12 @@ import java.util.Map;
 /**
  * @author RollW
  */
-public class UpdateMethod extends AnnotatedMethod implements Method<AnnotateParameter> {
+public class UpdateMethod implements AnnotatedMethod<Parameter> {
     private ExecutableElement element;
     private Map<String, ParamEntity> entities;
     private TypeMirror returnType;
-    private List<AnnotateParameter> parameters;
-    private DeleteUpdateMethodBinder binder;
+    private List<Parameter> parameters;
+    private AutoDeleteUpdateMethodBinder binder;
     private OnConflictStrategy onConflict;
 
     public UpdateMethod() {
@@ -69,21 +69,21 @@ public class UpdateMethod extends AnnotatedMethod implements Method<AnnotatePara
     }
 
     @Override
-    public List<AnnotateParameter> getParameters() {
+    public List<Parameter> getParameters() {
         return parameters;
     }
 
-    public UpdateMethod setParameters(List<AnnotateParameter> parameters) {
+    public UpdateMethod setParameters(List<Parameter> parameters) {
         this.parameters = parameters;
         return this;
     }
 
     @Override
-    public DeleteUpdateMethodBinder getBinder() {
+    public AutoDeleteUpdateMethodBinder getBinder() {
         return binder;
     }
 
-    public UpdateMethod setBinder(DeleteUpdateMethodBinder binder) {
+    public UpdateMethod setBinder(AutoDeleteUpdateMethodBinder binder) {
         this.binder = binder;
         return this;
     }

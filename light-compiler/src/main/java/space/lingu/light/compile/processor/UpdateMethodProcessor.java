@@ -19,11 +19,11 @@ package space.lingu.light.compile.processor;
 import space.lingu.light.Update;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
-import space.lingu.light.compile.coder.annotated.translator.DeleteUpdateMethodTranslator;
-import space.lingu.light.compile.coder.annotated.binder.DirectDeleteUpdateMethodBinder;
+import space.lingu.light.compile.coder.annotated.binder.DirectAutoDeleteUpdateMethodBinder;
+import space.lingu.light.compile.coder.annotated.translator.AutoDeleteUpdateMethodTranslator;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.struct.AnnotateParameter;
 import space.lingu.light.compile.struct.ParamEntity;
+import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.compile.struct.UpdateMethod;
 import space.lingu.light.util.Pair;
 
@@ -67,7 +67,7 @@ public class UpdateMethodProcessor implements Processor<UpdateMethod> {
                 );
             }
         });
-        Pair<Map<String, ParamEntity>, List<AnnotateParameter>> pair =
+        Pair<Map<String, ParamEntity>, List<Parameter>> pair =
                 delegate.extractParameters(mContaining);
 
         method.setElement(mExecutable)
@@ -75,15 +75,16 @@ public class UpdateMethodProcessor implements Processor<UpdateMethod> {
                 .setOnConflict(updateAnno.onConflict())
                 .setParameters(pair.second)
                 .setReturnType(mExecutable.getReturnType());
-        DeleteUpdateMethodTranslator translator =
-                DeleteUpdateMethodTranslator.create(
+        AutoDeleteUpdateMethodTranslator translator =
+                AutoDeleteUpdateMethodTranslator.create(
                         method.getReturnType(),
-                        method.getParameters());
+                        method.getParameters()
+                );
         if (translator == null) {
             mEnv.getLog().error(CompileErrors.UPDATE_INVALID_RETURN, mExecutable);
         }
         return method.setBinder(
-                new DirectDeleteUpdateMethodBinder(translator)
+                new DirectAutoDeleteUpdateMethodBinder(translator)
         );
     }
 }

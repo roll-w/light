@@ -17,11 +17,13 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.Query;
+import space.lingu.light.Transaction;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.QueryMethod;
 import space.lingu.light.compile.struct.QueryParameter;
+import space.lingu.light.compile.struct.SQLCustomParameter;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -63,7 +65,7 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
         });
 
         List<? extends VariableElement> parameters = mExecutable.getParameters();
-        List<QueryParameter> queryParameters = new ArrayList<>();
+        List<SQLCustomParameter> queryParameters = new ArrayList<>();
         parameters.forEach(variableElement -> {
             Processor<QueryParameter> parameterProcessor =
                     new QueryParameterProcessor(variableElement, mContaining, mEnv);
@@ -71,12 +73,11 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
         });
 
         return method.setElement(mExecutable)
-                .setQuery(queryAnno.value())
+                .setSql(queryAnno.value())
                 .setReturnType(mExecutable.getReturnType())
                 .setParameters(queryParameters)
-                .setTransaction(true)
-                //.setTransaction(mExecutable.getAnnotation(Transaction.class) != null)
-                .setBinder(mEnv.getBinderCache().findQueryResultBinder(method.getReturnType()));
+                .setTransaction(mExecutable.getAnnotation(Transaction.class) != null)
+                .setResultBinder(mEnv.getBinderCache().findQueryResultBinder(method.getReturnType()));
         // TODO 解析SQL
     }
 }

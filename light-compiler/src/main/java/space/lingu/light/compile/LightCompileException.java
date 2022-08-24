@@ -35,7 +35,7 @@ public class LightCompileException extends RuntimeException {
     }
 
     public LightCompileException(Throwable cause) {
-        super(CompileErrors.BUG_REPORT, cause);
+        this(CompileErrors.BUG_REPORT, cause);
     }
 
     protected LightCompileException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {

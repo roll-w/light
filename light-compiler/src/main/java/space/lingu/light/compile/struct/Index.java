@@ -17,7 +17,7 @@
 package space.lingu.light.compile.struct;
 
 import space.lingu.light.Order;
-import space.lingu.light.compile.coder.indentity.Identity;
+import space.lingu.light.compile.indentity.Identity;
 
 import java.util.List;
 

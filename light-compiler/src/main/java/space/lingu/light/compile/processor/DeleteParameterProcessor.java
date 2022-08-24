@@ -19,29 +19,32 @@ package space.lingu.light.compile.processor;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.struct.QueryParameter;
+import space.lingu.light.compile.struct.DeleteParameter;
 
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 
 /**
  * @author RollW
  */
-public class QueryParameterProcessor implements Processor<QueryParameter> {
+public class DeleteParameterProcessor implements Processor<DeleteParameter> {
     private final VariableElement mElement;
     private final Element mContaining;
     private final ProcessEnv mEnv;
-    private final QueryParameter parameter = new QueryParameter();
 
-    public QueryParameterProcessor(VariableElement element,
-                                   Element containing,
-                                   ProcessEnv env) {
+    public DeleteParameterProcessor(VariableElement element,
+                                    Element containing,
+                                    ProcessEnv env) {
         mElement = element;
         mContaining = containing;
         mEnv = env;
     }
 
     @Override
-    public QueryParameter process() {
+    public DeleteParameter process() {
+        DeleteParameter parameter = new DeleteParameter();
+
         QueryParameterBinder binder = mEnv
                 .getBinderCache()
                 .findQueryParameterBinder(mElement.asType());
@@ -51,14 +54,14 @@ public class QueryParameterProcessor implements Processor<QueryParameter> {
                     mElement
             );
         }
-
-        return parameter
+        parameter
+                .setBinder(binder)
                 .setElement(mElement)
                 .setName(mElement.getSimpleName().toString())
-                .setSqlName(parameter.getName())
                 .setTypeMirror(mElement.asType())
-                .setType((TypeElement) mEnv.getTypeUtils().asElement(parameter.getTypeMirror()))
-                .setBinder(binder);
+                .setType((TypeElement) mEnv.getTypeUtils().asElement(parameter.getTypeMirror()));
+
+        return parameter;
     }
 
 }

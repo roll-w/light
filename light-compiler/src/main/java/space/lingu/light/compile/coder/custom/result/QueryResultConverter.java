@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.row;
+package space.lingu.light.compile.coder.custom.result;
 
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.row.RowConverter;
 
-import javax.lang.model.type.TypeMirror;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author RollW
  */
-public abstract class RowConverter {
-    protected final TypeMirror outType;
+public abstract class QueryResultConverter {
+    protected final List<RowConverter> mConverters = new ArrayList<>();
 
-    protected RowConverter(TypeMirror outType) {
-        this.outType = outType;
+    public QueryResultConverter(List<RowConverter> converters) {
+        mConverters.addAll(converters);
     }
-
-    public abstract void onResultSetReady(String resultSetName, GenerateCodeBlock block);
 
     public abstract void convert(String outVarName, String resultSetName, GenerateCodeBlock block);
-
-    public abstract void onResultSetFinish(GenerateCodeBlock block);
-
-    public TypeMirror getOutType() {
-        return outType;
-    }
 }

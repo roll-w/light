@@ -22,9 +22,9 @@ import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.annotated.binder.DirectInsertMethodBinder;
 import space.lingu.light.compile.coder.annotated.translator.InsertMethodTranslator;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.struct.AnnotateParameter;
 import space.lingu.light.compile.struct.InsertMethod;
 import space.lingu.light.compile.struct.ParamEntity;
+import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.ExecutableElement;
@@ -70,7 +70,7 @@ public class InsertMethodProcessor implements Processor<InsertMethod> {
             }
         });
 
-        Pair<Map<String, ParamEntity>, List<AnnotateParameter>> pair =
+        Pair<Map<String, ParamEntity>, List<Parameter>> pair =
                 delegate.extractParameters(mContaining);
 
         return insertMethod.setElement(mExecutable)

@@ -29,21 +29,19 @@ import java.util.regex.Pattern;
 /**
  * @author RollW
  */
-public class QueryHandler {
+public class SQLHandler extends SharedConnection {
     private static final String REGEX = "\\{[_a-zA-Z]\\w+}";
-    private final Pattern pattern = Pattern.compile(REGEX);
+    private static final Pattern sPattern = Pattern.compile(REGEX);
 
     public final String sql;
-    private final String[] argOrder;
     protected final LightDatabase mDatabase;
-
-    protected final SharedConnection mSharedConnection;
     private volatile Connection mConnection;
+    private final String[] argOrder;
 
-    public QueryHandler(LightDatabase database, String sql, String... argOrder) {
+    public SQLHandler(LightDatabase database, String sql, String... argOrder) {
+        super(database);
         this.sql = sql;
         mDatabase = database;
-        mSharedConnection = new SharedConnection(database);
         this.argOrder = argOrder;
     }
 
@@ -53,13 +51,10 @@ public class QueryHandler {
         }
         String[] placeholders = new String[args.length + 1];
         for (int n = 0; n < args.length; n++) {
-            placeholders[n] = mDatabase
-                    .getDialectProvider()
-                    .getGenerator()
-                    .placeHolders(args[n]);
+            placeholders[n] = mDatabase.getDialectProvider().getGenerator().placeHolders(args[n]);
         }
-        Matcher matcher = pattern.matcher(sql);
-        StringBuilder builder = new StringBuilder(pattern.split(sql)[0]);
+        Matcher matcher = sPattern.matcher(sql);
+        StringBuilder builder = new StringBuilder(sPattern.split(sql)[0]);
         while (matcher.find()) {
             String find = matcher.group();
             String name = find.substring(1, find.length() - 1);
@@ -68,14 +63,12 @@ public class QueryHandler {
                 throw new LightRuntimeException("Unable to find parameter, " +
                         "please check SQL statement in annotation.");
             }
-            builder.append("(")
-                    .append(placeholders[index])
-                    .append(")");
+            builder.append("(").append(placeholders[index]).append(")");
         }
         return builder.toString();
     }
 
-    private int find(String[] args, String toFind) {
+    protected int find(String[] args, String toFind) {
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals(toFind)) {
                 return i;
@@ -84,30 +77,27 @@ public class QueryHandler {
         return -1;
     }
 
-    public void beginTransaction() {
-        // TODO 并发对于事务的处理可能会有影响
-        mSharedConnection.beginTransaction();
+    protected LightDatabase getDatabase() {
+        return mDatabase;
     }
 
     public void endTransaction() {
-        mSharedConnection.commit();
-    }
-
-    public void rollback() {
-        mSharedConnection.rollback();
+        this.commit();
     }
 
     public PreparedStatement acquire(int[] args) {
-        mConnection = mSharedConnection.acquire();
-        return mDatabase.resolveStatement(replaceWithPlaceholders(args), mConnection, false);
+        mConnection = acquire();
+        return mDatabase.resolveStatement(replaceWithPlaceholders(args),
+                mConnection, false);
     }
 
     public void release(PreparedStatement stmt) {
-        mSharedConnection.release(mConnection);
         try {
             stmt.close();
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
+        } finally {
+            release(mConnection);
         }
     }
 }

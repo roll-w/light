@@ -14,36 +14,38 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.binder;
+package space.lingu.light.compile.coder.custom.binder;
 
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.TypeName;
+import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
+
+import javax.lang.model.type.TypeMirror;
 
 /**
  * @author RollW
  */
-public class ArrayQueryParameterBinder extends QueryParameterBinder {
+public class BasicQueryParameterBinder extends QueryParameterBinder {
     public final StatementBinder binder;
 
-    public ArrayQueryParameterBinder(StatementBinder binder) {
-        super(true);
+    public BasicQueryParameterBinder(StatementBinder binder) {
+        super(false);
         this.binder = binder;
     }
 
     @Override
+    public TypeMirror type() {
+        return binder.type();
+    }
+
+    @Override
     public void bindToStatement(String stmtVarName, String indexVarName, String valueVarName, GenerateCodeBlock block) {
-        final String iterVar = block.getTempVar("_item");
-        block.builder().beginControlFlow("for ($T $L : $L)",
-                ClassName.get(binder.type()), iterVar, valueVarName);
-        binder.bindToStatement(stmtVarName, indexVarName, iterVar, block);
-        block.builder().addStatement("$L++", indexVarName)
-                .endControlFlow();
+        binder.bindToStatement(stmtVarName, indexVarName, valueVarName, block);
     }
 
     @Override
     public void getArgsCount(String inputVarName, String outVarName, GenerateCodeBlock block) {
-        block.builder().addStatement("final $T $L = $L.length", TypeName.INT, outVarName, inputVarName);
+        throw new LightCompileException("Should not call getArgCount on basic adapters." +
+                "It is always one.");
     }
 }

@@ -35,12 +35,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 写入{@code Dao_Impl}类中
+ *
  * @author RollW
  */
 public class DaoWriter extends ClassWriter {
     private final Dao mDao;
     private final TypeElement dbElement;
-    public static final FieldSpec DATABASE_FIELD = FieldSpec.builder(JavaPoetClass.LIGHT_DATABASE,
+    public static final FieldSpec sDatabaseField = FieldSpec.builder(JavaPoetClass.LIGHT_DATABASE,
             "__db", Modifier.FINAL, Modifier.PRIVATE).build();
 
     public DaoWriter(Dao dao, TypeElement dbElement, ProcessEnv env) {
@@ -53,35 +54,43 @@ public class DaoWriter extends ClassWriter {
     protected TypeSpec.Builder createTypeSpecBuilder() {
         TypeSpec.Builder builder = TypeSpec.classBuilder(mDao.getImplClassName())
                 .addOriginatingElement(dbElement)
-                .addField(DATABASE_FIELD)
+                .addField(sDatabaseField)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
         ParameterSpec dbParam = ParameterSpec.builder(JavaPoetClass.LIGHT_DATABASE, "db")
                 .build();
 
-        List<Pair<MethodSpec, Pair<QueryMethod, FieldSpec>>> queryMethods = createQueryMethods();
+        List<SQLMethodPair> sqlMethodPairs = new ArrayList<>();
+        sqlMethodPairs.addAll(createQueryMethods());
+        sqlMethodPairs.addAll(createCustomDeleteMethods());
 
-        List<MethodPair> methodList = new ArrayList<>();
-        methodList.addAll(createInsertMethods());
-        methodList.addAll(createDeleteMethods());
-        methodList.addAll(createUpdateMethods());
+        List<AutoMethodPair> autoMethodPairs = new ArrayList<>();
+        autoMethodPairs.addAll(createInsertMethods());
+        autoMethodPairs.addAll(createAutoDeleteMethods());
+        autoMethodPairs.addAll(createUpdateMethods());
 
-        methodList.forEach(mapMethodSpecPair ->
+        autoMethodPairs.forEach(mapMethodSpecPair ->
                 builder.addMethod(mapMethodSpecPair.methodImpl));
 
-        queryMethods.forEach(pair -> builder.addMethod(pair.first));
+        sqlMethodPairs.forEach(pair ->
+                builder.addMethod(pair.methodSpec));
 
         mDao.getTransactionMethods().forEach(method ->
                 builder.addMethod(createTransactionMethodBody(method)));
 
         boolean callSuper;
 
-
         if (ElementUtil.isInterface(mDao.getElement())) {
             builder.addSuperinterface(ClassName.get(mDao.getElement()))
-                    .addMethod(createConstructor(dbParam, methodList, queryMethods, new ConstructorConf(false, false)));
+                    .addMethod(createConstructor(dbParam,
+                            autoMethodPairs,
+                            sqlMethodPairs,
+                            new ConstructorConf(false, false)));
         } else {
             builder.superclass(ClassName.get(mDao.getElement()))
-                    .addMethod(createConstructor(dbParam, methodList, queryMethods, checkConstructorCallSuper()));// TODO 识别父类构造函数参数
+                    .addMethod(createConstructor(dbParam,
+                            autoMethodPairs,
+                            sqlMethodPairs,
+                            checkConstructorCallSuper()));// TODO 识别父类构造函数参数
         }
 
         if (checkConnectionGetterInterface(mDao)) {
@@ -96,20 +105,21 @@ public class DaoWriter extends ClassWriter {
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .returns(JavaPoetClass.SHARED_CONNECTION)
                 .addAnnotation(Override.class)
-                .addStatement("return new $T($N)", JavaPoetClass.SHARED_CONNECTION, DATABASE_FIELD.name)
+                .addStatement("return new $T($N)", JavaPoetClass.SHARED_CONNECTION, sDatabaseField.name)
                 .build();
     }
 
     private boolean checkConnectionGetterInterface(Dao dao) {
         for (TypeMirror anInterface : dao.getElement().getInterfaces()) {
             TypeElement element = ElementUtil.asTypeElement(anInterface);
-            if (element!= null && element.getQualifiedName()
+            if (element != null && element.getQualifiedName()
                     .contentEquals(DaoConnectionGetter.class.getCanonicalName())) {
                 return true;
             }
         }
         return false;
     }
+
     private static class ConstructorConf {
         boolean callSuper;
         boolean paramEmpty;
@@ -158,8 +168,8 @@ public class DaoWriter extends ClassWriter {
     }
 
     private MethodSpec createConstructor(ParameterSpec param,
-                                         List<MethodPair> methodPairs,
-                                         List<Pair<MethodSpec, Pair<QueryMethod, FieldSpec>>> queryPairs,
+                                         List<AutoMethodPair> autoMethodPairs,
+                                         List<SQLMethodPair> sqlMethodPairs,
                                          ConstructorConf conf) {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
@@ -171,111 +181,141 @@ public class DaoWriter extends ClassWriter {
                 builder.addStatement("super($N)", param);
             }
         }
-        builder.addStatement("this.$N = $N", DATABASE_FIELD, param);
+        builder.addStatement("this.$N = $N", sDatabaseField, param);
         Set<Pair<FieldSpec, TypeSpec>> set = new HashSet<>();
-        methodPairs.stream()
-                .filter(methodPair -> !methodPair.fields.isEmpty())
-                .forEach(methodPair ->{
+        autoMethodPairs.stream()
+                .filter(autoMethodPair -> !autoMethodPair.fields.isEmpty())
+                .forEach(autoMethodPair -> {
                     AtomicReference<Pair<FieldSpec, TypeSpec>> pair = new AtomicReference<>();
-                    methodPair.fields.values().stream()
+                    autoMethodPair.fields.values().stream()
                             .filter(specPair -> specPair.first != null && specPair.second != null)
                             .forEach(pair::set);
                     set.add(pair.get());// 去重
                 });
         set.forEach(pair -> builder.addStatement("this.$N = $L",
                 pair.first, pair.second));
-        queryPairs.forEach(pair -> {
+        sqlMethodPairs.forEach(pair -> {
             StringJoiner argOrderJoiner = new StringJoiner(", ");
-            pair.second.first.getParameters().forEach(queryParameter -> {
+            pair.sqlCustomMethod.getParameters().forEach(queryParameter -> {
                 argOrderJoiner.add("\"" + queryParameter.getName() + "\"");
             });
-            final String argOrder = pair.second.first.getParameters().isEmpty() ? "" :
+            final String argOrder = pair.sqlCustomMethod.getParameters().isEmpty() ? "" :
                     ", " + argOrderJoiner;
 
-            builder.addStatement("this.$N = new $T($L, $S$L)", pair.second.second,
-                    JavaPoetClass.QUERY_HANDLER,
-                    DATABASE_FIELD.name,
-                    pair.second.first.getQuery(), argOrder);
+            builder.addStatement("this.$N = new $T($L, $S$L)",
+                    pair.fieldSpec,
+                    JavaPoetClass.SQL_HANDLER,
+                    sDatabaseField.name,
+                    pair.sqlCustomMethod.getSql(), argOrder);
         });
         return builder.build();
     }
 
-    private List<MethodPair> createDeleteMethods() {
-        List<MethodPair> pairList = new ArrayList<>();
+    private List<AutoMethodPair> createAutoDeleteMethods() {
+        List<AutoMethodPair> pairList = new ArrayList<>();
         mDao.getDeleteMethods().forEach(method -> {
+            if (method.getSql() != null) {
+                return;
+            }
             final Map<String, Pair<FieldSpec, TypeSpec>> fields = new HashMap<>();
             method.getEntities().forEach((s, paramEntity) -> {
                 fields.put(s,
-                        Pair.createPair(getOrCreateField(new DeleteUpdateMethodField("delete", paramEntity)),
-                                new DeleteHandlerWriter(paramEntity).createAnonymous(this, DATABASE_FIELD.name)));
+                        Pair.createPair(
+                                getOrCreateField(new DeleteUpdateMethodField("delete", paramEntity)),
+                                new DeleteHandlerWriter(paramEntity).createAnonymous(this, sDatabaseField.name)));
             });
+
             MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
                     .addModifiers(Modifier.FINAL)
                     .addCode(createAnnotatedMethodBody(method, fields))
                     .build();
-            pairList.add(new MethodPair(fields, methodImpl));
+            pairList.add(new AutoMethodPair(fields, methodImpl));
         });
+
         return pairList;
     }
 
-    private List<MethodPair> createUpdateMethods() {
-        List<MethodPair> pairList = new ArrayList<>();
+    private List<AutoMethodPair> createUpdateMethods() {
+        List<AutoMethodPair> pairList = new ArrayList<>();
         mDao.getUpdateMethods().forEach(method -> {
             final Map<String, Pair<FieldSpec, TypeSpec>> fields = new HashMap<>();
             method.getEntities().forEach((s, paramEntity) -> {
                 fields.put(s,
                         Pair.createPair(getOrCreateField(new DeleteUpdateMethodField("update", paramEntity)),
-                                new UpdateHandlerWriter(paramEntity).createAnonymous(this, DATABASE_FIELD.name)));
+                                new UpdateHandlerWriter(paramEntity).createAnonymous(this, sDatabaseField.name)));
             });
             MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
                     .addModifiers(Modifier.FINAL)
                     .addCode(createAnnotatedMethodBody(method, fields))
                     .build();
-            pairList.add(new MethodPair(fields, methodImpl));
+            pairList.add(new AutoMethodPair(fields, methodImpl));
         });
 
         return pairList;
     }
 
-    private List<MethodPair> createInsertMethods() {
-        List<MethodPair> pairList = new ArrayList<>();
+    private List<AutoMethodPair> createInsertMethods() {
+        List<AutoMethodPair> pairList = new ArrayList<>();
         mDao.getInsertMethods().forEach(method -> {
             final Map<String, Pair<FieldSpec, TypeSpec>> fields = new HashMap<>();
             method.getEntities().forEach((s, paramEntity) -> {
                 fields.put(s,
                         Pair.createPair(getOrCreateField(new InsertMethodField(paramEntity)),
-                                new InsertHandlerWriter(paramEntity).createAnonymous(this, DATABASE_FIELD.name)));
+                                new InsertHandlerWriter(paramEntity).createAnonymous(this, sDatabaseField.name)));
             });
             MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
                     .addModifiers(Modifier.FINAL)
                     .addCode(createAnnotatedMethodBody(method, fields))
                     .build();
-            pairList.add(new MethodPair(fields, methodImpl));
+            pairList.add(new AutoMethodPair(fields, methodImpl));
         });
         return pairList;
     }
 
-    private CodeBlock createAnnotatedMethodBody(AnnotatedMethod method,
+    @SuppressWarnings("unchecked")
+    private CodeBlock createAnnotatedMethodBody(AnnotatedMethod<? extends Parameter> method,
                                                 Map<String, Pair<FieldSpec, TypeSpec>> fields) {
         if (fields.isEmpty()) {
             return CodeBlock.builder().build();
         }
 
         GenerateCodeBlock block = new GenerateCodeBlock(this);
-        method.getBinder().writeBlock(method.getParameters(), fields, block);
+        method.getBinder()
+                .writeBlock(
+                        (List<Parameter>) method.getParameters(),
+                        fields,
+                        block
+                );
         return block.generate();
     }
 
-    private List<Pair<MethodSpec, Pair<QueryMethod, FieldSpec>>> createQueryMethods() {
-        List<Pair<MethodSpec, Pair<QueryMethod, FieldSpec>>> pairList = new ArrayList<>();
+    private List<SQLMethodPair> createQueryMethods() {
+        List<SQLMethodPair> pairList = new ArrayList<>();
         mDao.getQueryMethods().forEach(method -> {
-            Pair<QueryMethod, FieldSpec> fieldSpecPair = Pair.createPair(method,
-                    getOrCreateField(new QueryHandlerField(method)));
+            FieldSpec fieldSpec = getOrCreateField(new QueryHandlerField(method));
             MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
                     .addModifiers(Modifier.FINAL)
-                    .addCode(createQueryMethodBody(fieldSpecPair))
+                    .addCode(createQueryMethodBody(method, fieldSpec))
                     .build();
-            pairList.add(Pair.createPair(methodImpl, fieldSpecPair));
+            pairList.add(new SQLMethodPair(method, methodImpl, fieldSpec));
+        });
+
+        return pairList;
+    }
+
+    private List<SQLMethodPair> createCustomDeleteMethods() {
+        List<SQLMethodPair> pairList = new ArrayList<>();
+        mDao.getDeleteMethods().forEach(method -> {
+            if (method.getSql() == null) {
+                return;
+            }
+            FieldSpec fieldSpec =
+                    getOrCreateField(new CustomDeleteMethodField(method));
+            MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
+                    .addModifiers(Modifier.FINAL)
+                    .addCode(createQueryMethodBody(method, fieldSpec))
+                    .build();
+            pairList.add(new SQLMethodPair(method, methodImpl, fieldSpec));
         });
 
         return pairList;
@@ -290,22 +330,22 @@ public class DaoWriter extends ClassWriter {
                 .build();
     }
 
-    private CodeBlock createQueryMethodBody(Pair<QueryMethod, FieldSpec> field) {
-        QueryMethodWriter writer = new QueryMethodWriter(field.first);
+    private CodeBlock createQueryMethodBody(SQLCustomMethod method, FieldSpec field) {
+        SQLCustomMethodWriter writer = new SQLCustomMethodWriter(method);
         GenerateCodeBlock block = new GenerateCodeBlock(this);
-        final String sqlVar = block.getTempVar("_sql");
         final String stmtVar = block.getTempVar("_stmt");
-        writer.prepare(stmtVar, field.second.name, block);
+        writer.prepare(stmtVar, field.name, block);
 
-        field.first.getBinder()
-                .writeBlock(field.second.name, stmtVar, true,
-                        !TypeUtil.isVoid(field.first.getReturnType()),
-                        field.first.isTransaction(), block);
+        method.getResultBinder()
+                .writeBlock(field.name, stmtVar, true,
+                        !TypeUtil.isVoid(method.getReturnType()),
+                        method.isTransaction(), block);
         return block.generate();
     }
 
-    private static String identifierParamNameAndType(List<QueryParameter> parameters) {
+    private static String identifierParamNameAndType(List<SQLCustomParameter> parameters) {
         StringBuilder builder = new StringBuilder();
+        builder.append("_");
         parameters.forEach(parameter -> {
             builder.append(StringUtil.firstUpperCase(parameter.getName()));
             TypeElement element = ElementUtil.asTypeElement(parameter.getTypeMirror());
@@ -340,8 +380,8 @@ public class DaoWriter extends ClassWriter {
             super("queryHandlerOf" + StringUtil
                             .firstUpperCase(method.getElement().getSimpleName().toString())
                             + identifierParamNameAndType(method.getParameters()),
-                    JavaPoetClass.QUERY_HANDLER);
-            this.sql = method.getQuery();
+                    JavaPoetClass.SQL_HANDLER);
+            this.sql = method.getSql();
         }
 
         @Override
@@ -353,16 +393,16 @@ public class DaoWriter extends ClassWriter {
         void prepare(ClassWriter writer, FieldSpec.Builder builder) {
             builder.addModifiers(Modifier.PRIVATE, Modifier.FINAL);
         }
-
     }
 
     private static class DeleteUpdateMethodField extends SharedFieldSpec {
         private final ParamEntity entity;
         private final String prefix;
+
         DeleteUpdateMethodField(String prefix, ParamEntity entity) {
             super(prefix + "_deleteUpdateHandlerOf" + entityFieldName(entity),
                     ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER,
-                    entity.getPojo().getTypeName()));
+                            entity.getPojo().getTypeName()));
             this.prefix = prefix;
             this.entity = entity;
         }
@@ -378,6 +418,29 @@ public class DaoWriter extends ClassWriter {
         }
     }
 
+    private static class CustomDeleteMethodField extends SharedFieldSpec {
+        private final String sql;
+
+        private CustomDeleteMethodField(DeleteMethod method) {
+            super("customDeleteHandlerOf" +
+                            StringUtil.firstUpperCase(method.getElement()
+                                    .getSimpleName().toString()) +
+                            identifierParamNameAndType(method.getParameters()),
+                    JavaPoetClass.SQL_HANDLER);
+            this.sql = method.getSql();
+        }
+
+        @Override
+        String getUniqueKey() {
+            return "-CustomDeleteHandler-" + sql;
+        }
+
+        @Override
+        void prepare(ClassWriter writer, FieldSpec.Builder builder) {
+            builder.addModifiers(Modifier.PRIVATE, Modifier.FINAL);
+        }
+    }
+
     private static class InsertMethodField extends SharedFieldSpec {
         // TODO OnConflict
         private final ParamEntity entity;
@@ -385,7 +448,7 @@ public class DaoWriter extends ClassWriter {
         InsertMethodField(ParamEntity entity) {
             super("insertHandlerOf" + entityFieldName(entity),
                     ParameterizedTypeName.get(JavaPoetClass.INSERT_HANDLER,
-                    entity.getPojo().getTypeName()));
+                            entity.getPojo().getTypeName()));
             this.entity = entity;
         }
 
@@ -400,16 +463,29 @@ public class DaoWriter extends ClassWriter {
         }
     }
 
-    private static class MethodPair {
+    private static class AutoMethodPair {
         final Map<String, Pair<FieldSpec, TypeSpec>> fields;
         final MethodSpec methodImpl;
 
-        public MethodPair(Map<String, Pair<FieldSpec, TypeSpec>> fields,
-                          MethodSpec methodImpl) {
+        public AutoMethodPair(Map<String, Pair<FieldSpec, TypeSpec>> fields,
+                              MethodSpec methodImpl) {
             this.fields = fields;
             this.methodImpl = methodImpl;
         }
     }
 
+    private static class SQLMethodPair {
+        final SQLCustomMethod sqlCustomMethod;
+        final MethodSpec methodSpec;
+        final FieldSpec fieldSpec;
+
+        private SQLMethodPair(SQLCustomMethod sqlCustomMethod,
+                              MethodSpec methodSpec,
+                              FieldSpec fieldSpec) {
+            this.methodSpec = methodSpec;
+            this.sqlCustomMethod = sqlCustomMethod;
+            this.fieldSpec = fieldSpec;
+        }
+    }
 
 }

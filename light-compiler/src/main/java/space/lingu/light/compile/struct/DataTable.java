@@ -17,7 +17,7 @@
 package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.TypeName;
-import space.lingu.light.compile.coder.indentity.Identity;
+import space.lingu.light.compile.indentity.Identity;
 
 import javax.lang.model.element.TypeElement;
 import java.util.List;

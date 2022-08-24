@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.query.row;
+package space.lingu.light.compile.coder.custom.row;
 
 import com.squareup.javapoet.MethodSpec;
 import space.lingu.light.compile.coder.GenerateCodeBlock;

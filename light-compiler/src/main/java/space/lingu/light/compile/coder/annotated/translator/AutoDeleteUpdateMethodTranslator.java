@@ -22,7 +22,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.TypeUtil;
-import space.lingu.light.compile.struct.AnnotateParameter;
+import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
 
 import javax.lang.model.type.TypeMirror;
@@ -32,52 +32,23 @@ import java.util.Map;
 /**
  * @author RollW
  */
-public class DeleteUpdateMethodTranslator {
+public class AutoDeleteUpdateMethodTranslator {
     private final TypeMirror mReturnType;
 
-    private DeleteUpdateMethodTranslator(TypeMirror mirror) {
+    private AutoDeleteUpdateMethodTranslator(TypeMirror mirror) {
         mReturnType = mirror;
     }
 
-    public static DeleteUpdateMethodTranslator create(TypeMirror typeMirror,
-                                                      List<AnnotateParameter> params) {
+    public static AutoDeleteUpdateMethodTranslator create(TypeMirror typeMirror,
+                                                              List<Parameter> params) {
         if (check(typeMirror, params)) {
-            return new DeleteUpdateMethodTranslator(typeMirror);
+            return new AutoDeleteUpdateMethodTranslator(typeMirror);
         }
         return null;
     }
 
-    private static boolean check(TypeMirror mirror, List<AnnotateParameter> params) {
-        if (mirror == null) {
-            return false;
-        }
-        if (params.isEmpty()) {
-            return isReturnVoid(mirror) || isReturnNull(mirror);
-        }
 
-        return isValidReturn(mirror);
-    }
-
-    private static boolean isValidReturn(TypeMirror returnType) {
-        return isReturnVoid(returnType) ||
-                isReturnNull(returnType) ||
-                isReturnInt(returnType);
-    }
-
-    private static boolean isReturnVoid(TypeMirror returnType) {
-        return TypeUtil.isVoid(returnType);
-    }
-
-    private static boolean isReturnNull(TypeMirror returnType) {
-        return ClassName.get(returnType).equals(TypeName.VOID.box());
-    }
-
-    private static boolean isReturnInt(TypeMirror returnType) {
-        return TypeUtil.isInt(returnType) ||
-                ClassName.get(returnType).equals(TypeName.INT.box());
-    }
-
-    public void createMethodBody(List<AnnotateParameter> params,
+    public void createMethodBody(List<Parameter> params,
                                  Map<String, Pair<FieldSpec, TypeSpec>> handlers,
                                  GenerateCodeBlock block) {
         boolean returnsInt = isReturnInt(mReturnType);
@@ -103,7 +74,7 @@ public class DeleteUpdateMethodTranslator {
             }
 
             block.builder().addStatement("$L$N.$L($L)",
-                    increaseVar, handlerField, methodName, param.getName())
+                            increaseVar, handlerField, methodName, param.getName())
                     .nextControlFlow("finally")
                     .addStatement("$N.endTransaction()", handlerField)
                     .endControlFlow();
@@ -120,4 +91,35 @@ public class DeleteUpdateMethodTranslator {
     private String handlerMethodName(boolean isMultiple) {
         return isMultiple ? "handleMultiple" : "handle";
     }
+
+    protected static boolean check(TypeMirror mirror, List<Parameter> params) {
+        if (mirror == null) {
+            return false;
+        }
+        if (params.isEmpty()) {
+            return isReturnVoid(mirror) || isReturnNull(mirror);
+        }
+
+        return isValidReturn(mirror);
+    }
+
+    protected static boolean isValidReturn(TypeMirror returnType) {
+        return isReturnVoid(returnType) ||
+                isReturnNull(returnType) ||
+                isReturnInt(returnType);
+    }
+
+    protected static boolean isReturnVoid(TypeMirror returnType) {
+        return TypeUtil.isVoid(returnType);
+    }
+
+    protected static boolean isReturnNull(TypeMirror returnType) {
+        return ClassName.get(returnType).equals(TypeName.VOID.box());
+    }
+
+    protected static boolean isReturnInt(TypeMirror returnType) {
+        return TypeUtil.isInt(returnType) ||
+                ClassName.get(returnType).equals(TypeName.INT.box());
+    }
+
 }

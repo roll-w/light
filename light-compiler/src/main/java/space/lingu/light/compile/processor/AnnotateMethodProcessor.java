@@ -19,16 +19,12 @@ package space.lingu.light.compile.processor;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
-import space.lingu.light.compile.struct.AnnotateParameter;
-import space.lingu.light.compile.struct.DataTable;
-import space.lingu.light.compile.struct.Pojo;
-import space.lingu.light.compile.struct.ParamEntity;
+import space.lingu.light.compile.struct.*;
 import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,9 +44,9 @@ public class AnnotateMethodProcessor {
         mEnv = env;
     }
 
-    public Pair<Map<String, ParamEntity>, List<AnnotateParameter>> extractParameters(TypeElement element) {
+    public Pair<Map<String, ParamEntity>, List<Parameter>> extractParameters(TypeElement element) {
         List<? extends VariableElement> elements = mElement.getParameters();
-        List<AnnotateParameter> parameters = new ArrayList<>();
+        List<Parameter> parameters = new ArrayList<>();
         elements.forEach(e -> {
             Processor<AnnotateParameter> processor =
                     new AnnotateParameterProcessor(e, element, mEnv);
@@ -61,7 +57,7 @@ public class AnnotateMethodProcessor {
         return Pair.createPair(entityMap, parameters);
     }
 
-    public Map<String, ParamEntity> extractEntities(List<AnnotateParameter> params) {
+    public Map<String, ParamEntity> extractEntities(List<Parameter> params) {
         final Map<String, ParamEntity> entityMap = new HashMap<>();
         params.forEach(param -> {
             if (param == null) return;
