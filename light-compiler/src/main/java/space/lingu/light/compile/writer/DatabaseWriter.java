@@ -42,7 +42,7 @@ public class DatabaseWriter extends ClassWriter {
     protected TypeSpec.Builder createTypeSpecBuilder() {
         TypeSpec.Builder builder = TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addInitializerBlock(registerRuntimeStructs())
+                .addInitializerBlock(createRegisterRuntimeStructCode())
                 .addMethod(createClearAllTablesMethod())
                 .superclass(ClassName.get(mDatabase.getSuperClassElement()));
         writeDaos();
@@ -50,7 +50,7 @@ public class DatabaseWriter extends ClassWriter {
         return builder;
     }
 
-    private CodeBlock registerRuntimeStructs() {
+    private CodeBlock createRegisterRuntimeStructCode() {
         GenerateCodeBlock block = new GenerateCodeBlock(this);
         mDatabase.getDataTableList().forEach(dataTable -> {
             RuntimeStructWriter writer = new RuntimeStructWriter(dataTable);

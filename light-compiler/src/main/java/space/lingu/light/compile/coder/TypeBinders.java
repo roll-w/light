@@ -16,8 +16,7 @@
 
 package space.lingu.light.compile.coder;
 
-import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
+import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.custom.binder.*;
 import space.lingu.light.compile.coder.custom.result.ArrayQueryResultConverter;
 import space.lingu.light.compile.coder.custom.result.ListQueryResultConverter;
@@ -32,7 +31,6 @@ import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.processor.PojoProcessor;
 import space.lingu.light.compile.struct.Pojo;
-import space.lingu.light.SQLDataType;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
@@ -80,7 +78,7 @@ public class TypeBinders {
 
     public QueryParameterBinder findQueryParameterBinder(TypeMirror typeMirror) {
         if (typeMirror == null) {
-            throw new LightCompileException(CompileErrors.BUG_REPORT);
+            throw new IllegalArgumentException("TypeMirror cannot be null");
         }
 
         if (TypeUtil.isCollection(typeMirror)) {

@@ -39,7 +39,7 @@ import java.util.Set;
  * @author RollW
  */
 @AutoService(javax.annotation.processing.Processor.class)
-@SupportedAnnotationTypes("space.lingu.light.Database")
+@SupportedAnnotationTypes({"space.lingu.light.Database"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class LightProcessor extends JavacBaseProcessor {
 
@@ -78,17 +78,18 @@ public class LightProcessor extends JavacBaseProcessor {
                     );
                     writer.write();
                 } catch (LightCompileException ex) {
+                    getEnv().getLog().error(
+                            CompileErrors.buildFailed()
+                    );
                     throw ex;
                 } catch (Exception ex) {
-                    getEnv().getLog().warn(
-                            CompileErrors.bugReportWithMessage(ex.getMessage()),
-                            classElement
-                    );
+                    getEnv().getLog().error(CompileErrors.bugReportWithMessage(ex.getMessage()));
+                    getEnv().getLog().error(CompileErrors.buildFailed());
                     throw new LightCompileException(ex);
                 }
             }
         }
-
+        getEnv().getLog().note(CompileErrors.buildSuccess());
         return roundEnv.processingOver();
     }
 

@@ -97,7 +97,7 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
                 ParameterSpec parameter = ParameterSpec
                         .builder(JavaPoetClass.LangNames.STRING, "_value", Modifier.FINAL)
                         .build();
-                builder.addModifiers(Modifier.PRIVATE)
+                builder.addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                         .returns(className)
                         .addParameter(parameter)
                         .beginControlFlow("if ($N == null)", parameter)
@@ -130,7 +130,7 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
                 ParameterSpec parameter = ParameterSpec
                         .builder(className, "_value", Modifier.FINAL)
                         .build();
-                builder.addModifiers(Modifier.PRIVATE)
+                builder.addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                         .returns(String.class)
                         .addParameter(parameter)
                         .beginControlFlow("if ($N == null)", parameter)

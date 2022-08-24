@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.coder.custom.binder;
 
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 
@@ -45,7 +44,7 @@ public class BasicQueryParameterBinder extends QueryParameterBinder {
 
     @Override
     public void getArgsCount(String inputVarName, String outVarName, GenerateCodeBlock block) {
-        throw new LightCompileException("Should not call getArgCount on basic adapters." +
+        throw new IllegalStateException("Should not call getArgCount on basic adapters." +
                 "It is always one.");
     }
 }
