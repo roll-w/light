@@ -16,9 +16,6 @@
 
 package space.lingu.light.struct;
 
-import space.lingu.light.Index;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,57 +25,43 @@ public class Table {
     /**
      * Table name
      */
-    private String name;
+    private final String name;
 
     /**
      * Table columns
      */
-    private final List<TableColumn> columns = new ArrayList<>();
+    private final List<TableColumn> columns;
 
-    private TablePrimaryKey primaryKey;
+    private final TablePrimaryKey primaryKey;
     /**
      * Table indices
      */
-    private final List<TableIndex> indices = new ArrayList<>();
+    private final List<TableIndex> indices;
 
-    public Table() {
-        name = "";
-    }
-
-    public Table(String name) {
+    public Table(String name, List<TableColumn> columns,
+                 TablePrimaryKey primaryKey, List<TableIndex> indices) {
         this.name = name;
+        this.columns = columns;
+        this.primaryKey = primaryKey;
+        this.indices = indices;
     }
+
 
     public String getName() {
         return name;
-    }
-
-    public Table setName(String name) {
-        this.name = name;
-        return this;
     }
 
     public List<TableColumn> getColumns() {
         return columns;
     }
 
-    public Table setColumns(List<TableColumn> columns) {
-        this.columns.clear();
-        this.columns.addAll(columns);
-        return this;
-    }
-
     public List<TableIndex> getIndices() {
         return indices;
     }
 
-    public Table setIndices(List<TableIndex> indices) {
-        this.indices.clear();
-        this.indices.addAll(indices);
-        return this;
+    public TablePrimaryKey getPrimaryKey() {
+        return primaryKey;
     }
-
-
 
     @Override
     public String toString() {

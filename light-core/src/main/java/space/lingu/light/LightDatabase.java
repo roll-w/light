@@ -42,6 +42,8 @@ public abstract class LightDatabase {
     private Executor mQueryExecutor;
     private Executor mTransactionExecutor;
 
+    private String mName;
+
     public final DatasourceConfig getDatasourceConfig() {
         return mSourceConfig;
     }
@@ -66,6 +68,7 @@ public abstract class LightDatabase {
     }
 
     protected void init(DatabaseConfiguration conf) {
+        this.mName = conf.name;
         this.mSourceConfig = conf.datasourceConfig;
         if (conf.logger != null) {
             this.mLogger = conf.logger;
@@ -90,7 +93,21 @@ public abstract class LightDatabase {
 
     public Connection requireConnection() {
         checkConnectionPool();
-        return mConnectionPool.requireConnection();
+        Connection connection = mConnectionPool.requireConnection();
+        if (mName == null) {
+            return connection;
+        }
+        try {
+            PreparedStatement useStmt = connection.prepareStatement(
+                    getDialectProvider().useDatabase(mName)
+            );
+            useStmt.execute();
+            useStmt.close();
+        } catch (SQLException e) {
+            throw new LightRuntimeException(e);
+        }
+
+        return connection;
     }
 
     public void releaseConnection(Connection connection) {
@@ -136,7 +153,7 @@ public abstract class LightDatabase {
 
     private final Map<String, Table> mTableStructCache =
             Collections.synchronizedMap(new HashMap<>());
-    public void registerTable(Table table) {
+    protected void registerTable(Table table) {
         if (table == null) {
             return;
         }

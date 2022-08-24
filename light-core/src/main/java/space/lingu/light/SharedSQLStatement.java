@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author RollW
  */
+@SuppressWarnings("unused")
 public abstract class SharedSQLStatement {
     private final AtomicBoolean mLock = new AtomicBoolean(false);
 

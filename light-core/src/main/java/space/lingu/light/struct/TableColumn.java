@@ -23,10 +23,10 @@ import space.lingu.light.SQLDataType;
  */
 public class TableColumn {
     /**其在数据表中的名称(默认与fieldName相同)*/
-    private String name;
-    private String fieldName;
-    private String defaultValue;
-    private SQLDataType dataType;
+    private final String name;
+    private final String fieldName;
+    private final String defaultValue;
+    private final SQLDataType dataType;
 
     public TableColumn(String name,
                        String fieldName,
@@ -38,43 +38,20 @@ public class TableColumn {
         this.dataType = dataType;
     }
 
-    public TableColumn() {
-    }
-
     public SQLDataType getDataType() {
         return dataType;
-    }
-
-    public TableColumn setDataType(SQLDataType dataType) {
-        this.dataType = dataType;
-        return this;
     }
 
     public String getName() {
         return name;
     }
 
-    public TableColumn setName(String name) {
-        this.name = name;
-        return this;
-    }
-
     public String getFieldName() {
         return fieldName;
     }
 
-    public TableColumn setFieldName(String fieldName) {
-        this.fieldName = fieldName;
-        return this;
-    }
-
     public String getDefaultValue() {
         return defaultValue;
-    }
-
-    public TableColumn setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
-        return this;
     }
 
     @Override

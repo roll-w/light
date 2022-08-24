@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author RollW
  */
+@SuppressWarnings("unused")
 public class SharedConnection {
     private final AtomicBoolean mLock = new AtomicBoolean(false);
     private volatile Connection mConnection = null;
