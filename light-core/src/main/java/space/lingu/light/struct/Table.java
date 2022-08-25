@@ -16,6 +16,7 @@
 
 package space.lingu.light.struct;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -33,6 +34,7 @@ public class Table {
     private final List<TableColumn> columns;
 
     private final TablePrimaryKey primaryKey;
+
     /**
      * Table indices
      */
@@ -41,9 +43,9 @@ public class Table {
     public Table(String name, List<TableColumn> columns,
                  TablePrimaryKey primaryKey, List<TableIndex> indices) {
         this.name = name;
-        this.columns = columns;
+        this.columns = Collections.unmodifiableList(columns);
         this.primaryKey = primaryKey;
-        this.indices = indices;
+        this.indices = Collections.unmodifiableList(indices);
     }
 
 
