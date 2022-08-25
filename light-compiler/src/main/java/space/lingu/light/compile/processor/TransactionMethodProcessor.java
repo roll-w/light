@@ -37,8 +37,8 @@ public class TransactionMethodProcessor implements Processor<TransactionMethod> 
     private final TransactionMethod method = new TransactionMethod();
 
     public TransactionMethodProcessor(ExecutableElement executable,
-                                 TypeElement containing,
-                                 ProcessEnv env) {
+                                      TypeElement containing,
+                                      ProcessEnv env) {
         mContaining = containing;
         mExecutable = executable;
         mEnv = env;

@@ -109,22 +109,24 @@ public class TypeBinders {
         return new InstantQueryResultBinder(findQueryResultConverter(typeMirror));
     }
 
-    public QueryResultConverter findQueryResultConverter(TypeMirror type) {
+    public QueryResultConverter findQueryResultConverter(TypeMirror typeMirror) {
+        if (typeMirror == null) {
+            throw new IllegalArgumentException("TypeMirror cannot be null");
+        }
 
-
-        if (TypeUtil.isArray(type) && TypeUtil.getArrayElementType(type).getKind() != TypeKind.BYTE) {
-            RowConverter converter = findRowConverter(TypeUtil.getArrayElementType(type));
+        if (TypeUtil.isArray(typeMirror) && TypeUtil.getArrayElementType(typeMirror).getKind() != TypeKind.BYTE) {
+            RowConverter converter = findRowConverter(TypeUtil.getArrayElementType(typeMirror));
             if (converter != null) {
                 return new ArrayQueryResultConverter(converter);
             }
-        } else if (ElementUtil.isList((TypeElement) mEnv.getTypeUtils().asElement(type))) {
-            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(ElementUtil.getGenericTypes(type).get(0));
+        } else if (ElementUtil.isList(mEnv.getTypeUtils().asElement(typeMirror))) {
+            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(ElementUtil.getGenericTypes(typeMirror).get(0));
             RowConverter converter = findRowConverter(typeArg);
             if (converter != null) {
                 return new ListQueryResultConverter(typeArg, converter);
             }
         }
-        RowConverter converter = findRowConverter(type);
+        RowConverter converter = findRowConverter(typeMirror);
         return new SingleEntityQueryResultConverter(converter);
     }
 

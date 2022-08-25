@@ -19,7 +19,6 @@ package space.lingu.light.compile;
 /**
  * @author RollW
  */
-
 public class CompileErrors {
     public static final String BUG_REPORT =
             "If you see this message, means you have found a bug. Please report it to us.";
