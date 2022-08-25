@@ -41,7 +41,7 @@ public @interface Database {
      *
      * @return 数据连接配置读取路径
      */
-    String datasourceConfig() default "/light.properties";
+    String datasourceConfig() default DatasourceLoader.DEFAULT_PATH;
 
     int version();
 

@@ -35,6 +35,13 @@ public class StringUtil {
         return false;
     }
 
+    public static boolean isEmpty(String s) {
+        if (s == null) {
+            return true;
+        }
+        return s.isEmpty();
+    }
+
     public static StringBuilder createStringBuilder() {
         return new StringBuilder();
     }

@@ -16,6 +16,7 @@
 
 package space.lingu.light.connect;
 
+import space.lingu.light.DatasourceConfig;
 import space.lingu.light.log.LightLogger;
 
 import java.io.Closeable;

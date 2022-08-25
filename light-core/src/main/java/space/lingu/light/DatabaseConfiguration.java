@@ -17,7 +17,6 @@
 package space.lingu.light;
 
 import space.lingu.light.connect.ConnectionPool;
-import space.lingu.light.connect.DatasourceConfig;
 import space.lingu.light.log.LightLogger;
 import space.lingu.light.sql.DialectProvider;
 

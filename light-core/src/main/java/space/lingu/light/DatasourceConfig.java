@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package space.lingu.light.connect;
+package space.lingu.light;
 
 import java.util.Objects;
 
@@ -27,15 +27,13 @@ public class DatasourceConfig {
     private final String jdbcName;
     private final String username;// optional
     private final String password;// optional
-    private final String modifier;
 
     public DatasourceConfig(String url, String jdbcName, String username,
-                            String password, String modifier) {
+                            String password) {
         this.url = url;
         this.jdbcName = jdbcName;
         this.username = username;
         this.password = password;
-        this.modifier = modifier;
     }
 
     public String getUrl() {
@@ -50,10 +48,6 @@ public class DatasourceConfig {
         return password;
     }
 
-    public String getModifier() {
-        return modifier;
-    }
-
     public String getJdbcName() {
         return jdbcName;
     }
@@ -66,13 +60,12 @@ public class DatasourceConfig {
         return Objects.equals(url, config.url) &&
                 Objects.equals(jdbcName, config.jdbcName) &&
                 Objects.equals(username, config.username) &&
-                Objects.equals(password, config.password) &&
-                Objects.equals(modifier, config.modifier);
+                Objects.equals(password, config.password);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(url, jdbcName, username, password, modifier);
+        return Objects.hash(url, jdbcName, username, password);
     }
 
     @Override
@@ -82,7 +75,6 @@ public class DatasourceConfig {
                 "jdbcName='" + jdbcName + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
-                ", modifier='" + modifier + '\'' +
                 '}';
     }
 }
