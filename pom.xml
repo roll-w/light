@@ -23,7 +23,7 @@
     <groupId>space.lingu.light</groupId>
     <artifactId>light-data</artifactId>
     <packaging>pom</packaging>
-    <version>0.2.4</version>
+    <version>0.3.0</version>
 
     <modules>
         <module>light-parent</module>

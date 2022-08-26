@@ -24,6 +24,7 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.TYPE})
+@LightExperimentalApi
 public @interface DataConverters {
     /**
      * 类型转换器类列表。转换器方法应当为静态方法。
