@@ -16,7 +16,10 @@
 
 package space.lingu.light.compile.writer;
 
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.struct.ParamEntity;
 import space.lingu.light.compile.struct.Pojo;

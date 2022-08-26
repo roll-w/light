@@ -18,6 +18,7 @@ package space.lingu.light.compile.writer;
 
 import com.squareup.javapoet.*;
 import space.lingu.light.DaoConnectionGetter;
+import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
@@ -142,7 +143,7 @@ public class DaoWriter extends ClassWriter {
 
         if (constructors.size() > 1) {
             mEnv.getLog().error(
-                    CompileErrors.DAO_TOO_MANY_CONSTRUCTORS,
+                    CompileErrors.DAO_TOO_MUCH_CONSTRUCTORS,
                     mDao.getElement()
             );
         }
@@ -159,7 +160,7 @@ public class DaoWriter extends ClassWriter {
             }
             if (params.size() > 1) {
                 mEnv.getLog().error(
-                        CompileErrors.DAO_CONSTRUCTOR_TOO_MANY_PARAMS,
+                        CompileErrors.DAO_CONSTRUCTOR_TOO_MUCH_PARAMS,
                         constructor
                 );
             }
@@ -196,8 +197,11 @@ public class DaoWriter extends ClassWriter {
                 .filter(autoMethodPair -> !autoMethodPair.fields.isEmpty())
                 .forEach(autoMethodPair -> {
                     AtomicReference<Pair<FieldSpec, TypeSpec>> pair = new AtomicReference<>();
-                    autoMethodPair.fields.values().stream()
-                            .filter(specPair -> specPair.first != null && specPair.second != null)
+                    autoMethodPair.fields
+                            .values()
+                            .stream()
+                            .filter(specPair ->
+                                    specPair.first != null && specPair.second != null)
                             .forEach(pair::set);
                     set.add(pair.get());// 去重
                 });
@@ -230,7 +234,7 @@ public class DaoWriter extends ClassWriter {
             method.getEntities().forEach((s, paramEntity) -> {
                 fields.put(s,
                         Pair.createPair(
-                                getOrCreateField(new DeleteUpdateMethodField("delete", paramEntity)),
+                                getOrCreateField(new DeleteUpdateMethodField("delete", paramEntity, null)),
                                 new DeleteHandlerWriter(paramEntity).createAnonymous(this, sDatabaseField.name)));
             });
 
@@ -250,8 +254,9 @@ public class DaoWriter extends ClassWriter {
             final Map<String, Pair<FieldSpec, TypeSpec>> fields = new HashMap<>();
             method.getEntities().forEach((s, paramEntity) -> {
                 fields.put(s,
-                        Pair.createPair(getOrCreateField(new DeleteUpdateMethodField("update", paramEntity)),
-                                new UpdateHandlerWriter(paramEntity).createAnonymous(this, sDatabaseField.name)));
+                        Pair.createPair(getOrCreateField(
+                                        new DeleteUpdateMethodField("update", paramEntity, null)),
+                                new UpdateHandlerWriter(paramEntity, method).createAnonymous(this, sDatabaseField.name)));
             });
             MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
                     .addModifiers(Modifier.FINAL)
@@ -269,8 +274,8 @@ public class DaoWriter extends ClassWriter {
             final Map<String, Pair<FieldSpec, TypeSpec>> fields = new HashMap<>();
             method.getEntities().forEach((s, paramEntity) -> {
                 fields.put(s,
-                        Pair.createPair(getOrCreateField(new InsertMethodField(paramEntity)),
-                                new InsertHandlerWriter(paramEntity).createAnonymous(this, sDatabaseField.name)));
+                        Pair.createPair(getOrCreateField(new InsertMethodField(paramEntity, method.getOnConflict())),
+                                new InsertHandlerWriter(method, paramEntity).createAnonymous(this, sDatabaseField.name)));
             });
             MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
                     .addModifiers(Modifier.FINAL)
@@ -395,7 +400,30 @@ public class DaoWriter extends ClassWriter {
 
         @Override
         String getUniqueKey() {
-            return "-QueryHandler-" + sql;
+            return "QueryHandler" + baseName + sql;
+        }
+
+        @Override
+        void prepare(ClassWriter writer, FieldSpec.Builder builder) {
+            builder.addModifiers(Modifier.PRIVATE, Modifier.FINAL);
+        }
+    }
+
+    private static class CustomDeleteMethodField extends SharedFieldSpec {
+        private final String sql;
+
+        private CustomDeleteMethodField(DeleteMethod method) {
+            super("customDeleteHandlerOf" +
+                            StringUtil.firstUpperCase(
+                                    method.getElement().getSimpleName().toString()) +
+                            identifierParamNameAndType(method.getParameters()),
+                    JavaPoetClass.SQL_HANDLER);
+            this.sql = method.getSql();
+        }
+
+        @Override
+        String getUniqueKey() {
+            return "CustomDeleteHandler" + baseName + sql;
         }
 
         @Override
@@ -407,18 +435,24 @@ public class DaoWriter extends ClassWriter {
     private static class DeleteUpdateMethodField extends SharedFieldSpec {
         private final ParamEntity entity;
         private final String prefix;
+        private final String onConflict;
 
-        DeleteUpdateMethodField(String prefix, ParamEntity entity) {
+        DeleteUpdateMethodField(String prefix, ParamEntity entity, OnConflictStrategy onConflictStrategy) {
             super(prefix + "_deleteUpdateHandlerOf" + entityFieldName(entity),
                     ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER,
                             entity.getPojo().getTypeName()));
             this.prefix = prefix;
             this.entity = entity;
+            onConflict = onConflictStrategy == null ?
+                    "" : onConflictStrategy.name();
         }
 
         @Override
         String getUniqueKey() {
-            return prefix + "DeleteUpdateHandler-" + entity.getPojo().getTypeName() + "-" + entity.getTableName();
+            return prefix + "DeleteUpdateHandler-" +
+                    entity.getPojo().getTypeName() +
+                    entity.getTableName() +
+                    onConflict;
         }
 
         @Override
@@ -427,43 +461,24 @@ public class DaoWriter extends ClassWriter {
         }
     }
 
-    private static class CustomDeleteMethodField extends SharedFieldSpec {
-        private final String sql;
-
-        private CustomDeleteMethodField(DeleteMethod method) {
-            super("customDeleteHandlerOf" +
-                            StringUtil.firstUpperCase(method.getElement()
-                                    .getSimpleName().toString()) +
-                            identifierParamNameAndType(method.getParameters()),
-                    JavaPoetClass.SQL_HANDLER);
-            this.sql = method.getSql();
-        }
-
-        @Override
-        String getUniqueKey() {
-            return "-CustomDeleteHandler-" + sql;
-        }
-
-        @Override
-        void prepare(ClassWriter writer, FieldSpec.Builder builder) {
-            builder.addModifiers(Modifier.PRIVATE, Modifier.FINAL);
-        }
-    }
 
     private static class InsertMethodField extends SharedFieldSpec {
-        // TODO OnConflict
         private final ParamEntity entity;
+        private final OnConflictStrategy onConflictStrategy;
 
-        InsertMethodField(ParamEntity entity) {
+        InsertMethodField(ParamEntity entity, OnConflictStrategy onConflictStrategy) {
             super("insertHandlerOf" + entityFieldName(entity),
                     ParameterizedTypeName.get(JavaPoetClass.INSERT_HANDLER,
                             entity.getPojo().getTypeName()));
             this.entity = entity;
+            this.onConflictStrategy = onConflictStrategy;
         }
 
         @Override
         String getUniqueKey() {
-            return "InsertHandler-" + entity.getPojo().getTypeName() + "-" + entity.getTableName();
+            return "InsertHandler-" + entity.getPojo().getTypeName() +
+                    entity.getTableName() +
+                    onConflictStrategy.name();
         }
 
         @Override

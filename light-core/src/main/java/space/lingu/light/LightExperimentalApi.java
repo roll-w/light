@@ -26,7 +26,7 @@ import java.lang.annotation.*;
  * @author RollW
  */
 @Documented
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.CLASS)
 @Target(value = {
         ElementType.METHOD, ElementType.TYPE,
         ElementType.CONSTRUCTOR, ElementType.ANNOTATION_TYPE

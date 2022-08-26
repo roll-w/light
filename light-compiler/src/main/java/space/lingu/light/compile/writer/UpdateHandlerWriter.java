@@ -22,6 +22,7 @@ import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.ParamEntity;
 import space.lingu.light.compile.struct.Pojo;
+import space.lingu.light.compile.struct.UpdateMethod;
 import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.Modifier;
@@ -35,21 +36,45 @@ import java.util.stream.IntStream;
  */
 public class UpdateHandlerWriter {
     private final ParamEntity mEntity;
-    private final String tableName;
+    private final String mTableName;
     private final Pojo mPojo;
+    private final UpdateMethod mMethod;
 
-    public UpdateHandlerWriter(ParamEntity entity) {
+    public UpdateHandlerWriter(ParamEntity entity, UpdateMethod updateMethod) {
         mEntity = entity;
         mPojo = entity.getPojo();
-        tableName = entity.getTableName();
+        mTableName = entity.getTableName();
+        mMethod = updateMethod;
     }
 
     public TypeSpec createAnonymous(ClassWriter writer, String dbParam) {
-        StringJoiner args = new StringJoiner(", ");
-        mEntity.getPrimaryKey().getFields().fields.forEach(field -> {
-            args.add("\"" + field.getColumnName() + "\"");
-        });
-        GenerateCodeBlock bindBlock = new GenerateCodeBlock(writer);
+        StringJoiner keys = new StringJoiner(", ");
+        StringJoiner params = new StringJoiner(", ");
+        mEntity.getPrimaryKey().getFields().fields.forEach(field ->
+                keys.add("\"" + field.getColumnName() + "\""));
+
+        mEntity.getPojo().getFields().forEach(field ->
+                params.add("\"" + field.getColumnName() + "\""));
+
+        GenerateCodeBlock queryBlock = new GenerateCodeBlock(writer);
+        String primaryKeysVar = queryBlock.getTempVar("_pKeys");
+        String paramsVar = queryBlock.getTempVar("_values");
+        ArrayTypeName stringArray =
+                ArrayTypeName.of(JavaPoetClass.LangNames.STRING);
+
+        queryBlock.builder()
+                .addStatement("final $T $L = new $T{$L}",
+                        stringArray, primaryKeysVar,
+                        stringArray, keys.toString())
+                .addStatement("final $T $L = new $T{$L}",
+                        stringArray, paramsVar,
+                        stringArray, params.toString())
+                .addStatement("return $N.getDialectProvider().getGenerator().update($S, $T.$L, $L, $L)",
+                        DaoWriter.sDatabaseField, mTableName,
+                        JavaPoetClass.ON_CONFLICT_STRATEGY,
+                        mMethod.getOnConflict(),
+                        primaryKeysVar, paramsVar);
+
         TypeSpec.Builder builder = TypeSpec.anonymousClassBuilder("$L", dbParam)
                 .superclass(ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER, mPojo.getTypeName()))
                 .addMethod(
@@ -57,11 +82,11 @@ public class UpdateHandlerWriter {
                                 .addModifiers(Modifier.PUBLIC)
                                 .addAnnotation(Override.class)
                                 .returns(JavaPoetClass.LangNames.STRING)
-                                .addStatement("return $N.getDialectProvider().getGenerator().update($S, $L)",
-                                        DaoWriter.sDatabaseField, tableName, args.toString())
+                                .addCode(queryBlock.generate())
                                 .build()
                 );
 
+        GenerateCodeBlock bindBlock = new GenerateCodeBlock(writer);
         MethodSpec.Builder bindMethodBuilder = MethodSpec.methodBuilder("bind")
                 .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                 .addAnnotation(Override.class)

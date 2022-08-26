@@ -21,12 +21,12 @@ import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.LightProcessor;
 import space.lingu.light.compile.javac.ProcessEnv;
 
+import javax.annotation.processing.Filer;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.processing.Filer;
 
 /**
  * 类生成器
@@ -54,6 +54,12 @@ public abstract class ClassWriter {
 
     protected abstract TypeSpec.Builder createTypeSpecBuilder();
 
+    public ClassWriter(ClassName className, ProcessEnv env) {
+        this.className = className;
+        mEnv = env;
+        filer = env.getFiler();
+    }
+
     public FieldSpec getOrCreateField(SharedFieldSpec fieldSpec) {
         if (sharedFieldSpecs.get(fieldSpec.getUniqueKey()) == null) {
             sharedFieldSpecs.put(fieldSpec.getUniqueKey(),
@@ -72,7 +78,6 @@ public abstract class ClassWriter {
         return sharedMethodSpecs.get(methodSpec.getUniqueKey());
     }
 
-
     private String makeUniqueName(Set<String> set, String value) {
         if (!value.startsWith(CLASS_MEMBER_PREFIX)) {
             return makeUniqueName(set, CLASS_MEMBER_PREFIX + value);
@@ -87,12 +92,6 @@ public abstract class ClassWriter {
             }
             idx++;
         }
-    }
-
-    public ClassWriter(ClassName className, ProcessEnv env) {
-        this.className = className;
-        mEnv = env;
-        filer = env.getFiler();
     }
 
     public void write() {

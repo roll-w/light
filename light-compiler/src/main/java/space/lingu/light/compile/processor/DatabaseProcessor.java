@@ -24,8 +24,8 @@ import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.DataConverter;
-import space.lingu.light.compile.struct.Database;
 import space.lingu.light.compile.struct.DataTable;
+import space.lingu.light.compile.struct.Database;
 import space.lingu.light.compile.struct.DatabaseDaoMethod;
 import space.lingu.light.compile.writer.ClassWriter;
 
@@ -33,7 +33,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.MirroredTypesException;
 import javax.lang.model.type.TypeMirror;
 import java.util.*;
@@ -108,32 +107,37 @@ public class DatabaseProcessor implements Processor<Database> {
         if (dataConvertersAnno == null) {
             return Collections.emptyList();
         }
-        List<? extends TypeMirror> convertersClassMirror = Collections.emptyList();
+
+        List<? extends TypeMirror> convertersClassMirrors = Collections.emptyList();
         try {
             Class<?>[] classes = dataConvertersAnno.value();
         } catch (MirroredTypesException e) {
-            convertersClassMirror = e.getTypeMirrors();
+            convertersClassMirrors = e.getTypeMirrors();
         }
-        convertersClassMirror.forEach(typeMirror -> {
+        convertersClassMirrors.forEach(typeMirror -> {
             TypeElement convertersElement = ElementUtil.asTypeElement(typeMirror);
             if (convertersElement == null) {
-                throw new LightCompileException("Please check if there any fault in DataConverters annotation.");
+                mEnv.getLog().error(
+                        CompileErrors.ILLEGAL_DATA_CONVERTERS_CLASS,
+                        mElement
+                );
+                return;
             }
+
             convertersElement.getEnclosedElements().forEach(enclosedElement -> {
                 if (enclosedElement.getAnnotation(space.lingu.light.DataConverter.class) == null) {
                     return;
                 }
                 if (enclosedElement.getKind() == ElementKind.METHOD) {
-                    if (!ElementUtil.isStatic(enclosedElement) || !ElementUtil.isPublic(enclosedElement)) {
-                        throw new LightCompileException("A DataConverter method must be static and public.");
-                    }
                     Processor<DataConverter> converterProcessor =
-                            new DataConverterProcessor((ExecutableElement) enclosedElement,
+                            new DataConverterProcessor(
+                                    (ExecutableElement) enclosedElement,
                                     convertersElement, mEnv);
                     dataConverterList.add(converterProcessor.process());
                 }
             });
         });
+
         return dataConverterList;
     }
 

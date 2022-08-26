@@ -16,10 +16,14 @@
 
 package space.lingu.light.compile.writer;
 
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeSpec;
+import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.compile.JavaPoetClass;
-import space.lingu.light.compile.struct.Pojo;
+import space.lingu.light.compile.struct.InsertMethod;
 import space.lingu.light.compile.struct.ParamEntity;
+import space.lingu.light.compile.struct.Pojo;
 
 import javax.lang.model.element.Modifier;
 
@@ -29,14 +33,16 @@ import javax.lang.model.element.Modifier;
 public class InsertHandlerWriter {
     private final String tableName;
     private final Pojo pojo;
+    private final OnConflictStrategy onConflictStrategy;
 
-    public InsertHandlerWriter(String tableName, Pojo pojo) {
+    public InsertHandlerWriter(String tableName, Pojo pojo, OnConflictStrategy onConflictStrategy) {
         this.tableName = tableName;
         this.pojo = pojo;
+        this.onConflictStrategy = onConflictStrategy;
     }
 
-    public InsertHandlerWriter(ParamEntity entity) {
-        this(entity.getTableName(), entity.getPojo());
+    public InsertHandlerWriter(InsertMethod method, ParamEntity entity) {
+        this(entity.getTableName(), entity.getPojo(), method.getOnConflict());
     }
 
     public TypeSpec createAnonymous(ClassWriter writer, String dbParam) {
@@ -49,15 +55,19 @@ public class InsertHandlerWriter {
             }
         }
         AnnotatedMethodWriter delegate = new AnnotatedMethodWriter(pojo);
-        TypeSpec.Builder builder =  TypeSpec.anonymousClassBuilder("$L", dbParam)
+        TypeSpec.Builder builder = TypeSpec.anonymousClassBuilder("$L", dbParam)
                 .superclass(ParameterizedTypeName.get(JavaPoetClass.INSERT_HANDLER, pojo.getTypeName()))
                 .addMethod(
                         MethodSpec.methodBuilder("createQuery")
                                 .addModifiers(Modifier.PUBLIC)
                                 .addAnnotation(Override.class)
-                                .returns(ClassName.get("java.lang", "String"))
-                                .addStatement("return $N.getDialectProvider().getGenerator().generateInsert($S, $L)",
-                                        DaoWriter.sDatabaseField, tableName, args.toString())
+                                .returns(JavaPoetClass.LangNames.STRING)
+                                .addStatement("return $N.getDialectProvider().getGenerator().insert($S, $T.$L, $L)",
+                                        DaoWriter.sDatabaseField,
+                                        tableName,
+                                        JavaPoetClass.ON_CONFLICT_STRATEGY,
+                                        onConflictStrategy,
+                                        args.toString())
                                 .build());
 
         builder.addMethod(delegate.createBindMethod(writer, pojo.getFields()));

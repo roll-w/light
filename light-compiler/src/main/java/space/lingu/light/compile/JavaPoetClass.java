@@ -19,6 +19,7 @@ package space.lingu.light.compile;
 import com.squareup.javapoet.ClassName;
 import space.lingu.light.Light;
 import space.lingu.light.LightDatabase;
+import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.SharedConnection;
 import space.lingu.light.handler.DeleteUpdateHandler;
 import space.lingu.light.handler.InsertHandler;
@@ -43,6 +44,8 @@ public class JavaPoetClass {
     public static final ClassName INSERT_HANDLER = ClassName.get(InsertHandler.class);
     public static final ClassName DELETE_UPDATE_HANDLER = ClassName.get(DeleteUpdateHandler.class);
     public static final ClassName SQL_HANDLER = ClassName.get(SQLHandler.class);
+
+    public static final ClassName ON_CONFLICT_STRATEGY = ClassName.get(OnConflictStrategy.class);
 
     public static class UtilNames {
         public static final ClassName STRING_UTIL = ClassName.get(StringUtil.class);

@@ -19,7 +19,7 @@ package space.lingu.light.compile;
 /**
  * @author RollW
  */
-public class CompileErrors {
+public final class CompileErrors {
     public static final String BUG_REPORT =
             "If you see this message, means you have found a bug. Please report it to us.";
 
@@ -28,11 +28,11 @@ public class CompileErrors {
     }
 
     public static String buildSuccess() {
-       return "Light: Light module build success.";
+        return "Light: Light module build success.";
     }
 
     public static String buildFailed() {
-       return "Light: Light module build failed.";
+        return "Light: Light module build failed.";
     }
 
     public static final String DATABASE_NOT_CLASS =
@@ -46,9 +46,9 @@ public class CompileErrors {
             "An abstract method in a database class whose return type " +
                     "must be an abstract class or interface annotated with @Dao";
 
-    public static final String DAO_TOO_MANY_CONSTRUCTORS =
+    public static final String DAO_TOO_MUCH_CONSTRUCTORS =
             "Only can have one constructor that is parameterless or have a Database parameter.";
-    public static final String DAO_CONSTRUCTOR_TOO_MANY_PARAMS =
+    public static final String DAO_CONSTRUCTOR_TOO_MUCH_PARAMS =
             "One constructor in DAO can only have one Database parameter or is parameterless.";
     public static final String DAO_CONSTRUCTOR_PARAM_TYPE =
             "Parameter must be of type LightDatabase.";
@@ -93,4 +93,22 @@ public class CompileErrors {
             "The SQL expression in the annotation cannot be empty " +
                     "and must be a meaningful SQL expression.";
 
+
+    public static final String DATA_CONVERTER_TOO_MUCH_PARAMS =
+            "A DataConverter method can only have one parameter.";
+
+    public static final String ILLEGAL_DATA_CONVERTERS_CLASS =
+            "Illegal class in DataConverters. Please check classes value in DataConverters annotation.";
+
+    public static final String DATA_CONVERTER_NO_PARAM =
+            "A DataConverter method must have one parameter.";
+
+    public static final String DATA_CONVERTER_INVALID_RETURN_TYPE =
+            "DataConverter method has invalid return type (e.g. void).";
+
+    public static final String DATA_CONVERTER_METHOD_NOT_PUBLIC =
+            "A DataConverter method must be public.";
+
+    public static final String DATA_CONVERTER_METHOD_NOT_STATIC =
+            "A DataConverter method must be static.";
 }

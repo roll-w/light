@@ -41,6 +41,8 @@ public interface SQLGenerator {
 
     String update(String tableName, String[] whereConditions, String[] valueArgs);
 
+    String update(String tableName, OnConflictStrategy onConflict, String[] whereConditions, String[] valueArgs);
+
     default String placeHolders(int argsCount) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < argsCount; i++) {

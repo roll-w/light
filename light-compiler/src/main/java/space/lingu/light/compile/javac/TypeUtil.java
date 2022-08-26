@@ -101,10 +101,16 @@ public class TypeUtil {
         return typeMirror.getKind() == TypeKind.VOID;
     }
 
+    public static boolean isNone(TypeMirror typeMirror) {
+        return typeMirror.getKind() == TypeKind.NONE;
+    }
+
     public static boolean isInt(TypeMirror typeMirror) {
         return typeMirror.getKind() == TypeKind.INT;
     }
 
     private TypeUtil() {
     }
+
+
 }
