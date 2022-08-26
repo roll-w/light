@@ -16,23 +16,20 @@
 
 package space.lingu.light;
 
+import java.lang.annotation.*;
+
 /**
- * 冲突处理
+ * 标记实验性API。
+ * <p>
+ * 在当前的版本中可能无效，在之后的版本中可能会变化或者被移除。
+ *
  * @author RollW
  */
-public enum OnConflictStrategy {
-    /**
-     * Abort, will throw an Exception.
-     */
-    ABORT,
-
-    /**
-     * Replace with new value.
-     */
-    REPLACE,
-
-    /**
-     * Ignore it.
-     */
-    IGNORE
+@Documented
+@Retention(RetentionPolicy.SOURCE)
+@Target(value = {
+        ElementType.METHOD, ElementType.TYPE,
+        ElementType.CONSTRUCTOR, ElementType.ANNOTATION_TYPE
+})
+public @interface LightExperimentalApi {
 }

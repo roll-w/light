@@ -19,24 +19,40 @@ package space.lingu.light.sql;
 import space.lingu.light.OnConflictStrategy;
 
 /**
- * 生成SQL语句
+ * SQL语句生成器
+ *
  * @author RollW
  */
 public interface SQLGenerator {
     String BACK_QUOTE = "`";
 
-    // TODO: 语句生成接口
-    String generateInsert(String tableName, String... valueArgs);
+    /**
+     * 返回SQL插入语句
+     *
+     * @param tableName 表名称
+     * @param valueArgs 插入列的名称（按顺序）
+     * @return SQL插入语句
+     */
+    String insert(String tableName, String... valueArgs);
 
-    String generateInsert(String tableName, OnConflictStrategy onConflict, String... valueArgs);
+    String insert(String tableName, OnConflictStrategy onConflict, String... valueArgs);
 
-    String generateDelete(String tableName, String... conditions);
+    String delete(String tableName, String... conditions);
 
-    String generateDelete(String tableName, String conditionName, int args);
+    String update(String tableName, String[] whereConditions, String[] valueArgs);
 
-    String generateUpdate(String tableName, String... valueArgs);
+    default String placeHolders(int argsCount) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < argsCount; i++) {
+            builder.append("?");
+            if (i < argsCount - 1) {
+                builder.append(",");
+            }
+        }
+        return builder.toString();
+    }
 
-    String placeHolders(int argsCount);
-
-    String escapeParam(String param);
+    default String escapeParam(String param) {
+        return BACK_QUOTE + param + BACK_QUOTE;
+    }
 }

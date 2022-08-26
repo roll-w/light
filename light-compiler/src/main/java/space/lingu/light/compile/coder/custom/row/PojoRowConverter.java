@@ -41,7 +41,6 @@ public class PojoRowConverter extends RowConverter {
         super(outType);
         mPojo = pojo;
         usedFields.addAll(mPojo.getFields());
-        // TODO 对查询语句进行校验，
     }
 
     @Override

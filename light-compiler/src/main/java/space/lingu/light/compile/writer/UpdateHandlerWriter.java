@@ -56,8 +56,8 @@ public class UpdateHandlerWriter {
                         MethodSpec.methodBuilder("createQuery")
                                 .addModifiers(Modifier.PUBLIC)
                                 .addAnnotation(Override.class)
-                                .returns(ClassName.get("java.lang", "String"))
-                                .addStatement("return $N.getDialectProvider().getGenerator().generateUpdate($S, $L)",
+                                .returns(JavaPoetClass.LangNames.STRING)
+                                .addStatement("return $N.getDialectProvider().getGenerator().update($S, $L)",
                                         DaoWriter.sDatabaseField, tableName, args.toString())
                                 .build()
                 );

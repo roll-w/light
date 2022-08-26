@@ -238,6 +238,7 @@ public abstract class LightDatabase {
             return this;
         }
 
+        @LightExperimentalApi
         public Builder<T> addMigrations(Migration... migrations) {
             return this;
         }
@@ -246,6 +247,7 @@ public abstract class LightDatabase {
          * 设置冲突时重建数据表
          * @return this
          */
+        @LightExperimentalApi
         public Builder<T> deleteOnConflict() {
             return deleteOnConflict(true);
         }
@@ -254,6 +256,7 @@ public abstract class LightDatabase {
          * 设置冲突时是否重建数据表
          * @return this
          */
+        @LightExperimentalApi
         public Builder<T> deleteOnConflict(boolean enable) {
             return this;
         }

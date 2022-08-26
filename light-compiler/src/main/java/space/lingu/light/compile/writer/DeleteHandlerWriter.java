@@ -51,7 +51,7 @@ public class DeleteHandlerWriter {
                                 .addModifiers(Modifier.PUBLIC)
                                 .addAnnotation(Override.class)
                                 .returns(ClassName.get("java.lang", "String"))
-                                .addStatement("return $N.getDialectProvider().getGenerator().generateDelete($S, $L)",
+                                .addStatement("return $N.getDialectProvider().getGenerator().delete($S, $L)",
                                         DaoWriter.sDatabaseField, tableName, args.toString())
                                 .build());
 

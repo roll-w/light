@@ -51,7 +51,10 @@ public class SQLHandler extends SharedConnection {
         }
         String[] placeholders = new String[args.length + 1];
         for (int n = 0; n < args.length; n++) {
-            placeholders[n] = mDatabase.getDialectProvider().getGenerator().placeHolders(args[n]);
+            placeholders[n] = mDatabase
+                    .getDialectProvider()
+                    .getGenerator()
+                    .placeHolders(args[n]);
         }
         Matcher matcher = sPattern.matcher(sql);
         StringBuilder builder = new StringBuilder(sPattern.split(sql)[0]);

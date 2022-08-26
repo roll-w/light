@@ -19,6 +19,8 @@ package space.lingu.light.sql;
 import space.lingu.light.struct.DatabaseInfo;
 import space.lingu.light.struct.Table;
 
+import static space.lingu.light.sql.SQLGenerator.BACK_QUOTE;
+
 /**
  * 数据库方言提供
  * @author RollW
@@ -27,20 +29,44 @@ public interface DialectProvider {
     /**
      * 创建表
      */
-    String create(Table table);
+    default String create(Table table) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
     /**
      * 创建数据库
      */
-    String create(DatabaseInfo info);
+    default String create(DatabaseInfo databaseInfo) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-    String destroyTable(String tableName);
+    default String destroyTable(String tableName) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-    String destroyDatabase(String databaseName);
+    default String destroyDatabase(String databaseName) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-    String useDatabase(String databaseName);
+    default String destroy(Table table) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    default String destroy(DatabaseInfo databaseInfo) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    default String useDatabase(String databaseName) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    default String use(DatabaseInfo databaseInfo) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
     SQLGenerator getGenerator();
 
-    // TODO: 生成语句接口
+    default String escapeParam(String param) {
+        return BACK_QUOTE + param + BACK_QUOTE;
+    }
 }
