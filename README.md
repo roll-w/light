@@ -1,7 +1,39 @@
-# Light Data
+# Light Data 
+[![Maven Central][mcBadge]][mcLink] [![License][liBadge]][liLink]
 
-A lightweight relational database development module.
+A simple and lightweight relational database development module.
 
+## Getting Started
+
+To add dependencies on Light using Maven, use the following:
+```xml
+<dependencies>
+    <!-- Code Generator Module -->
+    <dependency>
+        <groupId>space.lingu.light</groupId>
+        <artifactId>light-compiler</artifactId>
+        <version>0.3.0-SNAPSHOT</version>
+        <scope>provided</scope>
+    </dependency>
+    
+    <!-- Runtime Core Module -->
+    <dependency>
+        <groupId>space.lingu.light</groupId>
+        <artifactId>light-core</artifactId>
+        <version>0.3.0-SNAPSHOT</version>
+    </dependency>
+</dependencies>
+```
+Or using Gradle: 
+```gradle
+dependencies {
+    compileOnly("space.lingu.light:light-compiler:0.3.0-SNAPSHOT")
+  
+    implementation("space.lingu.light:light-core:0.3.0-SNAPSHOT")
+}
+```
+
+After adding dependencies, you can now use Light to help you build your database.
 
 # License
 
@@ -20,3 +52,8 @@ A lightweight relational database development module.
    See the License for the specific language governing permissions and
    limitations under the License.
 ```
+
+[liBadge]: https://img.shields.io/github/license/Roll-W/light?color=569cd6
+[liLink]: https://github.com/Roll-W/light/blob/master/LICENSE
+[mcBadge]: https://img.shields.io/maven-central/v/space.lingu.light/light-parent
+[mcLink]: https://search.maven.org/search?q=g:space.lingu.light
