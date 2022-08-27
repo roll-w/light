@@ -1,7 +1,11 @@
-# Light Data 
+# Light
 [![Maven Central][mcBadge]][mcLink] [![License][liBadge]][liLink]
 
 A simple and lightweight relational database development module.
+
+## Required
+
+JDK 1.8 or higher.
 
 ## Getting Started
 
@@ -53,7 +57,7 @@ After adding dependencies, you can now use Light to help you build your database
    limitations under the License.
 ```
 
-[liBadge]: https://img.shields.io/github/license/Roll-W/light?color=569cd6
+[liBadge]: https://img.shields.io/github/license/Roll-W/light?color=569cd6&style=flat-square
 [liLink]: https://github.com/Roll-W/light/blob/master/LICENSE
-[mcBadge]: https://img.shields.io/maven-central/v/space.lingu.light/light-parent
+[mcBadge]: https://img.shields.io/maven-central/v/space.lingu.light/light-parent?style=flat-square
 [mcLink]: https://search.maven.org/search?q=g:space.lingu.light
