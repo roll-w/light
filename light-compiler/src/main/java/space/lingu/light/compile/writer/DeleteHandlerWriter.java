@@ -21,10 +21,13 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.compile.JavaPoetClass;
+import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.ParamEntity;
 import space.lingu.light.compile.struct.Pojo;
+import space.lingu.light.compile.struct.PrimaryKey;
 
 import javax.lang.model.element.Modifier;
+import java.util.List;
 import java.util.StringJoiner;
 
 /**
@@ -43,9 +46,14 @@ public class DeleteHandlerWriter {
 
     public TypeSpec createAnonymous(ClassWriter writer, String dbParam) {
         StringJoiner args = new StringJoiner(", ");
-        mEntity.getPrimaryKey().getFields().fields.forEach(field -> {
-            args.add("\"" + field.getColumnName() + "\"");
-        });
+        if (mEntity.getPrimaryKey() == PrimaryKey.MISSING) {
+            mEntity.getPojo().getFields().forEach(field ->
+                    args.add("\"" + field.getColumnName() + "\""));
+        } else {
+            mEntity.getPrimaryKey().getFields().fields.forEach(field -> {
+                args.add("\"" + field.getColumnName() + "\"");
+            });
+        }
         AnnotatedMethodWriter delegate = new AnnotatedMethodWriter(mPojo);
         TypeSpec.Builder builder = TypeSpec.anonymousClassBuilder("$L", dbParam)
                 .superclass(ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER, mPojo.getTypeName()))
@@ -57,8 +65,15 @@ public class DeleteHandlerWriter {
                                 .addStatement("return $N.getDialectProvider().getGenerator().delete($S, $L)",
                                         DaoWriter.sDatabaseField, tableName, args.toString())
                                 .build());
-
-        builder.addMethod(delegate.createBindMethod(writer, mPojo.getFields()));
+        List<Field> needsBind;
+        if (mEntity.getPrimaryKey() == PrimaryKey.MISSING) {
+            needsBind = mEntity.getPojo().getFields();
+        } else {
+            needsBind = mEntity.getPrimaryKey().getFields().fields;
+        }
+        builder.addMethod(
+                delegate.createBindMethod(writer, needsBind)
+        );
         return builder.build();
     }
 }
