@@ -46,6 +46,9 @@ public final class CompileErrors {
             "An abstract method in a database class whose return type " +
                     "must be an abstract class or interface annotated with @Dao";
 
+    public static final String TABLE_NO_FIELDS =
+            "You are trying to create a table with no columns, it should contain at least 1 field.";
+
     public static final String DAO_TOO_MUCH_CONSTRUCTORS =
             "Only can have one constructor that is parameterless or have a Database parameter.";
     public static final String DAO_CONSTRUCTOR_TOO_MUCH_PARAMS =

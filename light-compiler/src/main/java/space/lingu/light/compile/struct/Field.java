@@ -216,20 +216,20 @@ public class Field {
     }
 
     public static class Fields {
-        public final List<Field> fields = new ArrayList<>();
-        public final Identity identity;
+        public final List<Field> fields;
+
+        public final Identity identity = new Identity("", "");
+
         public Fields() {
-            identity = new Identity("", "");
+            this.fields = Collections.emptyList();
         }
 
         public Fields(Field field) {
-            this();
-            fields.add(field);
+            this.fields = Collections.singletonList(field);
         }
 
         public Fields(List<Field> fields) {
-            this();
-            this.fields.addAll(fields);
+            this.fields = Collections.unmodifiableList(fields);
         }
 
         public List<Field> getFields() {

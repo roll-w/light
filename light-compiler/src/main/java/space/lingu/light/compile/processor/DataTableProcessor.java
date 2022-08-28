@@ -17,14 +17,17 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.DataColumn;
+import space.lingu.light.LightIgnore;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
+import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.*;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,6 +53,20 @@ public class DataTableProcessor implements Processor<DataTable> {
     public DataTable process() {
         PojoProcessor processor = new PojoProcessor(mElement, mEnv);
         List<? extends Element> elements = mElement.getEnclosedElements();
+        elements.forEach(element -> {
+            if (element.getKind() == ElementKind.FIELD) {
+                boolean isColumn = element.getAnnotation(DataColumn.class) != null;
+                if (isColumn) {
+                    return;
+                }
+                boolean ignore = element.getAnnotation(LightIgnore.class) != null;
+                if (ignore) {
+                    return;
+                }
+                mEnv.getLog().warn(Warnings.FIELD_NOT_ANNOTATED, element);
+            }
+        });
+
         Pojo pojo = processor.process();
         dataTable.setElement(mElement)
                 .setTableName(anno.tableName())
@@ -57,8 +74,19 @@ public class DataTableProcessor implements Processor<DataTable> {
                 .setTypeName(pojo.getTypeName())
                 .setFields(pojo.getFields());
         checkColumnName(dataTable);
+        if (dataTable.getFields().isEmpty()) {
+            mEnv.getLog().error(CompileErrors.TABLE_NO_FIELDS, mElement);
+        }
+
+        PrimaryKey primaryKey = findPrimaryKey(pojo.getFields());
+        if (primaryKey == PrimaryKey.MISSING &&
+                mElement.getAnnotation(LightIgnore.class) == null) {
+            mEnv.getLog().warn(Warnings.PRIMARY_KEY_NOT_FOUND, mElement);
+        }
+
+
         return dataTable
-                .setPrimaryKey(findPrimaryKey(pojo.getFields()))
+                .setPrimaryKey(primaryKey)
                 .setIndices(processIndices(pojo.getFields()));
     }
 
@@ -96,9 +124,10 @@ public class DataTableProcessor implements Processor<DataTable> {
             if (keyAnno == null) {
                 return;
             }
-            primaryKeys.add(new PrimaryKey(mElement,
-                    new Field.Fields(field),
-                    keyAnno.autoGenerate()));
+            primaryKeys.add(
+                    new PrimaryKey(mElement, new Field.Fields(field),
+                            keyAnno.autoGenerate())
+            );
         });
         return primaryKeys;
     }
