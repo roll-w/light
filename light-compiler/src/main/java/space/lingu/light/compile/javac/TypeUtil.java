@@ -79,7 +79,14 @@ public class TypeUtil {
         if (isPrimitive(m1) && isPrimitive(m2)) {
             return m1.getKind() == m2.getKind();
         }
+
         if (m1.getKind() == m2.getKind()) {
+            if (m1.getKind() == TypeKind.ARRAY) {
+                ArrayType m1A = (ArrayType) m1;
+                ArrayType m2A = (ArrayType) m2;
+
+                return equalTypeMirror(m1A.getComponentType(), m2A.getComponentType());
+            }
             // 当前只考虑类的情况
             return ElementUtil.equalTypeElement(ElementUtil.asTypeElement(m1), ElementUtil.asTypeElement(m2));
         }

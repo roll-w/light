@@ -168,17 +168,24 @@ public class PojoProcessor implements Processor<Pojo> {
             return;
         }
         List<String> candidates = field.setterNameCandidate();
-        List<ExecutableElement> filteredElements = elements.stream().filter(executableElement ->
-                candidates.contains(executableElement.getSimpleName().toString()) &&
-                        executableElement.getParameters().size() == 1 &&
-                        TypeUtil.equalTypeMirror(executableElement.getParameters().get(0).asType(),
-                                field.getTypeMirror())).collect(Collectors.toList());
+        List<ExecutableElement> filteredElements = elements
+                .stream()
+                .filter(
+                        executableElement -> candidates.contains(
+                                executableElement.getSimpleName().toString()) &&
+                                executableElement.getParameters().size() == 1 &&
+                                TypeUtil.equalTypeMirror(
+                                        executableElement.getParameters().get(0).asType(),
+                                        field.getTypeMirror()))
+                .collect(Collectors.toList());
         if (filteredElements.isEmpty()) {
             throw new LightCompileException("Cannot find a setter method for field, please check if its name follow rules" +
                     " or is a private method. Candidates: " + candidates);
         }
-        FieldSetter setter = new FieldSetter(field.getElement(),
-                Field.CallType.METHOD, filteredElements.get(0).getSimpleName().toString());
+        FieldSetter setter = new FieldSetter(
+                field.getElement(),
+                Field.CallType.METHOD,
+                filteredElements.get(0).getSimpleName().toString());
         field.setSetter(setter);
     }
 

@@ -21,14 +21,14 @@ package space.lingu.light.compile;
  */
 public final class Warnings {
     public static final String INFO =
-            "\nThis warning is intended to allow you to recheck the correctness of your annotations. " +
+            "\n\nThis warning is intended to allow you to recheck the correctness of your annotations. " +
                     "To ignore this warning permanently, use the @LightIgnore annotation.";
 
     public static final String FIELD_NOT_ANNOTATED =
-            "There is a Field not covered by @DataColumn annotation." + INFO;
+            "There is a field not covered by @DataColumn annotation." + INFO;
 
     public static final String PRIMARY_KEY_NOT_FOUND =
-            "Not found a primary key in the class." + INFO;
+            "Not set a primary key in the table." + INFO;
 
 
 }

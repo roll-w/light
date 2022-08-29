@@ -66,15 +66,18 @@ public class DataTableProcessor implements Processor<DataTable> {
                 mEnv.getLog().warn(Warnings.FIELD_NOT_ANNOTATED, element);
             }
         });
+        final String tableName = anno.tableName().isEmpty()
+                ? mElement.getSimpleName().toString()
+                : anno.tableName();
 
         Pojo pojo = processor.process();
         dataTable.setElement(mElement)
-                .setTableName(anno.tableName())
+                .setTableName(tableName)
                 .setConstructor(pojo.getConstructor())
                 .setTypeName(pojo.getTypeName())
                 .setFields(pojo.getFields());
         checkColumnName(dataTable);
-        if (dataTable.getFields().isEmpty()) {
+        if (pojo.getFields().isEmpty()) {
             mEnv.getLog().error(CompileErrors.TABLE_NO_FIELDS, mElement);
         }
 

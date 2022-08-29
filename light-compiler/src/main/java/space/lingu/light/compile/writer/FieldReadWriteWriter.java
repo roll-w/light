@@ -101,7 +101,7 @@ public class FieldReadWriteWriter {
         if (field.getGetter().getCallType() == Field.CallType.FIELD) {
             varName = owner + "." + field.getName();
         } else {
-            varName = owner + "." + field.getGetter().getJvmName() +"()";
+            varName = owner + "." + field.getGetter().getName() +"()";
         }
         field.getStatementBinder().bindToStatement(stmt, indexVar, varName, block);
     }
@@ -111,14 +111,14 @@ public class FieldReadWriteWriter {
         switch (field.getSetter().getCallType()) {
             case FIELD: {
                 field.getColumnValueReader().readFromResultSet(owner + "." +
-                                field.getSetter().getJvmName(), resSetVar, indexVar, block);
+                                field.getSetter().getName(), resSetVar, indexVar, block);
                 break;
             }
             case METHOD: {
                 String tempVar = block.getTempVar("_tmp" + StringUtil.firstUpperCase(field.getName()));
                 block.builder().addStatement("final $T $L", ClassName.get(field.getSetter().getElement().asType()), tempVar);
                 field.getColumnValueReader().readFromResultSet(tempVar, resSetVar, indexVar, block);
-                block.builder().addStatement("$L.$L($L)", owner, field.getSetter().getJvmName(), tempVar);
+                block.builder().addStatement("$L.$L($L)", owner, field.getSetter().getName(), tempVar);
                 break;
             }
             case CONSTRUCTOR: {

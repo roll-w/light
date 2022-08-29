@@ -27,7 +27,7 @@ import javax.lang.model.element.VariableElement;
 public class FieldSetter {
     private final VariableElement element;
     private final Field.CallType callType;
-    private final String jvmName;
+    private final String name;
 
     public void write(String owner, String in, CodeBlock.Builder builder) {
         String statement = null;
@@ -43,13 +43,13 @@ public class FieldSetter {
         }
         if (statement == null) return;
 
-        builder.addStatement(statement, owner, jvmName, in);
+        builder.addStatement(statement, owner, name, in);
     }
 
-    public FieldSetter(VariableElement element, Field.CallType callType, String jvmName) {
+    public FieldSetter(VariableElement element, Field.CallType callType, String name) {
         this.element = element;
         this.callType = callType;
-        this.jvmName = jvmName;
+        this.name = name;
     }
 
     public VariableElement getElement() {
@@ -60,7 +60,7 @@ public class FieldSetter {
         return callType;
     }
 
-    public String getJvmName() {
-        return jvmName;
+    public String getName() {
+        return name;
     }
 }

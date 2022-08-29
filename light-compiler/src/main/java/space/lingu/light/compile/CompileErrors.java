@@ -49,6 +49,9 @@ public final class CompileErrors {
     public static final String TABLE_NO_FIELDS =
             "You are trying to create a table with no columns, it should contain at least 1 field.";
 
+    public static final String UNKNOWN_TYPE =
+            "Unknown data type, cannot be processed.";
+
     public static final String DAO_TOO_MUCH_CONSTRUCTORS =
             "Only can have one constructor that is parameterless or have a Database parameter.";
     public static final String DAO_CONSTRUCTOR_TOO_MUCH_PARAMS =

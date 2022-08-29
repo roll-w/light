@@ -28,7 +28,7 @@ import javax.lang.model.element.VariableElement;
 public class FieldGetter {
     private final VariableElement element;
     private final Field.CallType callType;
-    private final String jvmName;
+    private final String name;
 
     public void write(String owner, String out, CodeBlock.Builder builder) {
         String statement = null;
@@ -44,13 +44,13 @@ public class FieldGetter {
         }
         if (statement == null) return;
 
-        builder.addStatement(statement, ClassName.get(element.asType()), out, owner, jvmName);
+        builder.addStatement(statement, ClassName.get(element.asType()), out, owner, name);
     }
 
-    public FieldGetter(VariableElement element, Field.CallType callType, String jvmName) {
+    public FieldGetter(VariableElement element, Field.CallType callType, String name) {
         this.element = element;
         this.callType = callType;
-        this.jvmName = jvmName;
+        this.name = name;
     }
 
     public VariableElement getElement() {
@@ -61,7 +61,7 @@ public class FieldGetter {
         return callType;
     }
 
-    public String getJvmName() {
-        return jvmName;
+    public String getName() {
+        return name;
     }
 }

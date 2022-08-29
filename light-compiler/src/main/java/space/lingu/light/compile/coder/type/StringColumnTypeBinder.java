@@ -17,18 +17,16 @@
 package space.lingu.light.compile.coder.type;
 
 import space.lingu.light.LightRuntimeException;
+import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.SQLDataType;
 
 import javax.lang.model.type.TypeMirror;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * {@code String}类型的值绑定器
@@ -61,11 +59,11 @@ public class StringColumnTypeBinder extends ColumnTypeBinder implements Statemen
                 .endControlFlow();
     }
 
-    public static List<StringColumnTypeBinder> create(ProcessEnv env) {
-        List<StringColumnTypeBinder> binders = new ArrayList<>();
-        StringColumnTypeBinder binder = new StringColumnTypeBinder(env.getElementUtils()
-                .getTypeElement("java.lang.String").asType());
-        binders.add(binder);
-        return binders;
+    public static StringColumnTypeBinder create(ProcessEnv env) {
+        return new StringColumnTypeBinder(
+                env.getElementUtils()
+                        .getTypeElement("java.lang.String")
+                        .asType()
+        );
     }
 }

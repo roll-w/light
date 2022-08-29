@@ -19,6 +19,7 @@ package space.lingu.light.compile.processor;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.DataColumn;
+import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.Field;
@@ -69,7 +70,12 @@ public class FieldProcessor implements Processor<Field> {
                         .findColumnTypeBinder(field.getTypeMirror(), field.getDataType()))
                 .setStatementBinder(mEnv.getBinderCache()
                         .findColumnTypeBinder(field.getTypeMirror(), field.getDataType()));
-
+        if (field.getColumnValueReader() == null || field.getStatementBinder() == null) {
+            mEnv.getLog().error(
+                    CompileErrors.UNKNOWN_TYPE,
+                    mElement
+            );
+        }
         return field;
         // TODO 嵌套类 等处理。
     }
