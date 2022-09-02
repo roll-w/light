@@ -165,7 +165,5 @@
                 </snapshotRepository>
             </distributionManagement>
         </profile>
-
     </profiles>
-
 </project>

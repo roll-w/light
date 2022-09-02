@@ -17,7 +17,6 @@
 package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.TypeName;
-import space.lingu.light.compile.indentity.Identity;
 
 import javax.lang.model.element.TypeElement;
 import java.util.List;
@@ -33,7 +32,6 @@ public class DataTable extends Pojo {
     private PrimaryKey primaryKey;
     private List<Index> indices;
     private List<ForeignKey> foreignKeys;
-    private Identity identity;
 
     public DataTable() {
     }
@@ -90,14 +88,6 @@ public class DataTable extends Pojo {
     public DataTable setForeignKeys(List<ForeignKey> foreignKeys) {
         this.foreignKeys = foreignKeys;
         return this;
-    }
-
-    public Identity getIdentity() {
-        return identity;
-    }
-
-    private void createIdentity() {
-
     }
 
     @Override
