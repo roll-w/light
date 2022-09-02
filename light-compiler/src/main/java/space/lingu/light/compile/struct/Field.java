@@ -20,8 +20,6 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.StatementBinder;
-import space.lingu.light.compile.indentity.Identity;
-import space.lingu.light.compile.javac.Nullability;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.util.StringUtil;
 
@@ -217,8 +215,6 @@ public class Field {
 
     public static class Fields {
         public final List<Field> fields;
-
-        public final Identity identity = new Identity("", "");
 
         public Fields() {
             this.fields = Collections.emptyList();

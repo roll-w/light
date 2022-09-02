@@ -17,7 +17,6 @@
 package space.lingu.light.compile.struct;
 
 import space.lingu.light.Order;
-import space.lingu.light.compile.indentity.Identity;
 
 import java.util.List;
 
@@ -33,21 +32,12 @@ public class Index {
     private final Field.Fields fields;
     private final List<Order> orders;
 
-    public final Identity identity;
-
     public Index(String name, boolean unique,
                  Field.Fields fields, List<Order> orders) {
         this.name = name;
         this.unique = unique;
         this.fields = fields;
         this.orders = orders;
-        identity = new Identity(generateKey(), name);
-    }
-
-    private String generateKey() {
-        return "index-" + name + "-unique-" + isUnique()
-                + "-fields-" + getFields().identity.key
-                + "-order-";
     }
 
     public String getName() {
