@@ -16,14 +16,17 @@
 
 package space.lingu.light.compile.processor;
 
+import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.DataColumn;
+import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
+import space.lingu.light.compile.coder.ColumnValueReader;
+import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.Field;
-import space.lingu.light.SQLDataType;
 import space.lingu.light.util.StringUtil;
 
 import javax.lang.model.element.TypeElement;
@@ -65,14 +68,18 @@ public class FieldProcessor implements Processor<Field> {
         field.setType(typeElement)
                 .setDataType(recognizeSQLDataType(mElement))
                 .setTypeMirror(mElement.asType())
-                .setDefaultValue(defaultValue)
-                .setColumnValueReader(mEnv.getBinderCache()
-                        .findColumnTypeBinder(field.getTypeMirror(), field.getDataType()))
-                .setStatementBinder(mEnv.getBinderCache()
-                        .findColumnTypeBinder(field.getTypeMirror(), field.getDataType()));
-        if (field.getColumnValueReader() == null || field.getStatementBinder() == null) {
+                .setDefaultValue(defaultValue);
+        StatementBinder binder = mEnv.getBinders()
+                .findStatementBinder(field.getTypeMirror(), field.getDataType());
+        ColumnValueReader reader = mEnv.getBinders()
+                .findColumnReader(field.getTypeMirror(), field.getDataType());
+
+        field.setColumnValueReader(reader)
+                .setStatementBinder(binder);
+        // todo
+        if (binder == null || reader == null) {
             mEnv.getLog().error(
-                    CompileErrors.UNKNOWN_TYPE,
+                    CompileErrors.UNKNOWN_TYPE + " b",
                     mElement
             );
         }
@@ -81,6 +88,7 @@ public class FieldProcessor implements Processor<Field> {
     }
 
     private SQLDataType recognizeSQLDataType(VariableElement variable) {
+        // TODO: custom data converter
         TypeMirror type = variable.asType();
         TypeName typeName = ClassName.get(type);
         if (isEqualBothBox(typeName, TypeName.INT)) {
@@ -107,12 +115,18 @@ public class FieldProcessor implements Processor<Field> {
         if (isEqualBothBox(typeName, TypeName.BOOLEAN)) {
             return SQLDataType.BOOLEAN;
         }
-
+        if (isEqualArray(typeName, TypeName.BYTE)) {
+            return SQLDataType.BINARY;
+        }
         return SQLDataType.TEXT;
     }
 
     private static boolean isEqualBothBox(TypeName value, TypeName type) {
         return value.equals(type) || value.equals(type.box());
+    }
+
+    private static boolean isEqualArray(TypeName value, TypeName type) {
+        return value.equals(ArrayTypeName.of(type));
     }
 
 }

@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package space.lingu.light;
+package space.lingu.light.compile.coder.type;
+
+import space.lingu.light.compile.coder.GenerateCodeBlock;
+
+import javax.lang.model.type.TypeMirror;
 
 /**
- * SQL数据类型
  * @author RollW
  */
-public enum SQLDataType {
-    INT, LONG, FLOAT,
-    DOUBLE, BOOLEAN,
-    CHAR, BINARY,
-    /**
-     * 文本<br>
-     * MySQL中Text无法作为主键，当设定此类型值为主键时，更改为varchar(255)。
-     */
-    TEXT,
-    /**
-     * 不存在此类型数据的数据库，映射为Text
-     */
-    VARCHAR,
-    LONGTEXT,
-    UNDEFINED
+public class NoOpTypeConverter extends TypeConverter {
+    public NoOpTypeConverter(TypeMirror from) {
+        super(from, from);
+    }
+
+    @Override
+    protected String doConvert(String inVarName, GenerateCodeBlock block) {
+        return inVarName;
+    }
+
+    @Override
+    protected void doConvert(String inVarName, String outVarName, GenerateCodeBlock block) {
+        block.builder().addStatement("$L = $L", outVarName, inVarName);
+    }
 }

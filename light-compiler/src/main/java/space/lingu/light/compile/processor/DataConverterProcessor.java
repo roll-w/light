@@ -25,6 +25,8 @@ import space.lingu.light.compile.struct.DataConverter;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author RollW
@@ -41,7 +43,6 @@ public class DataConverterProcessor implements Processor<DataConverter> {
         mExecutable = executable;
         mEnv = env;
     }
-
 
     @Override
     public DataConverter process() {
@@ -91,5 +92,9 @@ public class DataConverterProcessor implements Processor<DataConverter> {
         return TypeUtil.isError(returnType) ||
                 TypeUtil.isVoid(returnType) ||
                 TypeUtil.isNone(returnType);
+    }
+
+    public static List<DataConverter> findConverters() {
+        return Collections.emptyList();
     }
 }

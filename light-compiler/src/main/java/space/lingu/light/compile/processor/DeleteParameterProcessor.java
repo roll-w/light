@@ -46,7 +46,7 @@ public class DeleteParameterProcessor implements Processor<DeleteParameter> {
         DeleteParameter parameter = new DeleteParameter();
 
         QueryParameterBinder binder = mEnv
-                .getBinderCache()
+                .getBinders()
                 .findQueryParameterBinder(mElement.asType());
         if (binder == null) {
             mEnv.getLog().error(

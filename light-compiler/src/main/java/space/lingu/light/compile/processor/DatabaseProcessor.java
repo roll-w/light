@@ -68,6 +68,8 @@ public class DatabaseProcessor implements Processor<Database> {
             // it will and should be caught
             tableClassMirror.addAll(e.getTypeMirrors());
         }
+        List<DataConverter> dataConverterList = getDataConverterMethods();
+        mEnv.getBinders().registerDataConverters(dataConverterList);
 
         database.setDataTableList(processDataTables(tableClassMirror))
                 .setSuperClassElement(mElement)

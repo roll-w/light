@@ -17,7 +17,6 @@
 package space.lingu.light.compile.coder;
 
 import com.squareup.javapoet.CodeBlock;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.writer.ClassWriter;
 
 import java.util.HashMap;

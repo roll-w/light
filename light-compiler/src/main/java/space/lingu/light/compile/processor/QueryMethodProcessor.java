@@ -77,7 +77,7 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
                 .setReturnType(mExecutable.getReturnType())
                 .setParameters(queryParameters)
                 .setTransaction(mExecutable.getAnnotation(Transaction.class) != null)
-                .setResultBinder(mEnv.getBinderCache().findQueryResultBinder(method.getReturnType()));
+                .setResultBinder(mEnv.getBinders().findQueryResultBinder(method.getReturnType()));
         // TODO 解析SQL
     }
 }

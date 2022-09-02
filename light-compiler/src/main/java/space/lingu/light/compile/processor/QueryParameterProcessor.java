@@ -43,7 +43,7 @@ public class QueryParameterProcessor implements Processor<QueryParameter> {
     @Override
     public QueryParameter process() {
         QueryParameterBinder binder = mEnv
-                .getBinderCache()
+                .getBinders()
                 .findQueryParameterBinder(mElement.asType());
         if (binder == null) {
             mEnv.getLog().error(

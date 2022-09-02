@@ -58,7 +58,7 @@ public class ProcessEnv {
         return log;
     }
 
-    public TypeBinders getBinderCache() {
+    public TypeBinders getBinders() {
         return binderCache;
     }
 }

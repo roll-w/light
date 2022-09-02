@@ -16,27 +16,31 @@
 
 package space.lingu.light.compile.coder.type;
 
-import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.SQLDataType;
-
-import javax.lang.model.type.TypeMirror;
 
 /**
+ * Combine two converters
+ *
  * @author RollW
  */
-public class DataConverterColumnTypeBinder extends ColumnTypeBinder {
-    public DataConverterColumnTypeBinder(TypeMirror type, SQLDataType dataType) {
-        super(type, dataType);
+public class CombinedTypeConverter extends TypeConverter {
+    private final TypeConverter converter1, converter2;
+
+    public CombinedTypeConverter(TypeConverter converter1, TypeConverter converter2) {
+        super(converter1.from, converter2.to);
+        this.converter1 = converter1;
+        this.converter2 = converter2;
     }
 
     @Override
-    public void readFromResultSet(String outVarName, String resultSetName, String indexName, GenerateCodeBlock block) {
-
+    protected String doConvert(String inVarName, GenerateCodeBlock block) {
+        String out = converter1.convert(inVarName, block);
+        return converter2.convert(out, block);
     }
 
     @Override
-    public void bindToStatement(String stmtVarName, String indexVarName, String valueVarName, GenerateCodeBlock block) {
-
+    protected void doConvert(String inVarName, String outVarName, GenerateCodeBlock block) {
+        String c1out = converter1.convert(inVarName, block);
+        converter2.convert(c1out, outVarName, block);
     }
 }
