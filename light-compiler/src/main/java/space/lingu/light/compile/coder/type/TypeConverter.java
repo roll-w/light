@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.coder.type;
 
-import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 
 import javax.lang.model.type.TypeMirror;
@@ -39,17 +38,16 @@ public abstract class TypeConverter {
     protected String doConvert(String inVarName,
                                GenerateCodeBlock block) {
         String outVarName = block.getTempVar();
-        block.builder().addStatement("final $T $L", TypeName.get(to), outVarName);
         doConvert(inVarName, outVarName, block);
         return outVarName;
     }
 
-    public void convert(String inVarName, String outVarName,
+    public final void convert(String inVarName, String outVarName,
                         GenerateCodeBlock block) {
         doConvert(inVarName, outVarName, block);
     }
 
-    public String convert(String inVarName,
+    public final String convert(String inVarName,
                           GenerateCodeBlock block) {
         return doConvert(inVarName, block);
     }

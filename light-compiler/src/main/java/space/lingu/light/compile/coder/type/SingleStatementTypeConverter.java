@@ -17,7 +17,6 @@
 package space.lingu.light.compile.coder.type;
 
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 
 import javax.lang.model.type.TypeMirror;
@@ -34,18 +33,14 @@ public abstract class SingleStatementTypeConverter extends TypeConverter {
     protected final String doConvert(String inVarName, GenerateCodeBlock block) {
         final String outVarName = block.getTempVar();
         block.builder()
-                .addStatement("final $T $L = $L",
-                        TypeName.get(to), outVarName,
-                        buildStatement(inVarName, block));
+                .addStatement("$L = $L", outVarName, buildStatement(inVarName, block));
         return outVarName;
     }
 
     @Override
     protected final void doConvert(String inVarName, String outVarName, GenerateCodeBlock block) {
         block.builder()
-                .addStatement("final $T $L = $L",
-                        TypeName.get(to), outVarName,
-                        buildStatement(inVarName, block));
+                .addStatement("$L = $L", outVarName, buildStatement(inVarName, block));
     }
 
     protected abstract CodeBlock buildStatement(String inputVar, GenerateCodeBlock block);

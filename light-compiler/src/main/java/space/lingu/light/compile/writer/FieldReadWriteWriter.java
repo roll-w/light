@@ -61,16 +61,15 @@ public class FieldReadWriteWriter {
                 .filter(fieldStringPair ->
                         fieldStringPair.first.getSetter().getCallType() == Field.CallType.CONSTRUCTOR)
                 .collect(Collectors.toList());
-        filteredFields.forEach(fieldStringPair -> {
-            constructorField.put(
-                    new FieldReadWriteWriter(fieldStringPair.first, fieldStringPair.second).readIntoTempVar(resSetVar,
-                            ClassName.get(fieldStringPair
-                                    .first
-                                    .getSetter()
-                                    .getElement()
-                                    .asType()), block),
-                    fieldStringPair);
-        });
+        filteredFields.forEach(fieldStringPair -> constructorField.put(
+                new FieldReadWriteWriter(fieldStringPair.first, fieldStringPair.second).readIntoTempVar(resSetVar,
+                        ClassName.get(fieldStringPair
+                                .first
+                                .getSetter()
+                                .getElement()
+                                .asType()), block),
+                fieldStringPair)
+        );
         setFromConstructor(owner, outPojo.getConstructor(), outPojo.getTypeName(), constructorField, block);
         fieldsWithIndex.forEach(pair ->
                 new FieldReadWriteWriter(pair.first, pair.second)
@@ -90,15 +89,15 @@ public class FieldReadWriteWriter {
         Set<String> usedNames = new HashSet<>();
         constructor.getFields().forEach(constructorField ->
                 varNames.forEach((tempVarName, fieldStringPair) -> {
-            String name = fieldStringPair.first.getName();
-            if (usedNames.contains(name)) {
-                return;
-            }
-            if (constructorField.getPossibleCandidateName().contains(name)) {
-                vars.add(tempVarName);
-                usedNames.add(name);
-            }
-        }));
+                    String name = fieldStringPair.first.getName();
+                    if (usedNames.contains(name)) {
+                        return;
+                    }
+                    if (constructorField.getPossibleCandidateName().contains(name)) {
+                        vars.add(tempVarName);
+                        usedNames.add(name);
+                    }
+                }));
         StringJoiner args = new StringJoiner(", ");
         vars.forEach(args::add);
         constructor.writeConstructor(outVar, args.toString(), block.builder());

@@ -46,14 +46,14 @@ public class CompositeTypeBinder extends ColumnTypeBinder
     public void readFromResultSet(String outVarName,
                                   String resultSetName,
                                   String indexName, GenerateCodeBlock block) {
-        if (stmtConverter == null) {
+        if (readConverter == null) {
             return;
         }
-        final String tempRsVar = block.getTempVar();
+        final String tempVar = block.getTempVar();
         block.builder().addStatement("final $T $L",
-                TypeName.get(binder.type()), tempRsVar);
-        binder.readFromResultSet(tempRsVar, resultSetName, indexName, block);
-        readConverter.convert(tempRsVar, outVarName, block);
+                TypeName.get(binder.type()), tempVar);
+        binder.readFromResultSet(tempVar, resultSetName, indexName, block);
+        readConverter.convert(tempVar, outVarName, block);
     }
 
     @Override
@@ -64,7 +64,10 @@ public class CompositeTypeBinder extends ColumnTypeBinder
         if (stmtConverter == null) {
             return;
         }
-        String outVar = stmtConverter.doConvert(valueVarName, block);
-        binder.bindToStatement(stmtVarName, indexVarName, outVar, block);
+        final String tempVar = block.getTempVar();
+        block.builder().addStatement("final $T $L",
+                TypeName.get(stmtConverter.to), tempVar);
+        stmtConverter.convert(valueVarName, tempVar, block);
+        binder.bindToStatement(stmtVarName, indexVarName, tempVar, block);
     }
 }

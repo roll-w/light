@@ -70,18 +70,21 @@ public class PojoProcessor implements Processor<Pojo> {
             if (e.getKind() != ElementKind.FIELD) {
                 return;
             }
-            boolean isColumn = e.getAnnotation(DataColumn.class) != null;
-            boolean ignore = e.getAnnotation(LightIgnore.class) != null;
-            if (!isColumn && !ignore) {
+            boolean hasColumn = e.getAnnotation(DataColumn.class) != null;
+            boolean isIgnore = e.getAnnotation(LightIgnore.class) != null;
+            if (ElementUtil.isStatic(e)) {
+                if (hasColumn && !isIgnore) {
+                    mEnv.getLog().warn(Warnings.CANNOT_APPLY_TO_STATIC_FIELD, e);
+                }
+                return;
+            }
+            if (!hasColumn && !isIgnore) {
                 mEnv.getLog().warn(Warnings.FIELD_NOT_ANNOTATED, e);
             }
-            if (!isColumn) {
+            if (!hasColumn) {
                 return;
             }
-            if (ElementUtil.isStatic(e)) {
-                mEnv.getLog().warn(Warnings.CANNOT_APPLY_TO_STATIC_FIELD, e);
-                return;
-            }
+
             Field field = new FieldProcessor((VariableElement) e, mEnv).process();
             fields.add(field);
         });
