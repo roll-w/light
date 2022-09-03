@@ -30,5 +30,8 @@ public final class Warnings {
     public static final String PRIMARY_KEY_NOT_FOUND =
             "Not set a primary key in the table." + INFO;
 
+    public static final String CANNOT_APPLY_TO_STATIC_FIELD =
+            "" + INFO;
+
 
 }

@@ -16,6 +16,8 @@
 
 package space.lingu.light.compile;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
@@ -48,6 +50,26 @@ public final class CompileErrors {
 
     public static final String TABLE_NO_FIELDS =
             "You are trying to create a table with no columns, it should contain at least 1 field.";
+
+    public static final String CANNOT_FOUND_CONSTRUCTOR =
+            "Cannot find a constructor for it.";
+
+    public static final String CANNOT_FOUND_SETTER =
+            "The getter method of the field cannot be found. " +
+                    "Please check whether its name conforms to the rules, " +
+                    "or it is a private method, or the return type is different from the field. Candidates: ";
+
+    public static final String CANNOT_FOUND_GETTER =
+            "Cannot find a setter method for field, please check if its name follow rules" +
+                    " or is a private method. Candidates: ";
+
+    public static String cannotFoundGetter(List<String> candidates) {
+        return CANNOT_FOUND_GETTER + candidates;
+    }
+
+    public static String cannotFoundSetter(List<String> candidates) {
+        return CANNOT_FOUND_SETTER + candidates;
+    }
 
     public static final String UNKNOWN_TYPE =
             "Unknown data type, cannot be processed.";

@@ -18,15 +18,16 @@ package space.lingu.light.compile.processor;
 
 import com.squareup.javapoet.ClassName;
 import space.lingu.light.DataColumn;
-import space.lingu.light.compile.LightCompileException;
+import space.lingu.light.LightIgnore;
+import space.lingu.light.compile.CompileErrors;
+import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.struct.*;
 
 import javax.lang.model.element.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -66,8 +67,19 @@ public class PojoProcessor implements Processor<Pojo> {
         List<? extends Element> elements = mElement.getEnclosedElements();
         List<Field> fields = new ArrayList<>();
         elements.forEach(e -> {
-            // 只选择包括DataColumn注解的
-            if (e.getKind() != ElementKind.FIELD || e.getAnnotation(DataColumn.class) == null) {
+            if (e.getKind() != ElementKind.FIELD) {
+                return;
+            }
+            boolean isColumn = e.getAnnotation(DataColumn.class) != null;
+            boolean ignore = e.getAnnotation(LightIgnore.class) != null;
+            if (!isColumn && !ignore) {
+                mEnv.getLog().warn(Warnings.FIELD_NOT_ANNOTATED, e);
+            }
+            if (!isColumn) {
+                return;
+            }
+            if (ElementUtil.isStatic(e)) {
+                mEnv.getLog().warn(Warnings.CANNOT_APPLY_TO_STATIC_FIELD, e);
                 return;
             }
             Field field = new FieldProcessor((VariableElement) e, mEnv).process();
@@ -79,7 +91,7 @@ public class PojoProcessor implements Processor<Pojo> {
     private Constructor chooseConstructor(List<Field> fields) {
         // 从参数数量由少到多寻找
         List<? extends Element> elements = mElement.getEnclosedElements();
-        Constructor constructor = new Constructor();
+
         List<ExecutableElement> constructorsForChoose = new ArrayList<>();
         elements.forEach(e -> {
             if (e.getKind() == ElementKind.CONSTRUCTOR) {
@@ -87,40 +99,50 @@ public class PojoProcessor implements Processor<Pojo> {
             }
         });
 
-        constructorsForChoose.sort((o1, o2) -> {
-            if (o1.getParameters().size() == o2.getParameters().size()) return 0;
-            else return Integer.compare(o1.getParameters().size(), o2.getParameters().size());
-        });
+        constructorsForChoose.sort(Comparator.comparingInt(o ->
+                o.getParameters().size()));
 
         if (constructorsForChoose.isEmpty()) {
-            throw new LightCompileException("Cannot find a constructor.");
+            mEnv.getLog().error(CompileErrors.CANNOT_FOUND_CONSTRUCTOR, mElement);
         }
 
         for (ExecutableElement element : constructorsForChoose) {
-            constructor.setElement(element);
-            if (checkConstructorParams(element.getParameters(), fields, constructor)) {
-                break;
+            Constructor constructor = checkConstructorParams(element, fields);
+            if (constructor != null) {
+                return constructor;
             }
         }
 
-        return constructor;
+        mEnv.getLog().error(CompileErrors.CANNOT_FOUND_CONSTRUCTOR, mElement);
+        return null;
     }
 
-    private boolean checkConstructorParams(List<? extends VariableElement> elements,
-                                           List<Field> fields,
-                                           Constructor constructor) {
+    private Constructor checkConstructorParams(ExecutableElement constructorMethod,
+                                               List<Field> fields) {
         List<Field> constructorParams = new ArrayList<>();
-        constructor.setFields(constructorParams);
-        for (VariableElement e : elements) {
+        Set<Field> usedFields = new HashSet<>();
+        for (VariableElement e : constructorMethod.getParameters()) {
+            Field find = null;
             for (Field field : fields) {
-                if (!field.getPossibleCandidateName()
-                        .contains(e.getSimpleName().toString())) {
-                    return false;
+                if (usedFields.contains(field)) {
+                    continue;
                 }
-                constructorParams.add(field);
+                if (field.getPossibleCandidateName()
+                        .contains(e.getSimpleName().toString())) {
+                    usedFields.add(field);
+                    find = field;
+                    break;
+                }
+
             }
+            if (find == null) {
+                return null;
+            }
+            constructorParams.add(find);
         }
-        return true;
+        return new Constructor()
+                .setElement(constructorMethod)
+                .setFields(constructorParams);
     }
 
     private void setFieldsGetterMethod(List<Field> fields, List<ExecutableElement> elements) {
@@ -142,12 +164,15 @@ public class PojoProcessor implements Processor<Pojo> {
         List<ExecutableElement> filteredElements = elements.stream().filter(executableElement -> executableElement.getParameters().isEmpty() &&
                 candidates.contains(executableElement.getSimpleName().toString())).collect(Collectors.toList());
         if (filteredElements.isEmpty()) {
-            throw new LightCompileException("The getter method of the field cannot be found. " +
-                    "Please check whether its name conforms to the rules, " +
-                    "or it is a private method, or the return type is different from the field.");
+            mEnv.getLog().error(
+                    CompileErrors.cannotFoundSetter(candidates),
+                    field.getElement()
+            );
         }
-        FieldGetter getter = new FieldGetter(field.getElement(),
-                Field.CallType.METHOD, filteredElements.get(0).getSimpleName().toString());
+        FieldGetter getter = new FieldGetter(
+                field.getElement(),
+                Field.CallType.METHOD,
+                filteredElements.get(0).getSimpleName().toString());
         field.setGetter(getter);
     }
 
@@ -179,8 +204,10 @@ public class PojoProcessor implements Processor<Pojo> {
                                         field.getTypeMirror()))
                 .collect(Collectors.toList());
         if (filteredElements.isEmpty()) {
-            throw new LightCompileException("Cannot find a setter method for field, please check if its name follow rules" +
-                    " or is a private method. Candidates: " + candidates);
+            mEnv.getLog().error(
+                    CompileErrors.cannotFoundGetter(candidates),
+                    field.getElement()
+            );
         }
         FieldSetter setter = new FieldSetter(
                 field.getElement(),

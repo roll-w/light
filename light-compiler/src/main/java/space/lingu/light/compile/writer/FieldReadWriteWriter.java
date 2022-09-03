@@ -30,15 +30,16 @@ import java.util.stream.Collectors;
 
 /**
  * 实体类读写
+ *
  * @author RollW
  */
 public class FieldReadWriteWriter {
     private final Field field;
     private final String indexVar;
 
-    public FieldReadWriteWriter(Pair<Field, String> fieldWithIndex) {
-        field = fieldWithIndex.first;
-        indexVar = fieldWithIndex.second;
+    public FieldReadWriteWriter(Field field, String index) {
+        this.field = field;
+        this.indexVar = index;
     }
 
     public static void bindToStatement(String owner, String stmt,
@@ -46,7 +47,8 @@ public class FieldReadWriteWriter {
                                        GenerateCodeBlock block) {
         fieldsWithIndex.forEach(pair -> {
             // TODO 嵌套
-            new FieldReadWriteWriter(pair).bindToStatement(owner, stmt, block);
+            new FieldReadWriteWriter(pair.first, pair.second)
+                    .bindToStatement(owner, stmt, block);
         });
     }
 
@@ -54,25 +56,26 @@ public class FieldReadWriteWriter {
                                          List<Pair<Field, String>> fieldsWithIndex,
                                          GenerateCodeBlock block) {
         Map<String, Pair<Field, String>> constructorField = new HashMap<>();
-        List<Pair<Field, String>> filteredFields = fieldsWithIndex.stream().filter(fieldStringPair ->
+        List<Pair<Field, String>> filteredFields = fieldsWithIndex
+                .stream()
+                .filter(fieldStringPair ->
                         fieldStringPair.first.getSetter().getCallType() == Field.CallType.CONSTRUCTOR)
                 .collect(Collectors.toList());
         filteredFields.forEach(fieldStringPair -> {
             constructorField.put(
-                    new FieldReadWriteWriter(fieldStringPair)
-                            .readIntoTempVar(resSetVar,
-                                    ClassName.get(fieldStringPair
-                                            .first
-                                            .getSetter()
-                                            .getElement()
-                                            .asType())
-                                    , block),
+                    new FieldReadWriteWriter(fieldStringPair.first, fieldStringPair.second).readIntoTempVar(resSetVar,
+                            ClassName.get(fieldStringPair
+                                    .first
+                                    .getSetter()
+                                    .getElement()
+                                    .asType()), block),
                     fieldStringPair);
         });
         setFromConstructor(owner, outPojo.getConstructor(), outPojo.getTypeName(), constructorField, block);
-        fieldsWithIndex.forEach(pair -> {
-            new FieldReadWriteWriter(pair).readFromResultSet(owner, resSetVar, block);
-        });
+        fieldsWithIndex.forEach(pair ->
+                new FieldReadWriteWriter(pair.first, pair.second)
+                        .readFromResultSet(owner, resSetVar, block)
+        );
     }
 
     public static void setFromConstructor(String outVar, Constructor constructor,
@@ -84,13 +87,18 @@ public class FieldReadWriteWriter {
             return;
         }
         List<String> vars = new ArrayList<>();
-        constructor.getFields().forEach(constField -> {
-            varNames.forEach((s, fieldStringPair) -> {
-                if (fieldStringPair.first.getName().equals(constField.getName())) {
-                    vars.add(s);
-                }
-            });
-        });
+        Set<String> usedNames = new HashSet<>();
+        constructor.getFields().forEach(constructorField ->
+                varNames.forEach((tempVarName, fieldStringPair) -> {
+            String name = fieldStringPair.first.getName();
+            if (usedNames.contains(name)) {
+                return;
+            }
+            if (constructorField.getPossibleCandidateName().contains(name)) {
+                vars.add(tempVarName);
+                usedNames.add(name);
+            }
+        }));
         StringJoiner args = new StringJoiner(", ");
         vars.forEach(args::add);
         constructor.writeConstructor(outVar, args.toString(), block.builder());
@@ -101,7 +109,7 @@ public class FieldReadWriteWriter {
         if (field.getGetter().getCallType() == Field.CallType.FIELD) {
             varName = owner + "." + field.getName();
         } else {
-            varName = owner + "." + field.getGetter().getName() +"()";
+            varName = owner + "." + field.getGetter().getName() + "()";
         }
         field.getStatementBinder().bindToStatement(stmt, indexVar, varName, block);
     }
@@ -110,8 +118,10 @@ public class FieldReadWriteWriter {
 
         switch (field.getSetter().getCallType()) {
             case FIELD: {
-                field.getColumnValueReader().readFromResultSet(owner + "." +
-                                field.getSetter().getName(), resSetVar, indexVar, block);
+                field.getColumnValueReader()
+                        .readFromResultSet(owner + "." +
+                                        field.getSetter().getName(),
+                                resSetVar, indexVar, block);
                 break;
             }
             case METHOD: {

@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.processor;
 
-import space.lingu.light.DataColumn;
 import space.lingu.light.LightIgnore;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
@@ -25,8 +24,6 @@ import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.*;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,20 +49,6 @@ public class DataTableProcessor implements Processor<DataTable> {
     @Override
     public DataTable process() {
         PojoProcessor processor = new PojoProcessor(mElement, mEnv);
-        List<? extends Element> elements = mElement.getEnclosedElements();
-        elements.forEach(element -> {
-            if (element.getKind() == ElementKind.FIELD) {
-                boolean isColumn = element.getAnnotation(DataColumn.class) != null;
-                if (isColumn) {
-                    return;
-                }
-                boolean ignore = element.getAnnotation(LightIgnore.class) != null;
-                if (ignore) {
-                    return;
-                }
-                mEnv.getLog().warn(Warnings.FIELD_NOT_ANNOTATED, element);
-            }
-        });
         final String tableName = anno.tableName().isEmpty()
                 ? mElement.getSimpleName().toString()
                 : anno.tableName();

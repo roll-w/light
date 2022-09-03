@@ -39,6 +39,7 @@ public class Table {
      * Table indices
      */
     private final List<TableIndex> indices;
+    // private final List<ForeignKey> foreignKeys;
 
     public Table(String name, List<TableColumn> columns,
                  TablePrimaryKey primaryKey, List<TableIndex> indices) {

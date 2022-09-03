@@ -19,6 +19,7 @@ package space.lingu.light.compile.processor;
 import com.squareup.javapoet.ClassName;
 import space.lingu.light.Dao;
 import space.lingu.light.DataConverters;
+import space.lingu.light.LightInfo;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ElementUtil;
@@ -36,6 +37,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.MirroredTypesException;
 import javax.lang.model.type.TypeMirror;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author RollW
@@ -51,9 +53,14 @@ public class DatabaseProcessor implements Processor<Database> {
         mElement = element;
         anno = mElement.getAnnotation(space.lingu.light.Database.class);
         mEnv = env;
-        enclosedElements = mElement.getEnclosedElements();
+        List<Element> elements = new ArrayList<>();
+        getAllSuperClass(element).forEach(clzElement ->
+                elements.addAll(clzElement.getEnclosedElements()));
+        enclosedElements = elements
+                .stream()
+                .distinct()
+                .collect(Collectors.toList());
     }
-
 
     @Override
     public Database process() {
@@ -79,6 +86,10 @@ public class DatabaseProcessor implements Processor<Database> {
         return database;
     }
 
+    private TypeElement loadLightInfoTable() {
+        return mEnv.getElementUtils().getTypeElement(LightInfo.class.getCanonicalName());
+    }
+
     private List<DataTable> processDataTables(List<? extends TypeMirror> mirrors) {
         if (mirrors == null) {
             throw new LightCompileException("Cannot required data table classes.");
@@ -91,6 +102,7 @@ public class DatabaseProcessor implements Processor<Database> {
             }
             dataTableList.add(new DataTableProcessor(element, mEnv).process());
         });
+        dataTableList.add(new DataTableProcessor(loadLightInfoTable(), mEnv).process());
 
         Set<String> nameSet = new HashSet<>();
         dataTableList.forEach(dataTable -> {
@@ -161,8 +173,9 @@ public class DatabaseProcessor implements Processor<Database> {
                 );
             }
             DaoProcessor daoProcessor = new DaoProcessor(returnType, mEnv);
+            space.lingu.light.compile.struct.Dao dao = daoProcessor.process();
             DatabaseDaoMethod daoMethod = new DatabaseDaoMethod()
-                    .setDao(daoProcessor.process())
+                    .setDao(dao)
                     .setElement(method);
             daoMethods.add(daoMethod);
         }
@@ -171,5 +184,21 @@ public class DatabaseProcessor implements Processor<Database> {
         // 查找所有抽象方法的返回类型
     }
 
-
+    private List<TypeElement> getAllSuperClass(TypeElement element) {
+        List<TypeElement> elements = new ArrayList<>();
+        elements.add(element);
+        TypeElement iter = element;
+        while (iter.getSuperclass() != null) {
+            if (iter.getKind() != ElementKind.CLASS) {
+                continue;
+            }
+            TypeElement e = (TypeElement) mEnv.getTypeUtils().asElement(iter.getSuperclass());
+            if (e == null) {
+                break;
+            }
+            elements.add(e);
+            iter = e;
+        }
+        return elements;
+    }
 }

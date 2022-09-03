@@ -23,6 +23,7 @@ import space.lingu.light.compile.javac.TypeUtil;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,9 +76,10 @@ public class Constructor {
             throw new IllegalStateException("Must set execute element first.");
         }
         if (element.getKind() == ElementKind.CONSTRUCTOR) {
-            builder.addStatement("$L = new $T($L)", out, ClassName.get(element.getEnclosingElement().asType()), args);
+            builder.addStatement("$L = new $T($L)", out, ClassName.get((TypeElement) element.getEnclosingElement()),
+                    args);
         } else if (element.getKind() == ElementKind.METHOD) {
-            builder.addStatement("$L = $T.$L($L)", out, ClassName.get(element.getEnclosingElement().asType()),
+            builder.addStatement("$L = $T.$L($L)", out, ClassName.get((TypeElement) element.getEnclosingElement()),
                     element.getSimpleName().toString(), args);
         } else {
             throw new LightCompileException("Invalid constructor for " + element.getKind());
