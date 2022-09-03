@@ -41,7 +41,7 @@ public class ByteArrayColumnTypeBinder extends ColumnTypeBinder {
                                   String indexName,
                                   GenerateCodeBlock block) {
         block.builder()
-                .beginControlFlow("$L = $L.getBytes($L)",
+                .addStatement("$L = $L.getBytes($L)",
                         outVarName, resultSetName, indexName);
     }
 
