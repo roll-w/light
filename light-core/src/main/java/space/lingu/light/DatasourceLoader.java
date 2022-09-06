@@ -49,7 +49,8 @@ public class DatasourceLoader {
         Properties properties = new Properties();
         InputStream propInput = Light.loadResource(mPath);
         if (propInput == null) {
-            throw new LightRuntimeException("Load data properties failed. Check whether the Properties file exists. " + "If you enter a custom path, check whether the path is correct.");
+            throw new LightRuntimeException("Load data properties failed. Check whether the Properties file exists. " +
+                    "If you enter a custom path, check whether the path is correct.");
         }
 
         try {
@@ -64,7 +65,9 @@ public class DatasourceLoader {
         while (enumeration.hasMoreElements()) {
             String key = enumeration.nextElement().toString();
             if (PropertiesKeys.checkKey(key)) {
-                throw new IllegalPropertiesException("Property key contains unusable placeholders '$N' in " + key, mPath);
+                throw new IllegalPropertiesException(
+                        "Property key contains unusable placeholders '$N' in " + key,
+                        mPath);
             }
             if (PropertiesKeys.isPropertyKey(key, mName)) {
                 containsName = true;
@@ -76,7 +79,8 @@ public class DatasourceLoader {
                 containsOther = true;
             }
         }
-        if (containsName && containsDefault) {
+        if (mName.equals(PropertiesKeys.DEFAULT_NAME) &&
+                containsName && containsDefault) {
             throw new IllegalPropertiesException(
                     LightErrors.errorConfigDefaultNameWithExist(mName),
                     mPath);
