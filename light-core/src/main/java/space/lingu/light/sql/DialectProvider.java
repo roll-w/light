@@ -18,33 +18,49 @@ package space.lingu.light.sql;
 
 import space.lingu.light.struct.DatabaseInfo;
 import space.lingu.light.struct.Table;
+import space.lingu.light.struct.TableIndex;
 
 import static space.lingu.light.sql.SQLGenerator.BACK_QUOTE;
 
 /**
- * 数据库方言提供
+ * The database dialect provider.
+ *
  * @author RollW
  */
 public interface DialectProvider {
     /**
-     * 创建表
+     * Get the statement that created the table.
+     * <p>
+     * Output the SQL statement that creates the table structure
+     * (primary key, foreign key, etc.),
+     * but does not include the statement that creates the index.
+     *
+     * @param table {@link Table}
+     * @return create table statement
      */
     default String create(Table table) {
         throw new UnsupportedOperationException("Not implemented");
     }
 
     /**
-     * 创建数据库
+     * Get the statement that created the index.
+     *
+     * @param index {@link TableIndex}
+     * @return create index statement
+     */
+    default String create(TableIndex index) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    /**
+     * Get the statement that created the database.
+     * <p>
+     * Only returns statement that creates the database.
+     *
+     * @param databaseInfo {@link DatabaseInfo}
+     * @return create database statement
      */
     default String create(DatabaseInfo databaseInfo) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    default String destroyTable(String tableName) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    default String destroyDatabase(String databaseName) {
         throw new UnsupportedOperationException("Not implemented");
     }
 

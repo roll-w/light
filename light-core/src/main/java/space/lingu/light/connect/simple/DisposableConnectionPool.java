@@ -19,7 +19,7 @@ package space.lingu.light.connect.simple;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.DatasourceConfig;
 import space.lingu.light.log.JdkDefaultLogger;
-import space.lingu.light.log.LightLogger;
+import space.lingu.light.LightLogger;
 import space.lingu.light.connect.ConnectionPool;
 import space.lingu.light.util.StringUtil;
 

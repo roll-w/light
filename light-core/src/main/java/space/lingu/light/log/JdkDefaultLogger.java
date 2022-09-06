@@ -16,6 +16,8 @@
 
 package space.lingu.light.log;
 
+import space.lingu.light.LightLogger;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

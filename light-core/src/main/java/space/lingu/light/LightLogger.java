@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package space.lingu.light.log;
+package space.lingu.light;
 
 import java.util.ArrayList;
 import java.util.List;

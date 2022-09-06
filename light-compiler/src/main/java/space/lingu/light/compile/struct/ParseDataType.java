@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package space.lingu.light;
+package space.lingu.light.compile.struct;
 
 /**
- * 内置可解析数据类型
+ * Built-in parseable data types
+ *
  * @author RollW
  */
 public enum ParseDataType {
