@@ -26,7 +26,7 @@ import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.SQLDataType;
-import space.lingu.light.ParseDataType;
+import space.lingu.light.compile.struct.ParseDataType;
 import space.lingu.light.util.StringUtil;
 import space.lingu.light.util.Triple;
 
