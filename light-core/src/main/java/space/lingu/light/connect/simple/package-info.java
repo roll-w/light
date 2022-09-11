@@ -15,7 +15,8 @@
  */
 
 /**
- * 连接池的简单实现
+ * Simple implementation of connection pool
+ *
  * @author RollW
  */
 package space.lingu.light.connect.simple;

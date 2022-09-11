@@ -16,10 +16,9 @@
 
 package space.lingu.light.connect.simple;
 
-import space.lingu.light.LightRuntimeException;
 import space.lingu.light.DatasourceConfig;
-import space.lingu.light.log.JdkDefaultLogger;
 import space.lingu.light.LightLogger;
+import space.lingu.light.LightRuntimeException;
 import space.lingu.light.connect.ConnectionPool;
 import space.lingu.light.util.StringUtil;
 
@@ -28,12 +27,14 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * 一次性使用连接池。
- * 不建议在正式生产环境中使用。
+ * Disposable connection pool.
+ * <p>
+ * Not recommended for use in production environments.
+ *
  * @author RollW
  */
 public class DisposableConnectionPool implements ConnectionPool {
-    private LightLogger logger = JdkDefaultLogger.getGlobalLogger();
+    private LightLogger logger = null;
     private DatasourceConfig mDatasourceConfig;
 
     public DisposableConnectionPool(DatasourceConfig config) {

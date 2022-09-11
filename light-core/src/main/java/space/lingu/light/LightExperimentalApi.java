@@ -19,9 +19,10 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标记实验性API。
+ * Mark as an experimental api.
  * <p>
- * 在当前的版本中可能无效，在之后的版本中可能会变化或者被移除。
+ * May not be valid in the current version,
+ * may be changed or removed in future versions.
  *
  * @author RollW
  */
@@ -29,7 +30,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.CLASS)
 @Target(value = {
         ElementType.METHOD, ElementType.TYPE,
-        ElementType.CONSTRUCTOR, ElementType.ANNOTATION_TYPE
+        ElementType.CONSTRUCTOR, ElementType.ANNOTATION_TYPE,
+        ElementType.FIELD
 })
 public @interface LightExperimentalApi {
 }
