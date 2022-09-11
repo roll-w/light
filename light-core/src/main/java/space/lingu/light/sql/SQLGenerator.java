@@ -19,19 +19,18 @@ package space.lingu.light.sql;
 import space.lingu.light.OnConflictStrategy;
 
 /**
- * SQL语句生成器
+ * SQL statement generator interface.
  *
  * @author RollW
  */
-public interface SQLGenerator {
-    String BACK_QUOTE = "`";
+public interface SQLGenerator extends SQLEscaper {
 
     /**
-     * 返回SQL插入语句
+     * Return insertion statement.
      *
-     * @param tableName 表名称
-     * @param valueArgs 插入列的名称（按顺序）
-     * @return SQL插入语句
+     * @param tableName table name
+     * @param valueArgs column names (in order)
+     * @return insertion statement.
      */
     String insert(String tableName, String... valueArgs);
 
@@ -54,7 +53,4 @@ public interface SQLGenerator {
         return builder.toString();
     }
 
-    default String escapeParam(String param) {
-        return BACK_QUOTE + param + BACK_QUOTE;
-    }
 }

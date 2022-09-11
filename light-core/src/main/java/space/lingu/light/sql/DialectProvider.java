@@ -20,14 +20,12 @@ import space.lingu.light.struct.DatabaseInfo;
 import space.lingu.light.struct.Table;
 import space.lingu.light.struct.TableIndex;
 
-import static space.lingu.light.sql.SQLGenerator.BACK_QUOTE;
-
 /**
  * The database dialect provider.
  *
  * @author RollW
  */
-public interface DialectProvider {
+public interface DialectProvider extends SQLEscaper {
     /**
      * Get the statement that created the table.
      * <p>
@@ -81,8 +79,4 @@ public interface DialectProvider {
     }
 
     SQLGenerator getGenerator();
-
-    default String escapeParam(String param) {
-        return BACK_QUOTE + param + BACK_QUOTE;
-    }
 }
