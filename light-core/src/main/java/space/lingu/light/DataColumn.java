@@ -34,12 +34,22 @@ public @interface DataColumn {
 
     boolean nullable() default true;
 
+    LightConfiguration[] configuration() default {};
+
     /**
-     * 是否有默认值
+     * Has default value
      */
     String defaultValue() default NO_DEFAULT_VALUE;
 
     SQLDataType dataType() default SQLDataType.UNDEFINED;
 
+    /**
+     * No default value
+     */
     String NO_DEFAULT_VALUE = "[LIGHT_No-Default-Value]";
+
+    /**
+     * Default null.
+     */
+    String DEFAULT_VALUE_NULL = "[LIGHT_Default-Value-Null]";
 }

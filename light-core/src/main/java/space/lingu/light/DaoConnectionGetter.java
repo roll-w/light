@@ -17,11 +17,20 @@
 package space.lingu.light;
 
 /**
- * 在{@link Dao}类中使用。
- * 如果需要在Dao类运行中获取{@link SharedConnection}或{@link java.sql.Connection}，则扩展此接口。
+ * Use in a {@link Dao} class/interface.
+ * <p>
+ * If you want get {@link SharedConnection} in the DAO, please implement this interface.
+ * Light will generate method to allow you get connection.
+ * <p>
+ * This only works in Dao.
+ *
  * @author RollW
  */
 public interface DaoConnectionGetter {
+    /**
+     * Get a {@link SharedConnection} in dao.
+     * @return new {@link SharedConnection}
+     */
     default SharedConnection getConnection() {
         throw new LightRuntimeException("Unimplemented method.");
     }

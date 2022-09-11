@@ -17,35 +17,48 @@
 package space.lingu.light.connect;
 
 import space.lingu.light.DatasourceConfig;
-import space.lingu.light.log.LightLogger;
+import space.lingu.light.LightLogger;
 
 import java.io.Closeable;
 import java.sql.Connection;
 
 /**
- * 实现此接口自定义连接池。
+ * Connection pool for Light.
+ *
  * @author RollW
  */
 public interface ConnectionPool extends Closeable {
     /**
-     * 设置数据来源配置
+     * Set datasource configuration.
+     *
      * @param config {@link DatasourceConfig}
      */
     void setDataSourceConfig(DatasourceConfig config);
 
     /**
-     * 从连接池获取连接
+     * Require connection from connection pool.
+     *
      * @return {@link Connection}
      */
     Connection requireConnection();
 
     /**
-     * 释放连接，回到连接池
+     * Release connection.
+     *
      * @param connection {@link Connection}
      */
     void release(Connection connection);
 
+    /**
+     * Set logger.
+     *
+     * @param logger {@link LightLogger}
+     */
     void setLogger(LightLogger logger);
 
+    /**
+     * Get logger.
+     * @return logger (nullable)
+     */
     LightLogger getLogger();
 }
