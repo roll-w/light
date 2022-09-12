@@ -19,7 +19,8 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标记{@link Dao}中的插入方法。
+ * Annotated the insert method in {@link Dao}.
+ *
  * @author RollW
  */
 @Documented

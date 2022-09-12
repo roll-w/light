@@ -21,7 +21,8 @@ import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 对连接进一步包装
+ * Further packaging for the {@link Connection}.
+ * Implement many useful methods.
  *
  * @author RollW
  */

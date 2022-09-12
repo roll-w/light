@@ -17,7 +17,8 @@
 package space.lingu.light;
 
 /**
- * SQL数据类型
+ * SQL data types
+ *
  * @author RollW
  */
 public enum SQLDataType {
@@ -25,12 +26,16 @@ public enum SQLDataType {
     DOUBLE, BOOLEAN,
     CHAR, BINARY,
     /**
-     * 文本<br>
-     * MySQL中Text无法作为主键，当设定此类型值为主键时，更改为varchar(255)。
+     * Text.
+     * <p>
+     * May mapped to {@link #VARCHAR} in some situations.
+     * (In MySQL, cannot use TEXT as primary key, etc.)
      */
     TEXT,
     /**
-     * 不存在此类型数据的数据库，映射为Text
+     * Variable text.
+     * <p>
+     * No database exists for this type of data, mapped as Text.
      */
     VARCHAR,
     LONGTEXT,

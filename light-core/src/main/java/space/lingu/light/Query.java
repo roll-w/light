@@ -19,7 +19,7 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标记{@link Dao}中的查询方法。
+ * Annotated the query method in {@link Dao}.
  *
  * @author RollW
  */
@@ -28,9 +28,9 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Query {
     /**
-     * 需要执行的SQL查询语句
+     * SQL query statement to be executed.
      *
-     * @return 需要执行的SQL查询语句
+     * @return SQL query statement to be executed
      */
     String value();
 }

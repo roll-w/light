@@ -19,7 +19,8 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 外键
+ * Foreign key
+ *
  * @author RollW
  */
 @Documented

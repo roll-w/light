@@ -25,6 +25,8 @@ import java.util.Properties;
 import java.util.StringJoiner;
 
 /**
+ * Load datasource config from given path and name.
+ *
  * @author RollW
  */
 public class DatasourceLoader {
@@ -49,8 +51,10 @@ public class DatasourceLoader {
         Properties properties = new Properties();
         InputStream propInput = Light.loadResource(mPath);
         if (propInput == null) {
-            throw new LightRuntimeException("Load data properties failed. Check whether the Properties file exists. " +
-                    "If you enter a custom path, check whether the path is correct.");
+            throw new IllegalPropertiesException(
+                    "Load data properties failed. Check whether the Properties file exists. " +
+                            "If you enter a custom path, check whether the path is correct.",
+                    mPath);
         }
 
         try {

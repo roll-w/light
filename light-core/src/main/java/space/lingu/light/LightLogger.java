@@ -20,7 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Light内部日志接口。需要使用第三方库日志库的使用此接口进行封装。
+ * Internal logger interface for Light.
+ * <p>
+ * If you are using third-party logger,
+ * you need implements this interface.
+ *
  * @author RollW
  */
 public interface LightLogger {
@@ -54,7 +58,7 @@ public interface LightLogger {
     void warn(Object message, Throwable throwable);
 
     static String formatStackTraces(StackTraceElement[] elements) {
-        // 堆栈信息格式化的简单实现
+        // simple implementation for format stack traces
         if (elements == null || elements.length == 0){
             return "Cannot get current method list.";
         }
