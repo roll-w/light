@@ -19,6 +19,7 @@ package space.lingu.light.compile.processor;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
+import space.lingu.light.Configurations;
 import space.lingu.light.DataColumn;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.CompileErrors;
@@ -26,7 +27,9 @@ import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.struct.Configurable;
 import space.lingu.light.compile.struct.Field;
+import space.lingu.light.compile.struct.Nullability;
 import space.lingu.light.util.StringUtil;
 
 import javax.lang.model.element.TypeElement;
@@ -56,18 +59,30 @@ public class FieldProcessor implements Processor<Field> {
         } else {
             field.setColumnName(dataColumn.name());
         }
-
         field.setDataType(dataColumn.dataType());
+
         if (field.getColumnName() == null || field.getColumnName().isEmpty()) {
             throw new LightCompileException("Field cannot have an empty column name!");
         }
-        String defaultValue = dataColumn.defaultValue().equals(DataColumn.NO_DEFAULT_VALUE)
+        boolean hasDefault = !dataColumn.defaultValue().equals(DataColumn.NO_DEFAULT_VALUE);
+
+        String defaultValue = dataColumn.defaultValue().equals(DataColumn.DEFAULT_VALUE_NULL)
                 ? null
                 : dataColumn.defaultValue();
+
+        Nullability nullability = dataColumn.nullable()
+                ? Nullability.NULLABLE
+                : Nullability.NONNULL;
+
         TypeElement typeElement = (TypeElement) mElement.getEnclosingElement();
+        Configurations configurations = Configurable.createFrom(dataColumn.configuration());
+
         field.setType(typeElement)
                 .setDataType(recognizeSQLDataType(mElement))
                 .setTypeMirror(mElement.asType())
+                .setNullability(nullability)
+                .setHasDefault(hasDefault)
+                .setConfigurations(configurations)
                 .setDefaultValue(defaultValue);
         StatementBinder binder = mEnv.getBinders()
                 .findStatementBinder(field.getTypeMirror(), field.getDataType());
@@ -79,7 +94,7 @@ public class FieldProcessor implements Processor<Field> {
         // todo
         if (binder == null || reader == null) {
             mEnv.getLog().error(
-                    CompileErrors.UNKNOWN_TYPE + " b",
+                    CompileErrors.UNKNOWN_TYPE,
                     mElement
             );
         }
@@ -88,7 +103,6 @@ public class FieldProcessor implements Processor<Field> {
     }
 
     private SQLDataType recognizeSQLDataType(VariableElement variable) {
-        // TODO: custom data converter
         TypeMirror type = variable.asType();
         TypeName typeName = ClassName.get(type);
         if (isEqualBothBox(typeName, TypeName.INT)) {
@@ -125,6 +139,7 @@ public class FieldProcessor implements Processor<Field> {
         return value.equals(type) || value.equals(type.box());
     }
 
+    @SuppressWarnings("all")
     private static boolean isEqualArray(TypeName value, TypeName type) {
         return value.equals(ArrayTypeName.of(type));
     }

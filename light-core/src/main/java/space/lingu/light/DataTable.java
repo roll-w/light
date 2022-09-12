@@ -19,7 +19,8 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标记数据表
+ * Mark as a data table.
+ *
  * @author RollW
  */
 @Documented
@@ -33,4 +34,17 @@ public @interface DataTable {
     String[] primaryKeys() default {};
 
     String description() default "";
+
+    /**
+     * Set create this table by Light or not.
+     * <p>
+     * If you want to control the table creation yourself or
+     * already have an exist table,
+     * you can set this flag to true.
+     *
+     * @return set to <code>true</code> to have this table created by Light
+     */
+    boolean created() default false;
+
+    LightConfiguration[] configuration() default {};
 }

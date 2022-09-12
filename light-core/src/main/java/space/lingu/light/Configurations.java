@@ -59,6 +59,10 @@ public final class Configurations {
         return new Configurations(array);
     }
 
+    public Configuration[] configurations() {
+        return configurations;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -76,7 +80,7 @@ public final class Configurations {
         return new Configurations(configurations.toArray(new Configuration[0]));
     }
 
-    public static Configurations createFrom(Configuration[] configurations) {
+    public static Configurations createFrom(Configuration... configurations) {
         return new Configurations(configurations);
     }
 
@@ -89,6 +93,12 @@ public final class Configurations {
         }
         return new Configurations(confs);
     }
+
+    public static Configurations empty() {
+        return EMPTY;
+    }
+
+    static final Configurations EMPTY = createFrom();
 
     /**
      * Configuration. For Light module use.

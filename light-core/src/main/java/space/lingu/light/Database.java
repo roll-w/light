@@ -19,8 +19,7 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标注为一个数据库。如存在多个数据库标记，则名称不能相同。
- * 名称标注规范须遵循所用数据库规范。
+ * Annotated as a database.
  *
  * @author RollW
  */
@@ -29,21 +28,29 @@ import java.lang.annotation.*;
 @Target(value = {ElementType.TYPE})
 public @interface Database {
     /**
-     * 数据库名称。如存在多个数据库标记，则名称不能相同。
-     * 名称标注规范须遵循所用数据库规范。
+     * Database name.
+     * <p>
+     * Light doesn't check for duplicate database names,
+     * so that requires your own attention.
+     * <p>
+     * The naming conventions must follow the conventions of
+     * the database used.
      *
-     * @return 数据库名称
+     * @return Database name
      */
     String name();
 
     /**
-     * 数据连接配置读取路径
+     * Database connection configuration read path.
+     * The file needs to be a properties file.
      *
-     * @return 数据连接配置读取路径
+     * @return Database connection configuration read path
      */
     String datasourceConfig() default DatasourceLoader.DEFAULT_PATH;
 
     int version();
 
     Class<?>[] tables();
+
+    LightConfiguration[] configuration() default {};
 }

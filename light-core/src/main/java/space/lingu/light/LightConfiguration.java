@@ -16,13 +16,21 @@
 
 package space.lingu.light;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * Pass configuration.
+ * Pass configuration information.
  * <p>
  * Configuration may not work or be ignored in some databases.
  *
  * @author RollW
  */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({})
 public @interface LightConfiguration {
     String key();
 
@@ -60,6 +68,8 @@ public @interface LightConfiguration {
      * int, float, or etc. and also custom types.
      * <p>
      * It is recommended to use it on enum fields or other fields of limited length.
+     * <p>
+     * Compare to {@link #KEY_VARCHAR_LENGTH}, this configuration contains more fine-grained control.
      */
     String KEY_COLUMN_TYPE = "Light.Key.ColumnType";
 }

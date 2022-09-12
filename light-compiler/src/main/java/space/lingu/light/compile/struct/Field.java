@@ -18,9 +18,10 @@ package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
+import space.lingu.light.Configurations;
+import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.StatementBinder;
-import space.lingu.light.SQLDataType;
 import space.lingu.light.util.StringUtil;
 
 import javax.lang.model.element.TypeElement;
@@ -33,7 +34,7 @@ import java.util.*;
  * Field - DataColumn
  * @author RollW
  */
-public class Field {
+public class Field implements Configurable {
     private final VariableElement element;
     private final String name;
     private TypeElement type;
@@ -45,7 +46,7 @@ public class Field {
     private SQLDataType dataType;
 
     private boolean indexed = false;
-    private boolean nonNull;
+    private boolean hasDefault;
     private Nullability nullability;
 
     private FieldGetter getter;
@@ -53,6 +54,8 @@ public class Field {
 
     private StatementBinder statementBinder;
     private ColumnValueReader columnValueReader;
+
+    private Configurations configurations;
 
     public Field(VariableElement element, String name) {
         this.element = element;
@@ -186,12 +189,12 @@ public class Field {
         return this;
     }
 
-    public boolean isNonNull() {
-        return nonNull;
+    public boolean isHasDefault() {
+        return hasDefault;
     }
 
-    public Field setNonNull(boolean nonNull) {
-        this.nonNull = nonNull;
+    public Field setHasDefault(boolean hasDefault) {
+        this.hasDefault = hasDefault;
         return this;
     }
 
@@ -213,6 +216,25 @@ public class Field {
         return this;
     }
 
+    public Nullability getNullability() {
+        return nullability;
+    }
+
+    public Field setNullability(Nullability nullability) {
+        this.nullability = nullability;
+        return this;
+    }
+
+    @Override
+    public Configurations getConfigurations() {
+        return configurations;
+    }
+
+    public Field setConfigurations(Configurations configurations) {
+        this.configurations = configurations;
+        return this;
+    }
+
     public static class Fields {
         public final List<Field> fields;
 
@@ -230,6 +252,15 @@ public class Field {
 
         public List<Field> getFields() {
             return fields;
+        }
+
+        public boolean hasField(Field field) {
+            for (Field f : fields) {
+                if (Objects.equals(f.getColumnName(), field.getColumnName())) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

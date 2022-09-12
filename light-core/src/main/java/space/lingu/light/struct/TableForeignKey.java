@@ -16,37 +16,8 @@
 
 package space.lingu.light.struct;
 
-import space.lingu.light.Order;
-
 /**
  * @author RollW
  */
-public class TableIndex {
-    private final String name;
-    private final boolean isUnique;
-    private final Order[] orders;
-    private final String[] columns;
-
-    public TableIndex(String name, boolean isUnique, Order[] orders, String[] columns) {
-        this.name = name;
-        this.isUnique = isUnique;
-        this.orders = orders;
-        this.columns = columns;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public boolean isUnique() {
-        return isUnique;
-    }
-
-    public Order[] getOrders() {
-        return orders;
-    }
-
-    public String[] getColumns() {
-        return columns;
-    }
+public class TableForeignKey {
 }

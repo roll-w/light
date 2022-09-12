@@ -21,6 +21,7 @@ import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.struct.Configurable;
 import space.lingu.light.compile.struct.Database;
 import space.lingu.light.compile.struct.DatabaseDaoMethod;
 
@@ -52,12 +53,17 @@ public class DatabaseWriter extends ClassWriter {
 
     private CodeBlock createRegisterRuntimeStructCode() {
         GenerateCodeBlock block = new GenerateCodeBlock(this);
+        String dbConfVarName = writeDatabaseConf(block);
         mDatabase.getDataTableList().forEach(dataTable -> {
             RuntimeStructWriter writer = new RuntimeStructWriter(dataTable);
-            final String tableVar = writer.writeDataTable(block);
+            final String tableVar = writer.writeDataTable(block, dbConfVarName);
             block.builder().addStatement("this.registerTable($L)", tableVar);
         });
         return block.builder().build();
+    }
+
+    private String writeDatabaseConf(GenerateCodeBlock block) {
+        return Configurable.writeConfiguration(mDatabase,"Db", block);
     }
 
 

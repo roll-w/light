@@ -16,6 +16,7 @@
 
 package space.lingu.light.compile.processor;
 
+import space.lingu.light.Configurations;
 import space.lingu.light.LightIgnore;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
@@ -69,9 +70,9 @@ public class DataTableProcessor implements Processor<DataTable> {
                 mElement.getAnnotation(LightIgnore.class) == null) {
             mEnv.getLog().warn(Warnings.PRIMARY_KEY_NOT_FOUND, mElement);
         }
-
-
+        Configurations configurations = Configurable.createFrom(anno.configuration());
         return dataTable
+                .setConfigurations(configurations)
                 .setPrimaryKey(primaryKey)
                 .setIndices(processIndices(pojo.getFields()));
     }

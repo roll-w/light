@@ -16,6 +16,8 @@
 
 package space.lingu.light.struct;
 
+import space.lingu.light.Configurations;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -39,14 +41,18 @@ public class Table {
      * Table indices
      */
     private final List<TableIndex> indices;
-    // private final List<ForeignKey> foreignKeys;
+
+    private final Configurations configurations;
+    private List<TableForeignKey> foreignKeys;
 
     public Table(String name, List<TableColumn> columns,
-                 TablePrimaryKey primaryKey, List<TableIndex> indices) {
+                 TablePrimaryKey primaryKey, List<TableIndex> indices,
+                 Configurations configurations) {
         this.name = name;
         this.columns = Collections.unmodifiableList(columns);
         this.primaryKey = primaryKey;
         this.indices = Collections.unmodifiableList(indices);
+        this.configurations = configurations;
     }
 
 
@@ -64,6 +70,10 @@ public class Table {
 
     public TablePrimaryKey getPrimaryKey() {
         return primaryKey;
+    }
+
+    public Configurations getConfigurations() {
+        return configurations;
     }
 
     @Override

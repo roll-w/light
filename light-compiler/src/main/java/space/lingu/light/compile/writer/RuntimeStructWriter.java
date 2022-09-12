@@ -20,21 +20,20 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.SQLDataType;
+import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.struct.DataTable;
-import space.lingu.light.compile.struct.Field;
-import space.lingu.light.compile.struct.Index;
-import space.lingu.light.compile.struct.PrimaryKey;
+import space.lingu.light.compile.struct.*;
 import space.lingu.light.struct.Table;
 import space.lingu.light.struct.TableColumn;
 import space.lingu.light.struct.TableIndex;
+import space.lingu.light.struct.TablePrimaryKey;
 import space.lingu.light.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 转换为运行时可解析的对象结构<br>
+ * Convert to runtime struct.
  *
  * @author RollW
  * @see space.lingu.light.struct
@@ -46,13 +45,17 @@ public class RuntimeStructWriter {
         mTable = dataTable;
     }
 
+    public String writeDatabase(GenerateCodeBlock block) {
+        return null;
+    }
+
     /**
      * 将表映射到{@link space.lingu.light.struct.Table}
      *
      * @param block 代码块
      * @return 生成临时变量的名称
      */
-    public String writeDataTable(GenerateCodeBlock block) {
+    public String writeDataTable(GenerateCodeBlock block, String databaseConfVarName) {
         String classSimpleName = ((ClassName) mTable.getTypeName()).simpleName();
         final String tableVarName = block.getTempVar("_tableOf" + StringUtil.firstUpperCase(classSimpleName));
         final String columnListVarName = block.getTempVar("_columnListOf" + StringUtil.firstUpperCase(classSimpleName));
@@ -70,31 +73,73 @@ public class RuntimeStructWriter {
         block.builder()
                 .addStatement("$T $L = new $T()", columnListType, columnListVarName, columnArrayListType)
                 .addStatement("$T $L = new $T()", indexListType, indexListVarName, indexArrayListType);
+        String tableConfVarName = writeConfigurationsAndFork(mTable,
+                "TbOf" + mTable.getElement().getSimpleName().toString(),
+                databaseConfVarName, block);
         mTable.getIndices().forEach(index ->
                 writeIndex(block, index, indexListVarName));
         mTable.getFields().forEach(field ->
-                writeTableColumn(block, field, columnListVarName));
+                writeTableColumn(block, field, columnListVarName, tableConfVarName));
+        final String pkVarName = writePrimaryKey(block, mTable.getPrimaryKey());
 
         block.builder()
-                .addStatement("$T $L = new $T($S, $L, $L, $L)",
+                .addStatement("$T $L = new $T($S, $L, $L, $L, $L)",
                         Table.class, tableVarName, Table.class,
                         mTable.getTableName(),
                         columnListVarName,
-                        null,
-                        indexListVarName
+                        pkVarName,
+                        indexListVarName,
+                        tableConfVarName
                 );
         return tableVarName;
     }
 
-    private void writeTableColumn(GenerateCodeBlock block, Field field, String listVarName) {
+    private String writeConfigurationsAndFork(Configurable configurable,
+                                              String prefix,
+                                              String prevConfVarName,
+                                              GenerateCodeBlock block) {
+        final String forkVarName = block.getTempVar("_configurationsFork" + prefix);
+        String tempConf = Configurable.writeConfiguration(configurable, prefix, block);
+        block.builder().addStatement("$T $L = $L.plus($L)",
+                JavaPoetClass.CONFIGURATIONS,
+                forkVarName, prevConfVarName, tempConf);
+        return forkVarName;
+    }
+
+    private void writeTableColumn(GenerateCodeBlock block, Field field,
+                                  String listVarName,
+                                  String tableConfVarName) {
         final String tableColumnVarName = block.getTempVar("_tableColumn" + StringUtil.firstUpperCase(field.getName()));
+        boolean autoGen = false;
+        if (mTable.getPrimaryKey().getFields().hasField(field)) {
+            autoGen = mTable.getPrimaryKey().isAutoGenerate();
+        }
+        String fieldConfVarName = writeConfigurationsAndFork(field,
+                "ColumnOf" + StringUtil.firstUpperCase(field.getName()),
+                tableConfVarName,
+                block);
         block.builder()
-                .addStatement("$T $L = new $T($S, $S, $S, $T.$L)",
+                // Params:
+
+                // String name, String fieldName,
+                // String defaultValue,
+                // boolean hasDefaultValue,
+                // SQLDataType dataType,
+                // boolean nullable,
+                // boolean autoGenerate,
+                // Configurations
+                .addStatement(
+                        "$T $L = new $T($S, $S, $S, $L,\n$T.$L, $L, $L, $L)",
                         TableColumn.class, tableColumnVarName, TableColumn.class,
+                        // params
                         field.getColumnName(),
                         field.getName(),
                         field.getDefaultValue(),
-                        SQLDataType.class, field.getDataType()
+                        field.isHasDefault(),
+                        SQLDataType.class, field.getDataType(),
+                        field.getNullability() != Nullability.NONNULL,
+                        autoGen,
+                        fieldConfVarName
                 )
                 .addStatement("$L.add($L)", listVarName, tableColumnVarName);
     }
@@ -102,13 +147,29 @@ public class RuntimeStructWriter {
     private void writeIndex(GenerateCodeBlock block, Index index, String indexListVarName) {
         final String tableIndexVarName = block.getTempVar("_tableIndex" + StringUtil.firstUpperCase(index.getName()));
         block.builder()
-                .addStatement("$T $L = new $T()", TableIndex.class, tableIndexVarName, TableIndex.class)
+                .addStatement("$T $L = new $T($S, $L, $L, $L)",
+                        TableIndex.class, tableIndexVarName, TableIndex.class,
+                        index.getName(), index.isUnique(), null, null
+                )
                 .addStatement("$L.add($L)", indexListVarName, tableIndexVarName);
 
     }
 
-    private void writePrimaryKey(GenerateCodeBlock block, PrimaryKey index, String columnsListVarName) {
+    private String writePrimaryKey(GenerateCodeBlock block, PrimaryKey key) {
+        final String primaryKeyVarName = block.getTempVar("_pkOf" + mTable.getTableName());
+        for (Field field : key.getFields().fields) {
 
+        }
+        String pkColumnsVarName = block.getTempVar("_pkColumns");
+
+        block.builder()
+                .addStatement("$T $L = new $T($L, $L)",
+                        TablePrimaryKey.class, primaryKeyVarName,
+                        TablePrimaryKey.class,
+                        null, key.isAutoGenerate()
+                );
+
+        return primaryKeyVarName;
     }
 
 }

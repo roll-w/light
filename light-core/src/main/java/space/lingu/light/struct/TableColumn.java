@@ -16,27 +16,59 @@
 
 package space.lingu.light.struct;
 
+import space.lingu.light.Configurations;
 import space.lingu.light.SQLDataType;
 
 /**
+ * Represents a column extracts from {@link space.lingu.light.DataColumn}
+ *
  * @author RollW
  */
 public class TableColumn {
-    /**其在数据表中的名称(默认与fieldName相同)*/
-    private final String name;
-    private final String fieldName;
-    private final String defaultValue;
-    private final SQLDataType dataType;
 
-    public TableColumn(String name,
-                       String fieldName,
+    /**
+     * Its name in the Table.
+     */
+    private final String name;
+
+    /**
+     * Field name.
+     */
+    private final String fieldName;
+
+    /**
+     * Default value.
+     * <p>
+     * It only makes sense when {@link #hasDefaultValue} is {@code true}.
+     */
+    private final String defaultValue;
+
+    /**
+     * Has default value or not.
+     */
+    private final boolean hasDefaultValue;
+    private final SQLDataType dataType;
+    private final boolean nullable;
+    private final boolean autoGenerate;
+    private final Configurations configurations;
+
+    public TableColumn(String name, String fieldName,
                        String defaultValue,
-                       SQLDataType dataType) {
+                       boolean hasDefaultValue,
+                       SQLDataType dataType,
+                       boolean nullable,
+                       boolean autoGenerate,
+                       Configurations configurations) {
         this.name = name;
         this.fieldName = fieldName;
         this.defaultValue = defaultValue;
+        this.hasDefaultValue = hasDefaultValue;
         this.dataType = dataType;
+        this.nullable = nullable;
+        this.autoGenerate = autoGenerate;
+        this.configurations = configurations;
     }
+
 
     public SQLDataType getDataType() {
         return dataType;
@@ -52,6 +84,22 @@ public class TableColumn {
 
     public String getDefaultValue() {
         return defaultValue;
+    }
+
+    public boolean isHasDefaultValue() {
+        return hasDefaultValue;
+    }
+
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public boolean isAutoGenerate() {
+        return autoGenerate;
+    }
+
+    public Configurations getConfigurations() {
+        return configurations;
     }
 
     @Override

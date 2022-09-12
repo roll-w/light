@@ -17,6 +17,7 @@
 package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.ClassName;
+import space.lingu.light.Configurations;
 
 import javax.lang.model.element.TypeElement;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.List;
  * Database
  * @author RollW
  */
-public class Database {
+public class Database implements Configurable {
     private TypeElement superClassElement;// represents super class
 
     private List<DataTable> dataTableList;
@@ -34,6 +35,7 @@ public class Database {
     private ClassName implClassName;
     private String implName;
 
+    private Configurations configurations;
 
     public Database() {
     }
@@ -87,4 +89,13 @@ public class Database {
         return this;
     }
 
+    @Override
+    public Configurations getConfigurations() {
+        return configurations;
+    }
+
+    public Database setConfigurations(Configurations configurations) {
+        this.configurations = configurations;
+        return this;
+    }
 }

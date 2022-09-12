@@ -17,6 +17,7 @@
 package space.lingu.light.compile.processor;
 
 import com.squareup.javapoet.ClassName;
+import space.lingu.light.Configurations;
 import space.lingu.light.Dao;
 import space.lingu.light.DataConverters;
 import space.lingu.light.LightInfo;
@@ -24,10 +25,7 @@ import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.struct.DataConverter;
-import space.lingu.light.compile.struct.DataTable;
-import space.lingu.light.compile.struct.Database;
-import space.lingu.light.compile.struct.DatabaseDaoMethod;
+import space.lingu.light.compile.struct.*;
 import space.lingu.light.compile.writer.ClassWriter;
 
 import javax.lang.model.element.Element;
@@ -64,6 +62,9 @@ public class DatabaseProcessor implements Processor<Database> {
 
     @Override
     public Database process() {
+        if (anno.name().isEmpty()) {
+            mEnv.getLog().error(CompileErrors.DATABASE_NAME_EMPTY, mElement);
+        }
         ClassName superClass = ClassName.get(mElement);
         String packageName = superClass.packageName();
         String implName = superClass.simpleName() + ClassWriter.CLASS_SUFFIX;
@@ -77,10 +78,12 @@ public class DatabaseProcessor implements Processor<Database> {
         }
         List<DataConverter> dataConverterList = getDataConverterMethods();
         mEnv.getBinders().registerDataConverters(dataConverterList);
+        Configurations configurations = Configurable.createFrom(anno.configuration());
 
         database.setDataTableList(processDataTables(tableClassMirror))
                 .setSuperClassElement(mElement)
                 .setImplName(implName)
+                .setConfigurations(configurations)
                 .setDatabaseDaoMethods(getAllDaoMethods())
                 .setImplClassName(ClassName.get(packageName, implName));
         return database;

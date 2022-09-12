@@ -17,10 +17,7 @@
 package space.lingu.light.compile;
 
 import com.squareup.javapoet.ClassName;
-import space.lingu.light.Light;
-import space.lingu.light.LightDatabase;
-import space.lingu.light.OnConflictStrategy;
-import space.lingu.light.SharedConnection;
+import space.lingu.light.*;
 import space.lingu.light.handler.DeleteUpdateHandler;
 import space.lingu.light.handler.InsertHandler;
 import space.lingu.light.handler.SQLHandler;
@@ -46,6 +43,9 @@ public class JavaPoetClass {
     public static final ClassName SQL_HANDLER = ClassName.get(SQLHandler.class);
 
     public static final ClassName ON_CONFLICT_STRATEGY = ClassName.get(OnConflictStrategy.class);
+
+    public static final ClassName CONFIGURATIONS = ClassName.get(Configurations.class);
+    public static final ClassName CONFIGURATION = ClassName.get(Configurations.Configuration.class);
 
     public static class UtilNames {
         public static final ClassName STRING_UTIL = ClassName.get(StringUtil.class);

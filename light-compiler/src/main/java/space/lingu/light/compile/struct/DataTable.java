@@ -17,6 +17,7 @@
 package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.TypeName;
+import space.lingu.light.Configurations;
 
 import javax.lang.model.element.TypeElement;
 import java.util.List;
@@ -25,13 +26,14 @@ import java.util.List;
  * DataTable
  * @author RollW
  */
-public class DataTable extends Pojo {
+public class DataTable extends Pojo implements Configurable {
     private TypeElement element;
     private String tableName;
     private List<Field> fields;
     private PrimaryKey primaryKey;
     private List<Index> indices;
     private List<ForeignKey> foreignKeys;
+    private Configurations configurations;
 
     public DataTable() {
     }
@@ -108,5 +110,15 @@ public class DataTable extends Pojo {
     @Override
     public Pojo setConstructor(Constructor constructor) {
         return super.setConstructor(constructor);
+    }
+
+    @Override
+    public Configurations getConfigurations() {
+        return configurations;
+    }
+
+    public DataTable setConfigurations(Configurations configurations) {
+        this.configurations = configurations;
+        return this;
     }
 }

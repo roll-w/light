@@ -19,7 +19,7 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标记{@link Dao}中的更新方法。
+ * Annotated the update method in {@link Dao}.
  *
  * @author RollW
  */
