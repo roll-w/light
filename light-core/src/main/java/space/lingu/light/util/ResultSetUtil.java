@@ -22,22 +22,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * ResultSet相关实用方法
+ * {@link ResultSet} utility methods
+ *
  * @author RollW
  */
 public final class ResultSetUtil {
 
     public static int getColumnIndexOrThrow(ResultSet set, String name) {
-        int index;
         try {
-            index = getColumnIndex(set, name);
+            int index = getColumnIndex(set, name);
             if (index >= 0) return index;
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
 
-        throw new LightRuntimeException(new IllegalArgumentException("column '" + name
-                + "' does not exist."));
+        throw new LightRuntimeException(
+                new IllegalArgumentException("column '" + name + "' does not exist."));
     }
 
     public static int getColumnIndex(ResultSet set, String name) throws SQLException {
@@ -47,6 +47,18 @@ public final class ResultSetUtil {
         }
         index = set.findColumn("`" + name + "`");
         return index;
+    }
+
+    public static int getColumnIndexSwallow(ResultSet set, String name) {
+        try {
+            int index = getColumnIndex(set, name);
+            if (index >= 0) {
+                return index;
+            }
+        } catch (SQLException ignored) {
+            // swallow exception
+        }
+        return -1;
     }
 
     public static int getResultSetSize(ResultSet set) {
