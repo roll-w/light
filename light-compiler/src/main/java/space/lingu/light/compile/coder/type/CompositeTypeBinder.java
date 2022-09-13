@@ -45,7 +45,8 @@ public class CompositeTypeBinder extends ColumnTypeBinder
     @Override
     public void readFromResultSet(String outVarName,
                                   String resultSetName,
-                                  String indexName, GenerateCodeBlock block) {
+                                  String indexName,
+                                  GenerateCodeBlock block) {
         if (readConverter == null) {
             return;
         }

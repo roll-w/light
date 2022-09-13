@@ -52,7 +52,7 @@ public class ArrayQueryResultConverter extends QueryResultConverter {
         } else {
             block.builder().addStatement("final $T $L = new $T[$T.getResultSetSize($L)]",
                     arrayType, outVarName,
-                    ClassName.get(TypeUtil.getArrayElementType(type)),
+                    ClassName.get(type),
                     JavaPoetClass.UtilNames.RESULT_SET_UTIL, resultSetName);
         }
 

@@ -23,9 +23,11 @@ import space.lingu.light.SQLDataType;
 import javax.lang.model.type.TypeMirror;
 
 /**
- * 值绑定器
+ * value binder
+ *
  * @author RollW
  */
+@SuppressWarnings("all")
 public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueReader {
     protected final TypeMirror type;
     protected final SQLDataType dataType;
@@ -34,7 +36,9 @@ public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueRe
     public ColumnTypeBinder(TypeMirror type, SQLDataType dataType) {
         this.type = type;
         this.dataType = dataType;
-        typeName = type == null ? null: ClassName.get(type);
+        typeName = type == null
+                ? null
+                : ClassName.get(type);
     }
 
     @Override
@@ -45,5 +49,18 @@ public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueRe
     @Override
     public SQLDataType getDataType() {
         return dataType;
+    }
+
+    protected void readValueWithCheckIndex(String outVarName, String resultSetName,
+                                           String indexName, String methodName,
+                                           String defaultValue,
+                                           GenerateCodeBlock block) {
+        block.builder()
+                .beginControlFlow("if ($L < 0)", indexName)
+                .addStatement("$L = $L", outVarName, defaultValue)
+                .nextControlFlow("else")
+                .addStatement("$L = $L.$L($L)",
+                        outVarName, resultSetName, methodName, indexName)
+                .endControlFlow();
     }
 }

@@ -62,14 +62,25 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
     }
 
     @Override
-    public void readFromResultSet(String outVarName, String resultSetName, String indexName, GenerateCodeBlock block) {
+    public void readFromResultSet(String outVarName,
+                                  String resultSetName,
+                                  String indexName,
+                                  GenerateCodeBlock block) {
         MethodSpec stringToEnumMethod = stringToEnumMethod(block);
-        block.builder().addStatement("$L = $N($L.getString($L))",
-                outVarName, stringToEnumMethod, resultSetName, indexName);
+        block.builder()
+                .beginControlFlow("if ($L < 0)", indexName)
+                .addStatement("$L = null", outVarName)
+                .nextControlFlow("else")
+                .addStatement("$L = $N($L.getString($L))",
+                        outVarName, stringToEnumMethod, resultSetName, indexName)
+                .endControlFlow();
     }
 
     @Override
-    public void bindToStatement(String stmtVarName, String indexVarName, String valueVarName, GenerateCodeBlock block) {
+    public void bindToStatement(String stmtVarName,
+                                String indexVarName,
+                                String valueVarName,
+                                GenerateCodeBlock block) {
         MethodSpec enumToStringMethod = enumToStringMethod(block);
         block.builder()
                 .beginControlFlow("try")

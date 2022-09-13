@@ -40,9 +40,10 @@ public class ByteArrayColumnTypeBinder extends ColumnTypeBinder {
                                   String resultSetName,
                                   String indexName,
                                   GenerateCodeBlock block) {
-        block.builder()
-                .addStatement("$L = $L.getBytes($L)",
-                        outVarName, resultSetName, indexName);
+        readValueWithCheckIndex(outVarName, resultSetName,
+                indexName,
+                "getBytes",
+                "null", block);
     }
 
     @Override

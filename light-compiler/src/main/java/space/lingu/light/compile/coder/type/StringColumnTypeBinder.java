@@ -40,8 +40,9 @@ public class StringColumnTypeBinder extends ColumnTypeBinder implements Statemen
     @Override
     public void readFromResultSet(String outVarName, String resultSetName,
                                   String indexName, GenerateCodeBlock block) {
-        block.builder()
-                .addStatement("$L = $L.getString($L)", outVarName, resultSetName, indexName);
+        readValueWithCheckIndex(outVarName,
+                resultSetName, indexName,
+                "getString", "null", block);
     }
 
     @Override

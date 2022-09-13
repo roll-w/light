@@ -18,12 +18,10 @@ package space.lingu.light.compile.coder.type;
 
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.javac.ProcessEnv;
-
-import javax.lang.model.type.TypeKind;
 
 /**
- * 处理返回值void
+ * Returns void
+ *
  * @author RollW
  */
 public class VoidColumnTypeBinder extends ColumnTypeBinder {

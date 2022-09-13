@@ -20,6 +20,7 @@ import space.lingu.light.Query;
 import space.lingu.light.Transaction;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
+import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.QueryMethod;
 import space.lingu.light.compile.struct.QueryParameter;
@@ -72,12 +73,19 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
             queryParameters.add(parameterProcessor.process());
         });
 
-        return method.setElement(mExecutable)
+        method.setElement(mExecutable)
                 .setSql(queryAnno.value())
                 .setReturnType(mExecutable.getReturnType())
                 .setParameters(queryParameters)
-                .setTransaction(mExecutable.getAnnotation(Transaction.class) != null)
-                .setResultBinder(mEnv.getBinders().findQueryResultBinder(method.getReturnType()));
-        // TODO 解析SQL
+                .setTransaction(mExecutable.getAnnotation(Transaction.class) != null);
+        QueryResultBinder binder =
+                mEnv.getBinders().findQueryResultBinder(method.getReturnType());
+        if (binder == null) {
+            mEnv.getLog().error(
+                    CompileErrors.QUERY_UNKNOWN_RETURN_TYPE,
+                    mExecutable
+            );
+        }
+        return method.setResultBinder(binder);
     }
 }

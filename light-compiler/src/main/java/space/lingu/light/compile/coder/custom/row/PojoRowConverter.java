@@ -48,7 +48,7 @@ public class PojoRowConverter extends RowConverter {
         usedFields.forEach(field -> {
             final String numberVar = block.getTempVar("_resultSetIndexOf" +
                     StringUtil.firstUpperCase(field.getName()));
-            block.builder().addStatement("final $T $L = $T.getColumnIndexOrThrow($L, $S)",
+            block.builder().addStatement("final $T $L = $T.getColumnIndexSwallow($L, $S)",
                     TypeName.INT, numberVar, JavaPoetClass.UtilNames.RESULT_SET_UTIL,
                     resultSetName, field.getColumnName());
             fieldWithNumber.add(Pair.createPair(field, numberVar));

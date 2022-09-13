@@ -117,6 +117,11 @@ public final class CompileErrors {
     public static final String QUERY_UNKNOWN_PARAM =
             "Unknown parameter type.";
 
+    public static final String QUERY_UNKNOWN_RETURN_TYPE =
+            "Unable to resolve return type. " +
+                    "If you want to return an entity consisting of some columns, " +
+                    "follow the instructions.";
+
     public static final String PARAM_NON_COMPLIANCE =
             "Query/Insert method parameters cannot start with underscore (_).";
 

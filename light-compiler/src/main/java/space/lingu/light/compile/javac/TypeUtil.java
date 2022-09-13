@@ -40,9 +40,12 @@ public class TypeUtil {
     }
 
     public static TypeMirror getArrayElementType(TypeMirror mirror) {
-        // 给定的TypeMirror提取
-        ArrayType arrayType = (ArrayType) mirror;
-        return arrayType.getComponentType();
+        // extracts from given TypeMirror
+        if (mirror instanceof ArrayType) {
+            ArrayType arrayType = (ArrayType) mirror;
+            return arrayType.getComponentType();
+        }
+        return mirror;
     }
 
     public static TypeMirror getExtendBound(TypeMirror mirror) {

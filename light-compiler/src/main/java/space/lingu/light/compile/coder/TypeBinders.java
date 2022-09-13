@@ -266,6 +266,9 @@ public class TypeBinders {
             }
         }
         RowConverter converter = findRowConverter(typeMirror);
+        if (converter == null) {
+            return null;
+        }
         return new SingleEntityQueryResultConverter(converter);
     }
 

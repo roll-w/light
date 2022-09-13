@@ -59,7 +59,12 @@ public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements 
     @Override
     public void readFromResultSet(String outVarName, String resultSetName,
                                   String indexName, GenerateCodeBlock block) {
+        block.builder()
+                .beginControlFlow("if ($L < 0)", indexName)
+                .addStatement("$L = null", outVarName)
+                .nextControlFlow("else");
         mBinder.readFromResultSet(outVarName, resultSetName, indexName, block);
+        block.builder().endControlFlow();
     }
 
     @Override

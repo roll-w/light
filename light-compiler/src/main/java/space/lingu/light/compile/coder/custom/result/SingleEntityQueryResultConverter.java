@@ -24,7 +24,8 @@ import javax.lang.model.type.TypeMirror;
 import java.util.Collections;
 
 /**
- * 只有一个实体返回值
+ * Returns an entity
+ *
  * @author RollW
  */
 public class SingleEntityQueryResultConverter extends QueryResultConverter {

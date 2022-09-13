@@ -23,7 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 将临时变量限制在一个代码块内。
+ * Restrict temporary variables to a block of code.
+ *
  * @author RollW
  */
 public class GenerateCodeBlock {

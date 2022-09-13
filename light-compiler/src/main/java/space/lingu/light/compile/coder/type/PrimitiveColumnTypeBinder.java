@@ -17,41 +17,47 @@
 package space.lingu.light.compile.coder.type;
 
 
-import com.squareup.javapoet.TypeName;
 import space.lingu.light.LightRuntimeException;
+import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.struct.ParseDataType;
 import space.lingu.light.util.StringUtil;
-import space.lingu.light.util.Triple;
 
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 基本数据类型处理
+ *
  * @author RollW
  */
 public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
     protected final String mGetter;
     protected final String mSetter;
+    protected final String mDefaultValue;
 
     public PrimitiveColumnTypeBinder(TypeMirror type, String stmtSetter,
-                                     String resSetGetter, SQLDataType dataType) {
+                                     String resSetGetter,
+                                     SQLDataType dataType,
+                                     String defaultValue) {
         super(type, dataType);
         mGetter = resSetGetter;
         mSetter = stmtSetter;
+        mDefaultValue = defaultValue;
     }
 
     private String cast() {
-        if (mGetter.equals("get" + StringUtil.firstLowerCase(typeName.toString()))) {
+        if (mGetter.equals("get" + StringUtil.firstUpperCase(typeName.toString()))) {
             return "";
         }
 
@@ -61,8 +67,12 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
     @Override
     public void readFromResultSet(String outVarName, String resultSetName, String indexName, GenerateCodeBlock block) {
         block.builder()
+                .beginControlFlow("if ($L < 0)", indexName)
+                .addStatement("$L = $L", outVarName, mDefaultValue)
+                .nextControlFlow("else")
                 .addStatement("$L = $L$L.$L($L)", outVarName, cast(), resultSetName,
-                        mGetter, indexName);
+                        mGetter, indexName)
+                .endControlFlow();
     }
 
     @Override
@@ -77,44 +87,76 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
 
     public static List<PrimitiveColumnTypeBinder> create(ProcessEnv env) {
         List<PrimitiveColumnTypeBinder> binderList = new ArrayList<>();
-        sCandicateTypeMapping.forEach((parseDataType, triple) -> {
+        sCandidateTypeMapping.forEach((parseDataType, info) -> {
             SQLDataType sqlDataType;
             switch (parseDataType) {
                 case SHORT:
                 case INT:
                 case BYTE:
-                    sqlDataType = SQLDataType.INT; break;
+                    sqlDataType = SQLDataType.INT;
+                    break;
                 case LONG:
-                    sqlDataType = SQLDataType.LONG; break;
+                    sqlDataType = SQLDataType.LONG;
+                    break;
                 case DOUBLE:
-                    sqlDataType = SQLDataType.DOUBLE; break;
+                    sqlDataType = SQLDataType.DOUBLE;
+                    break;
                 case FLOAT:
-                    sqlDataType = SQLDataType.FLOAT; break;
+                    sqlDataType = SQLDataType.FLOAT;
+                    break;
                 case CHAR:
-                    sqlDataType = SQLDataType.CHAR; break;
+                    sqlDataType = SQLDataType.CHAR;
+                    break;
                 case BOOLEAN:
-                    sqlDataType = SQLDataType.BOOLEAN; break;
+                    sqlDataType = SQLDataType.BOOLEAN;
+                    break;
                 default: {
                     throw new LightCompileException("Illegal type.");
                 }
             }
 
-            binderList.add(new PrimitiveColumnTypeBinder(env.getTypeUtils().getPrimitiveType(TypeKind.valueOf(triple.first.toString().toUpperCase(Locale.US))),
-                    triple.second, triple.third, sqlDataType));
+            binderList.add(new PrimitiveColumnTypeBinder(
+                    info.getType(env),
+                    info.setter, info.getter,
+                    sqlDataType,
+                    info.defaultValue)
+            );
         });
         return binderList;
     }
 
-    private static final Map<ParseDataType, Triple<TypeName, String, String>> sCandicateTypeMapping = new EnumMap<>(ParseDataType.class);
+    private static final Map<ParseDataType, Info> sCandidateTypeMapping = new EnumMap<>(ParseDataType.class);
+
     static {
-        sCandicateTypeMapping.put(ParseDataType.INT, Triple.createTriple(TypeName.INT, "setInt", "getInt"));
-        sCandicateTypeMapping.put(ParseDataType.SHORT, Triple.createTriple(TypeName.SHORT, "setShort", "getShort"));
-        sCandicateTypeMapping.put(ParseDataType.LONG, Triple.createTriple(TypeName.LONG, "setLong", "getLong"));
-        sCandicateTypeMapping.put(ParseDataType.CHAR, Triple.createTriple(TypeName.CHAR, "setChar", "getChar"));
-        sCandicateTypeMapping.put(ParseDataType.BYTE, Triple.createTriple(TypeName.BYTE, "setByte", "getByte"));
-        sCandicateTypeMapping.put(ParseDataType.DOUBLE, Triple.createTriple(TypeName.DOUBLE, "setDouble", "getDouble"));
-        sCandicateTypeMapping.put(ParseDataType.FLOAT, Triple.createTriple(TypeName.FLOAT, "setFloat", "getFloat"));
-        sCandicateTypeMapping.put(ParseDataType.BOOLEAN, Triple.createTriple(TypeName.BOOLEAN, "setBoolean", "getBoolean"));
+        sCandidateTypeMapping.put(ParseDataType.INT, new Info(TypeKind.INT, "setInt", "getInt", "0"));
+        sCandidateTypeMapping.put(ParseDataType.SHORT, new Info(TypeKind.SHORT, "setShort", "getShort", "0"));
+        sCandidateTypeMapping.put(ParseDataType.LONG, new Info(TypeKind.LONG, "setLong", "getLong", "0L"));
+        sCandidateTypeMapping.put(ParseDataType.CHAR, new Info(TypeKind.CHAR, "setChar", "getChar", "0"));
+        sCandidateTypeMapping.put(ParseDataType.BYTE, new Info(TypeKind.BYTE, "setByte", "getByte", "0"));
+        sCandidateTypeMapping.put(ParseDataType.DOUBLE, new Info(TypeKind.DOUBLE, "setDouble", "getDouble", "0"));
+        sCandidateTypeMapping.put(ParseDataType.FLOAT, new Info(TypeKind.FLOAT, "setFloat", "getFloat", "0F"));
+        sCandidateTypeMapping.put(ParseDataType.BOOLEAN, new Info(TypeKind.BOOLEAN, "setBoolean", "getBoolean", "false"));
+    }
+
+    private static class Info {
+        final TypeKind typeKind;
+        final String setter;
+        final String getter;
+        final String defaultValue;
+
+        private Info(TypeKind typeKind, String setter,
+                     String getter, String defaultValue) {
+            this.typeKind = typeKind;
+            this.setter = setter;
+            this.getter = getter;
+            this.defaultValue = defaultValue;
+        }
+
+        TypeMirror getType(ProcessEnv env) {
+            return env
+                    .getTypeUtils()
+                    .getPrimitiveType(typeKind);
+        }
     }
 
 }
