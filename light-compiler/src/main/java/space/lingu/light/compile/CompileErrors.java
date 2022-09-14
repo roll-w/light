@@ -147,4 +147,7 @@ public final class CompileErrors {
 
     public static final String DATA_CONVERTER_METHOD_NOT_STATIC =
             "A DataConverter method must be static.";
+
+    private CompileErrors() {
+    }
 }

@@ -15,7 +15,8 @@
  */
 
 /**
- * 处理环境
+ * javac related
+ *
  * @author RollW
  */
 package space.lingu.light.compile.javac;

@@ -15,7 +15,8 @@
  */
 
 /**
- * 代码生成
+ * Code writer
+ *
  * @author RollW
  */
 package space.lingu.light.compile.writer;

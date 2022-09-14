@@ -15,7 +15,8 @@
  */
 
 /**
- * 编译器代码生成模块
+ * Code generation module.
+ *
  * @author RollW
  */
 package space.lingu.light.compile;

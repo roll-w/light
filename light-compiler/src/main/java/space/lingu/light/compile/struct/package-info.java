@@ -15,7 +15,8 @@
  */
 
 /**
- * 解析映射结构
+ * Structures processed from annotations.
+ *
  * @author RollW
  */
 package space.lingu.light.compile.struct;

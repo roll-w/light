@@ -15,7 +15,8 @@
  */
 
 /**
- * 处理语法映射
+ * Processors
+ *
  * @author RollW
  */
 package space.lingu.light.compile.processor;

@@ -16,8 +16,11 @@
 
 package space.lingu.light;
 
+import java.sql.SQLException;
+
 /**
- * Light运行时异常
+ * Light Runtime Exception
+ *
  * @author RollW
  */
 public class LightRuntimeException extends RuntimeException {
@@ -39,5 +42,9 @@ public class LightRuntimeException extends RuntimeException {
 
     protected LightRuntimeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
+    }
+
+    public boolean isSQLException() {
+        return getCause() instanceof SQLException;
     }
 }

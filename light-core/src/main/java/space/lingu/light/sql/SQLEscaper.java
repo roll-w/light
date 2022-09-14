@@ -16,13 +16,40 @@
 
 package space.lingu.light.sql;
 
+import space.lingu.light.util.StringUtil;
+
 /**
+ * Escapes parameters in SQL statement.
+ *
  * @author RollW
  */
 public interface SQLEscaper {
+    /**
+     * Back quote.
+     */
     String BACK_QUOTE = "`";
 
-    default String escapeParam(String param) {
+    /**
+     * Escapes parameter in SQL statement.
+     * <p>
+     * We provide a default method with using
+     * back quote ({@code `}) to escape parameter.
+     * It works in most databases.
+     * <p>
+     * For example: with input {@code user}, returns {@code `user`};
+     * with input {@code `user`}, returns itself.
+     *
+     * @param param parameter in SQL statement
+     * @return escaped parameter
+     * @throws IllegalArgumentException when param is null or empty, we throw an exception.
+     */
+    default String escapeParam(String param) throws IllegalArgumentException {
+        if (StringUtil.isEmpty(param)) {
+            throw new IllegalArgumentException("Parameter cannot be empty.");
+        }
+        if (param.startsWith(BACK_QUOTE) && param.endsWith(BACK_QUOTE)) {
+            return param;
+        }
         return BACK_QUOTE + param + BACK_QUOTE;
     }
 }

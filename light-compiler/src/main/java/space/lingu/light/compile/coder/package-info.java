@@ -15,7 +15,8 @@
  */
 
 /**
- * 方法体内代码处理
+ * Method body process.
+ *
  * @author RollW
  */
 package space.lingu.light.compile.coder;

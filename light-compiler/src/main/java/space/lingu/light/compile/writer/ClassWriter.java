@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 类生成器
+ * Write a class to file.
  *
  * @author RollW
  */

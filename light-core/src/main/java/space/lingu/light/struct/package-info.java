@@ -15,7 +15,7 @@
  */
 
 /**
- * 数据库结构
+ * Runtime structures.
  *
  * @author RollW
  */

@@ -33,5 +33,7 @@ public final class Warnings {
     public static final String CANNOT_APPLY_TO_STATIC_FIELD =
             "" + INFO;
 
+    private Warnings() {
+    }
 
 }

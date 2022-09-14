@@ -51,14 +51,25 @@ public class JavaPoetClass {
         public static final ClassName STRING_UTIL = ClassName.get(StringUtil.class);
         public static final ClassName RESULT_SET_UTIL = ClassName.get(ResultSetUtil.class);
 
+        private UtilNames() {
+        }
     }
 
     public static class JdbcNames {
         public static final ClassName PREPARED_STMT = ClassName.get(PreparedStatement.class);
         public static final ClassName RESULT_SET = ClassName.get(ResultSet.class);
+
+        private JdbcNames() {
+        }
     }
 
     public static class LangNames {
         public static final ClassName STRING = ClassName.get(String.class);
+
+        private LangNames() {
+        }
+    }
+
+    private JavaPoetClass() {
     }
 }
