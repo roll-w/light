@@ -46,7 +46,7 @@ public class DaoWriter extends ClassWriter {
             "__db", Modifier.FINAL, Modifier.PRIVATE).build();
 
     public DaoWriter(Dao dao, TypeElement dbElement, ProcessEnv env) {
-        super(dao.getImplClassName(), env);
+        super(dao.getImplClassName(), dao.getClassName(), env);
         this.dbElement = dbElement;
         mDao = dao;
     }

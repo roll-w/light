@@ -32,6 +32,7 @@ public class Database implements Configurable {
     private List<DataTable> dataTableList;
     private List<DatabaseDaoMethod> databaseDaoMethods;
 
+    private ClassName superClassName;
     private ClassName implClassName;
     private String implName;
 
@@ -60,6 +61,13 @@ public class Database implements Configurable {
     public Database setImplName(String implName) {
         this.implName = implName;
         return this;
+    }
+
+    public ClassName getSuperClassName() {
+        if (superClassName == null) {
+            superClassName = ClassName.get(superClassElement);
+        }
+        return superClassName;
     }
 
     public TypeElement getSuperClassElement() {

@@ -80,13 +80,13 @@ public class DatabaseProcessor implements Processor<Database> {
         mEnv.getBinders().registerDataConverters(dataConverterList);
         Configurations configurations = Configurable.createFrom(anno.configuration());
 
-        database.setDataTableList(processDataTables(tableClassMirror))
+        return database.setDataTableList(processDataTables(tableClassMirror))
                 .setSuperClassElement(mElement)
                 .setImplName(implName)
                 .setConfigurations(configurations)
                 .setDatabaseDaoMethods(getAllDaoMethods())
-                .setImplClassName(ClassName.get(packageName, implName));
-        return database;
+                .setImplClassName(
+                        ClassName.get(packageName, implName));
     }
 
     private TypeElement loadLightInfoTable() {

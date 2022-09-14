@@ -35,13 +35,13 @@ public class DatabaseWriter extends ClassWriter {
     private final Database mDatabase;
 
     public DatabaseWriter(Database database, ProcessEnv env) {
-        super(database.getImplClassName(), env);
+        super(database.getImplClassName(), database.getSuperClassName(), env);
         mDatabase = database;
     }
 
     @Override
     protected TypeSpec.Builder createTypeSpecBuilder() {
-        TypeSpec.Builder builder = TypeSpec.classBuilder(className)
+        TypeSpec.Builder builder = TypeSpec.classBuilder(implClassName)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addInitializerBlock(createRegisterRuntimeStructCode())
                 .addMethod(createClearAllTablesMethod())
