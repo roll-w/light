@@ -16,8 +16,6 @@
 
 package space.lingu.light.compile.processor;
 
-import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.DeleteParameter;
 
@@ -44,18 +42,7 @@ public class DeleteParameterProcessor implements Processor<DeleteParameter> {
     @Override
     public DeleteParameter process() {
         DeleteParameter parameter = new DeleteParameter();
-
-        QueryParameterBinder binder = mEnv
-                .getBinders()
-                .findQueryParameterBinder(mElement.asType());
-        if (binder == null) {
-            mEnv.getLog().error(
-                    CompileErrors.QUERY_UNKNOWN_PARAM,
-                    mElement
-            );
-        }
         parameter
-                .setBinder(binder)
                 .setElement(mElement)
                 .setName(mElement.getSimpleName().toString())
                 .setTypeMirror(mElement.asType())

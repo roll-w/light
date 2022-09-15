@@ -37,6 +37,7 @@ public class DeleteMethod implements SQLCustomMethod, AnnotatedMethod<SQLCustomP
     private List<SQLCustomParameter> parameters;
     private QueryResultBinder resultBinder;
     private AnnotatedMethodBinder binder;
+    private List<ExpressionBind> expressionBinds;
 
     public DeleteMethod() {
     }
@@ -123,5 +124,13 @@ public class DeleteMethod implements SQLCustomMethod, AnnotatedMethod<SQLCustomP
         return this;
     }
 
+    @Override
+    public List<ExpressionBind> getExpressionBinds() {
+        return expressionBinds;
+    }
 
+    public DeleteMethod setExpressionBinds(List<ExpressionBind> expressionBinds) {
+        this.expressionBinds = expressionBinds;
+        return this;
+    }
 }

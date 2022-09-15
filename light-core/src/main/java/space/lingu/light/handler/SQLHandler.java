@@ -23,26 +23,20 @@ import space.lingu.light.SharedConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
 /**
  * @author RollW
  */
 public class SQLHandler extends SharedConnection {
-    private static final String REGEX = "\\{[_a-zA-Z]\\w+}";
-    private static final Pattern sPattern = Pattern.compile(REGEX);
-
     public final String sql;
     protected final LightDatabase mDatabase;
     private volatile Connection mConnection;
-    private final String[] argOrder;
 
-    public SQLHandler(LightDatabase database, String sql, String... argOrder) {
+    public SQLHandler(LightDatabase database, String sql) {
         super(database);
         this.sql = sql;
         mDatabase = database;
-        this.argOrder = argOrder;
     }
 
     protected String replaceWithPlaceholders(int[] args) {
@@ -56,28 +50,23 @@ public class SQLHandler extends SharedConnection {
                     .getGenerator()
                     .placeHolders(args[n]);
         }
-        Matcher matcher = sPattern.matcher(sql);
-        StringBuilder builder = new StringBuilder(sPattern.split(sql)[0]);
-        while (matcher.find()) {
-            String find = matcher.group();
-            String name = find.substring(1, find.length() - 1);
-            int index = find(argOrder, name);
-            if (index < 0) {
-                throw new LightRuntimeException("Unable to find parameter, " +
-                        "please check SQL statement in annotation.");
+        SQLExpressionParser parser = new SQLExpressionParser(sql);
+        List<SQLExpressionParser.Detail> details = parser.getDetails();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < details.size(); i++) {
+            SQLExpressionParser.Detail detail = details.get(i);
+            if (i == 0) {
+                builder.append(sql, 0, detail.start);
             }
-            builder.append("(").append(placeholders[index]).append(")");
+            builder.append(" (").append(placeholders[i]).append(") ");
+            if (i != 0) {
+                builder.append(sql, details.get(i - 1).end, detail.start);
+            }
+            if (i == details.size() - 1) {
+                builder.append(sql, detail.end, sql.length());
+            }
         }
         return builder.toString();
-    }
-
-    protected int find(String[] args, String toFind) {
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals(toFind)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     protected LightDatabase getDatabase() {

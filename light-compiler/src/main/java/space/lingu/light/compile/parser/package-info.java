@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.struct;
-
 /**
+ * SQL Parser
+ *
  * @author RollW
  */
-public class DeleteParameter extends AnnotateParameter implements SQLCustomParameter{
-    public DeleteParameter() {
-    }
-
-    public DeleteParameter(Parameter parameter) {
-        setName(parameter.getName());
-        setType(parameter.getType());
-        setWrappedType(parameter.getWrappedType());
-        setTypeMirror(parameter.getTypeMirror());
-        setMultiple(parameter.isMultiple());
-    }
-
-}
+package space.lingu.light.compile.parser;

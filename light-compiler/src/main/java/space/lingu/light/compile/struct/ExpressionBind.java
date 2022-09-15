@@ -16,19 +16,25 @@
 
 package space.lingu.light.compile.struct;
 
+import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
+
+import javax.lang.model.type.TypeMirror;
+
 /**
+ * Expression bind info
+ *
  * @author RollW
  */
-public class DeleteParameter extends AnnotateParameter implements SQLCustomParameter{
-    public DeleteParameter() {
-    }
+public class ExpressionBind {
+    public final String expression;
+    public final TypeMirror type;
+    public final QueryParameterBinder binder;
 
-    public DeleteParameter(Parameter parameter) {
-        setName(parameter.getName());
-        setType(parameter.getType());
-        setWrappedType(parameter.getWrappedType());
-        setTypeMirror(parameter.getTypeMirror());
-        setMultiple(parameter.isMultiple());
+    public ExpressionBind(String expression,
+                          TypeMirror type,
+                          QueryParameterBinder binder) {
+        this.expression = expression;
+        this.type = type;
+        this.binder = binder;
     }
-
 }

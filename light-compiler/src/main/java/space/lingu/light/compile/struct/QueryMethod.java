@@ -32,7 +32,8 @@ public class QueryMethod implements SQLCustomMethod {
     private List<SQLCustomParameter> parameters;
     private String sql;
     private boolean isTransaction;
-    private QueryResultBinder binder;
+    private QueryResultBinder resultBinder;
+    private List<ExpressionBind> expressionBinds;
 
     @Override
     public ExecutableElement getElement() {
@@ -86,11 +87,21 @@ public class QueryMethod implements SQLCustomMethod {
 
     @Override
     public QueryResultBinder getResultBinder() {
-        return binder;
+        return resultBinder;
     }
 
     public QueryMethod setResultBinder(QueryResultBinder binder) {
-        this.binder = binder;
+        this.resultBinder = binder;
+        return this;
+    }
+
+    @Override
+    public List<ExpressionBind> getExpressionBinds() {
+        return expressionBinds;
+    }
+
+    public QueryMethod setExpressionBinds(List<ExpressionBind> expressionBinds) {
+        this.expressionBinds = expressionBinds;
         return this;
     }
 }

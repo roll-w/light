@@ -31,4 +31,6 @@ public interface SQLCustomMethod extends Method<SQLCustomParameter> {
     boolean isTransaction();
 
     String getSql();
+
+    List<ExpressionBind> getExpressionBinds();
 }

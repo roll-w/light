@@ -16,15 +16,14 @@
 
 package space.lingu.light.compile.struct;
 
-import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
-
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.Objects;
 
 /**
- * 查询参数
+ * Query Parameter
+ *
  * @author RollW
  */
 public class QueryParameter implements SQLCustomParameter {
@@ -33,7 +32,6 @@ public class QueryParameter implements SQLCustomParameter {
     private String sqlName;
     private TypeElement type;
     private TypeMirror typeMirror;
-    private QueryParameterBinder binder;
 
     public QueryParameter() {
     }
@@ -87,25 +85,15 @@ public class QueryParameter implements SQLCustomParameter {
     }
 
     @Override
-    public QueryParameterBinder getBinder() {
-        return binder;
-    }
-
-    public QueryParameter setBinder(QueryParameterBinder binder) {
-        this.binder = binder;
-        return this;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         QueryParameter that = (QueryParameter) o;
-        return Objects.equals(element, that.element) && Objects.equals(name, that.name) && Objects.equals(sqlName, that.sqlName) && Objects.equals(type, that.type) && Objects.equals(typeMirror, that.typeMirror) && Objects.equals(binder, that.binder);
+        return Objects.equals(element, that.element) && Objects.equals(name, that.name) && Objects.equals(sqlName, that.sqlName) && Objects.equals(type, that.type) && Objects.equals(typeMirror, that.typeMirror);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(element, name, sqlName, type, typeMirror, binder);
+        return Objects.hash(element, name, sqlName, type, typeMirror);
     }
 }

@@ -107,7 +107,10 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
                     .setResultBinder(
                             new HandlerDeleteResultBinder(method, methodBinder));
         } else {
+            Processor<List<ExpressionBind>>
+                    processor = new SQLBindProcessor(mExecutable, method.getSql(), mEnv);
             return method
+                    .setExpressionBinds(processor.process())
                     .setResultBinder(DeleteResultBinder.getInstance());
         }
     }

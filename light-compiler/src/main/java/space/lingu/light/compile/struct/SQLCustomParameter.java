@@ -16,17 +16,12 @@
 
 package space.lingu.light.compile.struct;
 
-import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
-
 import javax.lang.model.element.TypeElement;
 
 /**
  * @author RollW
  */
 public interface SQLCustomParameter extends Parameter {
-
-    QueryParameterBinder getBinder();
-
     @Override
     default boolean isMultiple() {
         return false;

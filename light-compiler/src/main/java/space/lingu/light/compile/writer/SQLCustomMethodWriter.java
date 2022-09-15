@@ -20,8 +20,8 @@ import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.struct.ExpressionBind;
 import space.lingu.light.compile.struct.SQLCustomMethod;
-import space.lingu.light.compile.struct.SQLCustomParameter;
 import space.lingu.light.util.Pair;
 
 import java.util.ArrayList;
@@ -40,37 +40,29 @@ public class SQLCustomMethodWriter {
         mMethod = queryMethod;
     }
 
-    public void prepare(String stmtVar, String handlerName, GenerateCodeBlock block) {
-        List<Pair<SQLCustomParameter, String>> listVars = createSqlQueryAndArgs(stmtVar, handlerName, block);
+    public void prepare(String stmtVar, String handlerName,
+                        GenerateCodeBlock block) {
+        List<Pair<ExpressionBind, String>> listVars = createSqlQueryAndArgs(stmtVar, handlerName, block);
         bindArgs(stmtVar, listVars, block);
     }
 
-    private List<Pair<SQLCustomParameter, String>> createSqlQueryAndArgs(String outVarName, String handlerName,
+    private List<Pair<ExpressionBind, String>> createSqlQueryAndArgs(String outVarName,
+                                                                         String handlerName,
                                                                          GenerateCodeBlock block) {
-        List<Pair<SQLCustomParameter, String>> pairList = new ArrayList<>();
-        List<SQLCustomParameter> multipleArgParam = mMethod
-                .getParameters()
-                .stream()
-                .filter(sqlCustomParameter -> {
-                    if (sqlCustomParameter.getBinder() == null) {
-                        return false;
-                    }
-                    return sqlCustomParameter.getBinder().isMultiple;
-                })
-                .collect(Collectors.toList());
+        List<Pair<ExpressionBind, String>> pairList = new ArrayList<>();
         final String argCountArray = block.getTempVar("_argsCountArray");
         List<String> argsSizeParams = new ArrayList<>();
 
-        mMethod.getParameters().forEach(param -> {
-            if (!param.getBinder().isMultiple) {
+        mMethod.getExpressionBinds().forEach(bind -> {
+            if (!bind.binder.isMultiple) {
                 argsSizeParams.add("1");
-                pairList.add(Pair.createPair(param, "1"));
+                pairList.add(Pair.createPair(bind, "1"));
                 return;
             }
             String argCountSingle = block.getTempVar("_argsCount");
             argsSizeParams.add(argCountSingle);
-            param.getBinder().getArgsCount(param.getName(), argCountSingle, block);
-            pairList.add(Pair.createPair(param, argCountSingle));
+            bind.binder.getArgsCount(bind.expression, argCountSingle, block);
+            pairList.add(Pair.createPair(bind, argCountSingle));
         });
         StringBuilder argsArrayInitBuilder = new StringBuilder("{");
         StringJoiner argsArrayInitJoiner = new StringJoiner(",");
@@ -78,35 +70,41 @@ public class SQLCustomMethodWriter {
         argsSizeParams.forEach(argsArrayInitJoiner::add);
         argsArrayInitBuilder.append(argsArrayInitJoiner).append("}");
 
-        block.builder().addStatement("final $T $L = $L",
-                        ArrayTypeName.of(TypeName.INT), argCountArray, argsArrayInitBuilder.toString())
+        block.builder()
+                .addStatement("final $T $L = $L",
+                        ArrayTypeName.of(TypeName.INT),
+                        argCountArray, argsArrayInitBuilder.toString())
                 .addStatement("final $T $L = $L.acquire($L)",
-                        JavaPoetClass.JdbcNames.PREPARED_STMT, outVarName, handlerName, argCountArray);
+                        JavaPoetClass.JdbcNames.PREPARED_STMT,
+                        outVarName, handlerName, argCountArray);
 
         return pairList;
     }
 
     void bindArgs(String outName,
-                  List<Pair<SQLCustomParameter, String>> listSizeVars, GenerateCodeBlock block) {
+                  List<Pair<ExpressionBind, String>> listSizeVars,
+                  GenerateCodeBlock block) {
         final String argIndex = block.getTempVar("_argIndex");
         AtomicInteger constInputs = new AtomicInteger();
         List<String> varInputs = new ArrayList<>();
         block.builder().addStatement("$T $L = $L", TypeName.INT, argIndex, 1);
 
-        mMethod.getParameters().forEach(param -> {
+        listSizeVars.forEach(param -> {
             if (constInputs.get() > 0 || !varInputs.isEmpty()) {
-                String cons = constInputs.get() > 0 ? String.valueOf((constInputs.get() + 1)) : "1";
+                String cons = constInputs.get() > 0
+                        ? String.valueOf((constInputs.get() + 1))
+                        : "1";
                 StringJoiner vars = new StringJoiner("");
-                varInputs.forEach(s -> {
-                    vars.add(" + " + s);
-                });
+                varInputs.forEach(s -> vars.add(" + " + s));
 
                 block.builder().addStatement("$L = $L$L", argIndex, cons, vars.toString());
             }
-            param.getBinder().bindToStatement(outName, argIndex, param.getName(), block);
-            List<Pair<SQLCustomParameter, String>> pairList =
-                    listSizeVars.stream().filter(pair ->
-                                    pair.first.getName().equals(param.getName()))
+            param.first.binder.bindToStatement(outName, argIndex,
+                    param.first.expression, block);
+            List<Pair<ExpressionBind, String>> pairList =
+                    listSizeVars.stream().filter(
+                                    pair ->
+                                            pair.first.expression.equals(param.first.expression))
                             .collect(Collectors.toList());
             if (pairList.isEmpty()) {
                 constInputs.getAndIncrement();
@@ -116,4 +114,5 @@ public class SQLCustomMethodWriter {
             }
         });
     }
+
 }

@@ -22,6 +22,7 @@ import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.struct.ExpressionBind;
 import space.lingu.light.compile.struct.QueryMethod;
 import space.lingu.light.compile.struct.QueryParameter;
 import space.lingu.light.compile.struct.SQLCustomParameter;
@@ -86,6 +87,10 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
                     mExecutable
             );
         }
-        return method.setResultBinder(binder);
+        Processor<List<ExpressionBind>>
+                processor = new SQLBindProcessor(mExecutable, method.getSql(), mEnv);
+        return method
+                .setExpressionBinds(processor.process())
+                .setResultBinder(binder);
     }
 }
