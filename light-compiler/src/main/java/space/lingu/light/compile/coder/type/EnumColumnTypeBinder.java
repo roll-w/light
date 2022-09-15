@@ -115,11 +115,11 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
                         .addStatement("return null")
                         .endControlFlow()
                         .beginControlFlow("switch ($N)", parameter);
-                enumConstants.forEach(variableElement -> {
-                    builder.addStatement("case $S: return $T.$L",
-                            variableElement.getSimpleName().toString(),
-                            className, variableElement.getSimpleName().toString());
-                });
+                enumConstants.forEach(variableElement ->
+                        builder.addStatement("case $S: return $T.$L",
+                                variableElement.getSimpleName().toString(),
+                                className,
+                                variableElement.getSimpleName().toString()));
                 builder.addStatement("default: throw new $T($S + $N)",
                                 IllegalArgumentException.class,
                                 "Can't convert value to enum, unknown value: ", parameter)
@@ -148,11 +148,10 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
                         .addStatement("return null")
                         .endControlFlow()
                         .beginControlFlow("switch ($N)", parameter);
-                enumConstants.forEach(variableElement -> {
-                    builder.addStatement("case $L: return $S",
-                            variableElement.getSimpleName().toString(),
-                            variableElement.getSimpleName().toString());
-                });
+                enumConstants.forEach(variableElement ->
+                        builder.addStatement("case $L: return $S",
+                                variableElement.getSimpleName().toString(),
+                                variableElement.getSimpleName().toString()));
                 builder.addStatement("default: throw new $T($S + $N)",
                                 IllegalArgumentException.class,
                                 "Can't convert value to enum, unknown value: ", parameter)

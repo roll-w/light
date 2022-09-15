@@ -66,7 +66,7 @@ public class SQLCustomMethodWriter {
         });
 
         StringBuilder argsArrayInitBuilder = new StringBuilder("{");
-        StringJoiner argsArrayInitJoiner = new StringJoiner(",");
+        StringJoiner argsArrayInitJoiner = new StringJoiner(", ");
 
         argsSizeParams.forEach(argsArrayInitJoiner::add);
         argsArrayInitBuilder.append(argsArrayInitJoiner).append("}");

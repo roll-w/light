@@ -54,7 +54,7 @@ public abstract class QueryResultBinder {
             block.builder().addStatement("return $L", outVarName);
         }
         block.builder()
-                .nextControlFlow("catch($T e)", SQLException.class)
+                .nextControlFlow("catch ($T e)", SQLException.class)
                 .addStatement("throw new $T(e)", LightRuntimeException.class);
 
         if (canReleaseSet) {
