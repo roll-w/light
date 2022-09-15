@@ -39,7 +39,8 @@ public @interface LightConfiguration {
     /* Keys */
 
     /**
-     * varchar length configuration.
+     * Type {@link SQLDataType#VARCHAR} length configuration. Also, could be used on
+     * {@link SQLDataType#CHARS}
      *
      * @see space.lingu.light.sql.MySQLDialectProvider#DEFAULT_VARCHAR_LENGTH
      */
@@ -62,14 +63,16 @@ public @interface LightConfiguration {
     /**
      * Custom column type.
      * <p>
-     * Applies to variable-length strings to specify the length,
-     * e.g.: varchar(30).
+     * Applies to variable-length or fixed-length strings to specify the length,
+     * e.g.: varchar(30), char(40).
+     * <p>
      * It is not recommended to use it on basic types such as
      * int, float, or etc. and also custom types.
      * <p>
      * It is recommended to use it on enum fields or other fields of limited length.
      * <p>
-     * Compare to {@link #KEY_VARCHAR_LENGTH}, this configuration contains more fine-grained control.
+     * Compare to {@link #KEY_VARCHAR_LENGTH}, this configuration contains more
+     * fine-grained control.
      */
     String KEY_COLUMN_TYPE = "Light.Key.ColumnType";
 }

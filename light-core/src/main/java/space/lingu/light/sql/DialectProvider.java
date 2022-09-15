@@ -18,6 +18,7 @@ package space.lingu.light.sql;
 
 import space.lingu.light.struct.DatabaseInfo;
 import space.lingu.light.struct.Table;
+import space.lingu.light.struct.TableForeignKey;
 import space.lingu.light.struct.TableIndex;
 
 /**
@@ -36,9 +37,7 @@ public interface DialectProvider extends SQLEscaper {
      * @param table {@link Table}
      * @return create table statement
      */
-    default String create(Table table) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    String create(Table table);
 
     /**
      * Get the statement that created the index.
@@ -46,9 +45,9 @@ public interface DialectProvider extends SQLEscaper {
      * @param index {@link TableIndex}
      * @return create index statement
      */
-    default String create(TableIndex index) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    String create(TableIndex index);
+
+    String create(TableForeignKey index);
 
     /**
      * Get the statement that created the database.
@@ -58,25 +57,44 @@ public interface DialectProvider extends SQLEscaper {
      * @param databaseInfo {@link DatabaseInfo}
      * @return create database statement
      */
-    default String create(DatabaseInfo databaseInfo) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    String create(DatabaseInfo databaseInfo);
 
-    default String destroy(Table table) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    /**
+     * Drop the table.
+     *
+     * @param table {@link Table}
+     * @return drop table statement
+     */
+    String drop(Table table);
 
-    default String destroy(DatabaseInfo databaseInfo) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    /**
+     * Drop the database
+     *
+     * @param databaseInfo {@link DatabaseInfo}
+     * @return drop database statement
+     */
+    String drop(DatabaseInfo databaseInfo);
 
-    default String useDatabase(String databaseName) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    /**
+     * Use database.
+     *
+     * @param databaseName name of database
+     * @return use database statement
+     */
+    String useDatabase(String databaseName);
 
-    default String use(DatabaseInfo databaseInfo) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    /**
+     * Use database.
+     *
+     * @param databaseInfo {@link DatabaseInfo}
+     * @return drop database statement
+     */
+    String use(DatabaseInfo databaseInfo);
 
+    /**
+     * Get the {@link SQLGenerator} of the database.
+     *
+     * @return {@link SQLGenerator} of the database
+     */
     SQLGenerator getGenerator();
 }

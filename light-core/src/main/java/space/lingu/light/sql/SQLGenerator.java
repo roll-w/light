@@ -18,6 +18,8 @@ package space.lingu.light.sql;
 
 import space.lingu.light.OnConflictStrategy;
 
+import java.util.StringJoiner;
+
 /**
  * SQL statement generator interface.
  *
@@ -43,14 +45,11 @@ public interface SQLGenerator extends SQLEscaper {
     String update(String tableName, OnConflictStrategy onConflict, String[] whereConditions, String[] valueArgs);
 
     default String placeHolders(int argsCount) {
-        StringBuilder builder = new StringBuilder();
+        StringJoiner joiner = new StringJoiner(", ");
         for (int i = 0; i < argsCount; i++) {
-            builder.append("?");
-            if (i < argsCount - 1) {
-                builder.append(",");
-            }
+            joiner.add("?");
         }
-        return builder.toString();
+        return joiner.toString();
     }
 
 }

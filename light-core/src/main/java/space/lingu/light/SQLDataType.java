@@ -22,9 +22,23 @@ package space.lingu.light;
  * @author RollW
  */
 public enum SQLDataType {
-    INT, LONG, FLOAT,
-    DOUBLE, BOOLEAN,
-    CHAR, BINARY,
+    TINYINT,
+    SMALLINT,
+    INT,
+    LONG,
+    REAL,
+    FLOAT,
+    DOUBLE,
+    BOOLEAN,
+    /**
+     * Primitive type {@code char}.
+     */
+    CHAR,
+    /**
+     * Fixed length string.
+     */
+    CHARS,
+    BINARY,
     /**
      * Text.
      * <p>
@@ -35,9 +49,9 @@ public enum SQLDataType {
     /**
      * Variable text.
      * <p>
-     * No database exists for this type of data, mapped as Text.
+     * No database exists for this type of data, mapped as {@link #TEXT}.
      */
     VARCHAR,
     LONGTEXT,
-    UNDEFINED
+    UNDEFINED;
 }

@@ -39,6 +39,19 @@ public final class Configurations {
         return null;
     }
 
+    public String findConfigurationValue(String key, String defaultValue) {
+        for (Configuration configuration : configurations) {
+            if (configuration != null && Objects.equals(configuration.key, key)) {
+                return configuration.value;
+            }
+        }
+        return defaultValue;
+    }
+
+    public String findConfigurationValue(String key) {
+        return findConfigurationValue(key, null);
+    }
+
     /**
      * Plus to another.
      * If there are duplicates, the other one is preferred.
