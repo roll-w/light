@@ -19,11 +19,13 @@ package space.lingu.light.compile.coder;
 import javax.lang.model.type.TypeMirror;
 
 /**
- * 将值绑定至一个Statement上
+ * bind value to a Statement
+ *
  * @author RollW
  */
 public interface StatementBinder {
     void bindToStatement(String stmtVarName, String indexVarName,
                          String valueVarName, GenerateCodeBlock block);
+
     TypeMirror type();
 }

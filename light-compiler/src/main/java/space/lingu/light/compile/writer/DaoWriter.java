@@ -359,15 +359,11 @@ public class DaoWriter extends ClassWriter {
 
     private static String identifierParamNameAndType(List<SQLCustomParameter> parameters) {
         StringBuilder builder = new StringBuilder();
-        builder.append("_");
         parameters.forEach(parameter -> {
-            builder.append(StringUtil.firstUpperCase(parameter.getName()));
-            TypeElement element = ElementUtil.asTypeElement(parameter.getTypeMirror());
-            if (element != null) {
-                builder.append(element.getSimpleName().toString());
-            } else {
-                builder.append(StringUtil.firstUpperCase(parameter.getTypeMirror().toString()));
-            }
+            builder.append("__")
+                    .append(StringUtil.firstUpperCase(parameter.getName()))
+                    .append("_")
+                    .append(typeMirrorToFieldName(parameter.getTypeMirror()));
         });
         return builder.toString();
     }
@@ -382,9 +378,22 @@ public class DaoWriter extends ClassWriter {
 
     private static String typeNameToFieldName(TypeName typeName) {
         if (typeName instanceof ClassName) {
-            return ((ClassName) typeName).simpleName();
+            return ((ClassName) typeName).canonicalName()
+                    .replace('.', '_');
         }
         return typeName.toString().replace('.', '_');
+    }
+
+    private static String typeMirrorToFieldName(TypeMirror typeMirror) {
+        // replace all invalid symbols
+        return typeMirror.toString()
+                .replace('.', '_')
+                .replace("<", "Of")
+                .replace(">", "")
+                .replace("[]", "Array")
+                .replace('?', '$')
+                .replace(",", "And")
+                .replace(' ', '_');
     }
 
     private static class QueryHandlerField extends SharedFieldSpec {

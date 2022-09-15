@@ -37,8 +37,12 @@ public abstract class QueryParameterBinder implements StatementBinder {
     }
 
     @Override
-    public abstract void bindToStatement(String stmtVarName, String indexVarName,
-                         String valueVarName, GenerateCodeBlock block);
+    public abstract void bindToStatement(String stmtVarName,
+                                         String indexVarName,
+                                         String valueVarName,
+                                         GenerateCodeBlock block);
 
-    public abstract void getArgsCount(String inputVarName, String outVarName, GenerateCodeBlock block);
+    public abstract void getArgsCount(String inputVarName,
+                                      String outVarName,
+                                      GenerateCodeBlock block);
 }
