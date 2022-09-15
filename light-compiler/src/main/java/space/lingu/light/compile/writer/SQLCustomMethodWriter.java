@@ -64,6 +64,7 @@ public class SQLCustomMethodWriter {
             bind.binder.getArgsCount(bind.expression, argCountSingle, block);
             pairList.add(Pair.createPair(bind, argCountSingle));
         });
+
         StringBuilder argsArrayInitBuilder = new StringBuilder("{");
         StringJoiner argsArrayInitJoiner = new StringJoiner(",");
 
@@ -77,7 +78,6 @@ public class SQLCustomMethodWriter {
                 .addStatement("final $T $L = $L.acquire($L)",
                         JavaPoetClass.JdbcNames.PREPARED_STMT,
                         outVarName, handlerName, argCountArray);
-
         return pairList;
     }
 
@@ -96,6 +96,7 @@ public class SQLCustomMethodWriter {
                         : "1";
                 StringJoiner vars = new StringJoiner("");
                 varInputs.forEach(s -> vars.add(" + " + s));
+                // _argIndex update
 
                 block.builder().addStatement("$L = $L$L", argIndex, cons, vars.toString());
             }

@@ -203,23 +203,17 @@ public class DaoWriter extends ClassWriter {
                             .filter(specPair ->
                                     specPair.first != null && specPair.second != null)
                             .forEach(pair::set);
-                    set.add(pair.get());// 去重
+                    set.add(pair.get());// deduplication
                 });
         set.forEach(pair -> builder.addStatement("this.$N = $L",
                 pair.first, pair.second));
         sqlMethodPairs.forEach(pair -> {
-            StringJoiner argOrderJoiner = new StringJoiner(", ");
-            pair.sqlCustomMethod.getExpressionBinds().forEach(bind ->
-                    argOrderJoiner.add("\"" + bind.expression + "\""));
-            final String argOrder =
-                    pair.sqlCustomMethod.getExpressionBinds().isEmpty()
-                            ? ""
-                            : ", " + argOrderJoiner;
             builder.addStatement("this.$N = new $T($L, $S)",
                     pair.fieldSpec,
                     JavaPoetClass.SQL_HANDLER,
                     sDatabaseField.name,
-                    pair.sqlCustomMethod.getSql());
+                    pair.sqlCustomMethod.getSql()
+            );
         });
         return builder.build();
     }
