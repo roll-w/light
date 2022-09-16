@@ -22,7 +22,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * 使用JDK日志组件
+ * Jdk util logging.
+ *
  * @author RollW
  */
 public class JdkDefaultLogger implements LightLogger {
@@ -57,20 +58,14 @@ public class JdkDefaultLogger implements LightLogger {
 
     @Override
     public void debug(String message) {
-        if (!isDebug) return;
+        if (!isDebugEnabled()) return;
         mJdkLogger.log(Level.INFO, message);
     }
 
     @Override
     public void debug(String message, Throwable throwable) {
-        if (!isDebug) return;
+        if (!isDebugEnabled()) return;
         mJdkLogger.log(Level.INFO, message + THROWABLE_INFO + throwable.getMessage());
-    }
-
-    @Override
-    public void debug(Object message) {
-        if (!isDebug) return;
-        mJdkLogger.log(Level.INFO, String.valueOf(message));
     }
 
     @Override
@@ -84,13 +79,8 @@ public class JdkDefaultLogger implements LightLogger {
     }
 
     @Override
-    public void error(Object message) {
-        mJdkLogger.log(Level.SEVERE, String.valueOf(message));
-    }
-
-    @Override
-    public void error(Object message, Throwable throwable) {
-        mJdkLogger.log(Level.SEVERE, message + THROWABLE_INFO + throwable.getMessage());
+    public void error(Throwable throwable) {
+        mJdkLogger.log(Level.SEVERE, THROWABLE_INFO + throwable.getMessage());
     }
 
     @Override
@@ -100,16 +90,6 @@ public class JdkDefaultLogger implements LightLogger {
 
     @Override
     public void info(String message, Throwable throwable) {
-        mJdkLogger.log(Level.INFO, message + THROWABLE_INFO + throwable.getMessage());
-    }
-
-    @Override
-    public void info(Object message) {
-        mJdkLogger.log(Level.INFO, String.valueOf(message));
-    }
-
-    @Override
-    public void info(Object message, Throwable throwable) {
         mJdkLogger.log(Level.INFO, message + THROWABLE_INFO + throwable.getMessage());
     }
 
@@ -129,34 +109,12 @@ public class JdkDefaultLogger implements LightLogger {
     }
 
     @Override
-    public void trace(Object message) {
-        mJdkLogger.log(Level.FINE, String.valueOf(message));
-    }
-
-    @Override
-    public void trace(Object message, Throwable throwable) {
-        mJdkLogger.log(Level.FINE, message + THROWABLE_INFO + LightLogger.formatStackTraces(throwable.getStackTrace()));
-    }
-
-    @Override
     public void warn(String message) {
         mJdkLogger.log(Level.WARNING, message);
     }
 
     @Override
     public void warn(String message, Throwable throwable) {
-        mJdkLogger.log(Level.WARNING, message + THROWABLE_INFO + throwable.getMessage());
-
-    }
-
-    @Override
-    public void warn(Object message) {
-        mJdkLogger.log(Level.WARNING, String.valueOf(message));
-
-    }
-
-    @Override
-    public void warn(Object message, Throwable throwable) {
         mJdkLogger.log(Level.WARNING, message + THROWABLE_INFO + throwable.getMessage());
     }
 }

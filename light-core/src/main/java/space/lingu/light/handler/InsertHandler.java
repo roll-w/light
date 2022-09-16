@@ -26,7 +26,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 插入处理器
+ * Insert handler.
+ *
  * @author RollW
  */
 @SuppressWarnings("unused")
@@ -65,6 +66,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
                 stmt.executeBatch();
             } else {
                 for (T entity : entities) {
+                    stmt.clearParameters();
                     bind(stmt, entity);
                     stmt.execute();
                 }

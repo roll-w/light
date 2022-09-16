@@ -24,6 +24,16 @@ import java.util.List;
  * <p>
  * If you are using third-party logger,
  * you need implements this interface.
+ * <p>
+ * <h2>Usage info</h2>
+ * <ul>
+ *     <li>In debug level, it will output the details of the SQL statement executed
+ *     and other useful information for debugging.</li>
+ *     <li>In info level, it will output some running logs.</li>
+ *     <li>In error level, it will only output simple error message.</li>
+ *     <li>In trace level, it will output the stack information of the received Exception.
+ *     (But in most cases Exception is repackaged as {@link LightRuntimeException} and rethrown. )</li>
+ * </ul>
  *
  * @author RollW
  */
@@ -33,29 +43,20 @@ public interface LightLogger {
 
     void debug(String message);
     void debug(String message, Throwable throwable);
-    void debug(Object message);
 
     void error(String message);
     void error(String message, Throwable throwable);
-    void error(Object message);
-    void error(Object message, Throwable throwable);
+    void error(Throwable throwable);
 
     void info(String message);
     void info(String message, Throwable throwable);
-    void info(Object message);
-    void info(Object message, Throwable throwable);
-
 
     void trace(String message);
     void trace(String message, Throwable throwable);
     void trace(Throwable throwable);
-    void trace(Object message);
-    void trace(Object message, Throwable throwable);
 
     void warn(String message);
     void warn(String message, Throwable throwable);
-    void warn(Object message);
-    void warn(Object message, Throwable throwable);
 
     static String formatStackTraces(StackTraceElement[] elements) {
         // simple implementation for format stack traces
