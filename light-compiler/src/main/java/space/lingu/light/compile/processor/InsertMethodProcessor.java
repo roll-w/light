@@ -53,7 +53,6 @@ public class InsertMethodProcessor implements Processor<InsertMethod> {
 
     @Override
     public InsertMethod process() {
-        // TODO
         AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(mExecutable, mEnv);
 
         Insert insertAnno = mExecutable.getAnnotation(Insert.class);

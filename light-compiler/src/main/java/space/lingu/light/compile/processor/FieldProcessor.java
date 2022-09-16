@@ -132,7 +132,7 @@ public class FieldProcessor implements Processor<Field> {
         if (isEqualArray(typeName, TypeName.BYTE)) {
             return SQLDataType.BINARY;
         }
-        return SQLDataType.TEXT;
+        return SQLDataType.VARCHAR;
     }
 
     private static boolean isEqualBothBox(TypeName value, TypeName type) {

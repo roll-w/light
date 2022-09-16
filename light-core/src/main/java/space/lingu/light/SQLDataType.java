@@ -22,9 +22,21 @@ package space.lingu.light;
  * @author RollW
  */
 public enum SQLDataType {
+    /**
+     * Tiny int.
+     */
     TINYINT,
+    /**
+     * Small int.
+     */
     SMALLINT,
+    /**
+     * int/integer.
+     */
     INT,
+    /**
+     * long, or big int.
+     */
     LONG,
     REAL,
     FLOAT,
@@ -38,20 +50,32 @@ public enum SQLDataType {
      * Fixed length string.
      */
     CHARS,
+    /**
+     * Binary data, or called blob.
+     */
     BINARY,
     /**
      * Text.
-     * <p>
-     * May mapped to {@link #VARCHAR} in some situations.
-     * (In MySQL, cannot use TEXT as primary key, etc.)
      */
     TEXT,
     /**
      * Variable text.
      * <p>
+     * Prefer choose this than {@link #TEXT} if available.
      * No database exists for this type of data, mapped as {@link #TEXT}.
      */
     VARCHAR,
+    /**
+     * Long text.
+     */
     LONGTEXT,
+    /**
+     * Undefined. Not use this in your program.
+     */
     UNDEFINED;
+
+    public boolean isStringType() {
+        return this == CHARS || this == TEXT ||
+                this == VARCHAR || this == LONGTEXT;
+    }
 }

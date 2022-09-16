@@ -34,7 +34,7 @@ import java.sql.Types;
  */
 public class StringColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
     public StringColumnTypeBinder(TypeMirror type) {
-        super(type, SQLDataType.TEXT);
+        super(type, SQLDataType.VARCHAR);
     }
 
     @Override

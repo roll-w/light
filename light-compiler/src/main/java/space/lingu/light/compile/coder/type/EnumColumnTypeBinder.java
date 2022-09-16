@@ -43,7 +43,7 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
     private final List<VariableElement> enumConstants;
 
     public EnumColumnTypeBinder(TypeMirror type) {
-        super(type, SQLDataType.TEXT);
+        super(type, SQLDataType.VARCHAR);
         mElement = ElementUtil.asTypeElement(type);
         if (mElement == null || mElement.getKind() != ElementKind.ENUM) {
             throw new LightCompileException("Cannot parse enum kind.");
