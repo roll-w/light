@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @SuppressWarnings("unused")
 public class SharedConnection {
     private final AtomicBoolean mLock = new AtomicBoolean(false);
-    private volatile Connection mConnection = null;
+    private volatile Connection mConnection;
     protected final LightDatabase mDatabase;
     private final LightDatabase.Metadata metadata;
 
@@ -64,14 +64,14 @@ public class SharedConnection {
     }
 
     public void beginTransaction() {
-        if (!checkSupportTransaction()) {
+        if (notSupportTransaction()) {
             return;
         }
         autoCommit(false);
     }
 
     public void commit() {
-        if (!checkSupportTransaction()) {
+        if (notSupportTransaction()) {
             return;
         }
         try {
@@ -84,7 +84,7 @@ public class SharedConnection {
     }
 
     public void rollback() {
-        if (!checkSupportTransaction()) {
+        if (notSupportTransaction()) {
             return;
         }
         try {
@@ -102,9 +102,8 @@ public class SharedConnection {
         }
     }
 
-    public void back() {
+    private void close() {
         mDatabase.releaseConnection(mConnection);
-        mConnection = null;
     }
 
     private void autoCommit(boolean autoCommit) {
@@ -115,8 +114,8 @@ public class SharedConnection {
         }
     }
 
-    private boolean checkSupportTransaction() {
-        return metadata.supportsTransaction;
+    private boolean notSupportTransaction() {
+        return !metadata.supportsTransaction;
     }
 
 }

@@ -22,7 +22,7 @@ import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 共享{@code PreparedStatement}减少内存和时间开销，同时保证线程安全。
+ * Share {@link PreparedStatement} to reduce memory usage and with thread-safe.
  *
  * @author RollW
  */
@@ -52,14 +52,21 @@ public abstract class SharedSQLStatement {
     }
 
     public void beginTransaction() {
+        checkConnection();
+
         mSharedConnection.beginTransaction();
     }
 
     public void endTransaction() {
+        checkConnection();
+
         mSharedConnection.commit();
     }
 
     public void rollback() {
+        if (mConnection == null) {
+            return;
+        }
         mSharedConnection.rollback();
     }
 
@@ -80,11 +87,17 @@ public abstract class SharedSQLStatement {
         return stmt;
     }
 
-
     private PreparedStatement createNewStatement() {
-        mConnection = mSharedConnection.acquire();
+        checkConnection();
+
         String query = createQuery();
         return mDatabase.resolveStatement(query, mConnection, true);
+    }
+
+    private void checkConnection() {
+        if (mConnection == null) {
+            mConnection = mSharedConnection.acquire();
+        }
     }
 
     public final void release(PreparedStatement statement) {
