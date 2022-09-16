@@ -21,6 +21,7 @@ import space.lingu.light.*;
 import space.lingu.light.handler.DeleteUpdateHandler;
 import space.lingu.light.handler.InsertHandler;
 import space.lingu.light.handler.SQLHandler;
+import space.lingu.light.struct.StructUtil;
 import space.lingu.light.util.ResultSetUtil;
 import space.lingu.light.util.StringUtil;
 
@@ -49,6 +50,7 @@ public class JavaPoetClass {
 
     public static class UtilNames {
         public static final ClassName STRING_UTIL = ClassName.get(StringUtil.class);
+        public static final ClassName STRUCT_UTIL = ClassName.get(StructUtil.class);
         public static final ClassName RESULT_SET_UTIL = ClassName.get(ResultSetUtil.class);
 
         private UtilNames() {

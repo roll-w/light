@@ -22,12 +22,18 @@ import space.lingu.light.Order;
  * @author RollW
  */
 public class TableIndex {
+    private final String tableName;
     private final String name;
     private final boolean isUnique;
     private final Order[] orders;
     private final String[] columns;
 
-    public TableIndex(String name, boolean isUnique, Order[] orders, String[] columns) {
+    public TableIndex(String tableName,
+                      String name,
+                      boolean isUnique,
+                      Order[] orders,
+                      String[] columns) {
+        this.tableName = tableName;
         this.name = name;
         this.isUnique = isUnique;
         this.orders = orders;
@@ -36,6 +42,10 @@ public class TableIndex {
 
     public String getName() {
         return name;
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 
     public boolean isUnique() {

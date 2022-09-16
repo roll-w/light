@@ -17,7 +17,10 @@
 package space.lingu.light.struct;
 
 import space.lingu.light.Configurations;
+import space.lingu.light.DataColumn;
 import space.lingu.light.SQLDataType;
+
+import java.util.Objects;
 
 /**
  * Represents a column extracts from {@link space.lingu.light.DataColumn}
@@ -86,8 +89,19 @@ public class TableColumn {
         return defaultValue;
     }
 
+    public String getDefaultValueWithProcess() {
+        if (dataType.isStringType()) {
+            return "'" + defaultValue + "'";
+        }
+        return defaultValue;
+    }
+
     public boolean isHasDefaultValue() {
         return hasDefaultValue;
+    }
+
+    public boolean isDefaultValueNull() {
+        return Objects.equals(defaultValue, DataColumn.DEFAULT_VALUE_NULL);
     }
 
     public boolean isNullable() {

@@ -14,25 +14,29 @@
  * limitations under the License.
  */
 
-package space.lingu.light.struct;
+package space.lingu.light.compile;
 
-import java.util.Collections;
+import space.lingu.light.struct.Table;
+
 import java.util.List;
 
 /**
+ * Method names.
+ *
  * @author RollW
  */
-public class TablePrimaryKey {
-    public final List<TableColumn> columns;
-    public final boolean autoGenerate;
+public final class MethodNames {
+    /**
+     * {@link space.lingu.light.struct.StructUtil#findByName(String, List)}
+     */
+    public static final String sFindByName = "findByName";
 
-    public TablePrimaryKey(List<TableColumn> columns, boolean autoGenerate) {
-        this.columns = columns == null
-                ? Collections.emptyList()
-                : Collections.unmodifiableList(columns);
-        this.autoGenerate = autoGenerate;
+    /**
+     * {@link space.lingu.light.LightDatabase#registerTable(Table)}
+     */
+    public static final String sRegisterTable = "registerTable";
+
+
+    private MethodNames() {
     }
-
-
 }
-

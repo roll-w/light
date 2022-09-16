@@ -21,6 +21,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.JavaPoetClass;
+import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.*;
 import space.lingu.light.struct.Table;
@@ -62,13 +63,11 @@ public class RuntimeStructWriter {
         final String indexListVarName = block.getTempVar("_indexListOf" + StringUtil.firstUpperCase(classSimpleName));
         TypeName columnListType = ParameterizedTypeName
                 .get(ClassName.get(List.class), ClassName.get(TableColumn.class));
-        TypeName columnArrayListType = ParameterizedTypeName
-                .get(ClassName.get(ArrayList.class), ClassName.get(TableColumn.class));
+        TypeName columnArrayListType = createArrayListType(TableColumn.class);
 
         TypeName indexListType = ParameterizedTypeName
                 .get(ClassName.get(List.class), ClassName.get(TableIndex.class));
-        TypeName indexArrayListType = ParameterizedTypeName
-                .get(ClassName.get(ArrayList.class), ClassName.get(TableIndex.class));
+        TypeName indexArrayListType = createArrayListType(TableIndex.class);
 
         block.builder()
                 .addStatement("$T $L = new $T()", columnListType, columnListVarName, columnArrayListType)
@@ -80,7 +79,7 @@ public class RuntimeStructWriter {
                 writeIndex(block, index, indexListVarName));
         mTable.getFields().forEach(field ->
                 writeTableColumn(block, field, columnListVarName, tableConfVarName));
-        final String pkVarName = writePrimaryKey(block, mTable.getPrimaryKey());
+        final String pkVarName = writePrimaryKey(block, columnListVarName, mTable.getPrimaryKey());
 
         block.builder()
                 .addStatement("$T $L = new $T($S, $L, $L, $L, $L)",
@@ -147,29 +146,42 @@ public class RuntimeStructWriter {
     private void writeIndex(GenerateCodeBlock block, Index index, String indexListVarName) {
         final String tableIndexVarName = block.getTempVar("_tableIndex" + StringUtil.firstUpperCase(index.getName()));
         block.builder()
-                .addStatement("$T $L = new $T($S, $L, $L, $L)",
+                .addStatement("$T $L = new $T($S, $S, $L, $L, $L)",
                         TableIndex.class, tableIndexVarName, TableIndex.class,
+                        mTable.getTableName(),
                         index.getName(), index.isUnique(), null, null
                 )
                 .addStatement("$L.add($L)", indexListVarName, tableIndexVarName);
 
     }
 
-    private String writePrimaryKey(GenerateCodeBlock block, PrimaryKey key) {
-        final String primaryKeyVarName = block.getTempVar("_pkOf" + mTable.getTableName());
+    private String writePrimaryKey(GenerateCodeBlock block,
+                                   String listVarName,
+                                   PrimaryKey key) {
+        final String simpleName = mTable.getElement().getSimpleName().toString();
+        final String primaryKeyVarName = block.getTempVar("_pkOf" + simpleName);
+        String pkColumnsVarName = block.getTempVar("_pkTableColumnsOf" + simpleName);
+        TypeName keyArrayListType = createArrayListType(TableColumn.class);
+        block.builder().addStatement("$T $L = new $T()",
+                keyArrayListType, pkColumnsVarName, keyArrayListType);
         for (Field field : key.getFields().fields) {
-
+            block.builder().addStatement("$L.add($T.$L($S, $L))",
+                    pkColumnsVarName,
+                    JavaPoetClass.UtilNames.STRUCT_UTIL, MethodNames.sFindByName,
+                    field.getColumnName(), listVarName);
         }
-        String pkColumnsVarName = block.getTempVar("_pkColumns");
-
         block.builder()
                 .addStatement("$T $L = new $T($L, $L)",
                         TablePrimaryKey.class, primaryKeyVarName,
                         TablePrimaryKey.class,
-                        null, key.isAutoGenerate()
+                        pkColumnsVarName, key.isAutoGenerate()
                 );
 
         return primaryKeyVarName;
     }
 
+    private ParameterizedTypeName createArrayListType(Class<?> clz) {
+        return ParameterizedTypeName
+                .get(ClassName.get(ArrayList.class), ClassName.get(clz));
+    }
 }

@@ -16,23 +16,24 @@
 
 package space.lingu.light.struct;
 
-import java.util.Collections;
+import space.lingu.light.LightRuntimeException;
+
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author RollW
  */
-public class TablePrimaryKey {
-    public final List<TableColumn> columns;
-    public final boolean autoGenerate;
-
-    public TablePrimaryKey(List<TableColumn> columns, boolean autoGenerate) {
-        this.columns = columns == null
-                ? Collections.emptyList()
-                : Collections.unmodifiableList(columns);
-        this.autoGenerate = autoGenerate;
+public final class StructUtil {
+    public static TableColumn findByName(String columnName, List<TableColumn> columns) {
+        for (TableColumn column : columns) {
+            if (Objects.equals(columnName, column.getName())) {
+                return column;
+            }
+        }
+        throw new LightRuntimeException("Not found column by given name, probably you write a wrong name. Column name: " + columnName);
     }
 
-
+    private StructUtil() {
+    }
 }
-
