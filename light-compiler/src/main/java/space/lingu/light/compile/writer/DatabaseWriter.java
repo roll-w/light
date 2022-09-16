@@ -18,6 +18,7 @@ package space.lingu.light.compile.writer;
 
 import com.squareup.javapoet.*;
 import space.lingu.light.compile.LightCompileException;
+import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -29,6 +30,7 @@ import javax.lang.model.element.Modifier;
 
 /**
  * 写入{@code Database_Impl}类中
+ *
  * @author RollW
  */
 public class DatabaseWriter extends ClassWriter {
@@ -57,13 +59,14 @@ public class DatabaseWriter extends ClassWriter {
         mDatabase.getDataTableList().forEach(dataTable -> {
             RuntimeStructWriter writer = new RuntimeStructWriter(dataTable);
             final String tableVar = writer.writeDataTable(block, dbConfVarName);
-            block.builder().addStatement("this.registerTable($L)", tableVar);
+            block.builder().addStatement("this.$L($L)",
+                    MethodNames.sRegisterTable, tableVar);
         });
         return block.builder().build();
     }
 
     private String writeDatabaseConf(GenerateCodeBlock block) {
-        return Configurable.writeConfiguration(mDatabase,"Db", block);
+        return Configurable.writeConfiguration(mDatabase, "Db", block);
     }
 
 
@@ -82,7 +85,7 @@ public class DatabaseWriter extends ClassWriter {
             String name = method.getDao().getSimpleName();
             String fieldName = block.getTempVar("_" + name);
             FieldSpec field = FieldSpec.builder(ClassName.get(method.getDao().getElement()),
-                            fieldName, Modifier.PRIVATE, Modifier.VOLATILE).build();
+                    fieldName, Modifier.PRIVATE, Modifier.VOLATILE).build();
             builder.addField(field).addMethod(createDaoGetter(field, method));
         });
     }
@@ -92,7 +95,7 @@ public class DatabaseWriter extends ClassWriter {
             throw new LightCompileException("A Dao getter method must be a parameterless method.");
         }
 
-        MethodSpec.Builder methodBuilder =  MethodSpec.methodBuilder(method.getElement().getSimpleName().toString())
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(method.getElement().getSimpleName().toString())
                 .addAnnotation(Override.class)
                 .returns(ClassName.get(method.getDao().getElement()));
         if (ElementUtil.isPublic(method.getElement())) {
@@ -115,7 +118,7 @@ public class DatabaseWriter extends ClassWriter {
     }
 
     private MethodSpec createClearAllTablesMethod() {
-        MethodSpec.Builder builder =  MethodSpec.methodBuilder("clearAllTables")
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("clearAllTables")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PROTECTED)
                 .returns(TypeName.VOID);

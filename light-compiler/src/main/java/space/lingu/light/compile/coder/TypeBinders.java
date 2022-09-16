@@ -329,7 +329,7 @@ public class TypeBinders {
         mHandleableTypes.addAll(getTypes(SQLDataType.BOOLEAN));
         mHandleableTypes.addAll(getTypes(SQLDataType.DOUBLE));
         mHandleableTypes.addAll(getTypes(SQLDataType.FLOAT));
-        mHandleableTypes.addAll(getTypes(SQLDataType.TEXT));
+        mHandleableTypes.addAll(getTypes(SQLDataType.VARCHAR));
     }
 
     public List<TypeMirror> getTypes(SQLDataType dataType) {
