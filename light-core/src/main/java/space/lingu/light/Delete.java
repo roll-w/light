@@ -25,6 +25,7 @@ import java.sql.PreparedStatement;
  * The implementation of the method will delete its parameters from the database.
  * <p>
  * See {@link #value()} for instruction of custom SQL statement.
+ *
  * @author RollW
  */
 @Documented
@@ -46,10 +47,11 @@ public @interface Delete {
      * <p>
      * e.g. Let us assume that there is a user table,
      * and you are writing a method use as delete users by their id:
-     * <pre>{@code
-     * @Delete("DELETE FROM user WHERE user_id = {id}")
+     * <pre>
+     * {@code @Delete("DELETE FROM user WHERE user_id = {id}")
      * public void deleteByIds(long id);
-     * }</pre>
+     * }
+     * </pre>
      * You can do this by binding parameters to custom statements.
      * <p>
      * Note: The implementation of the method will call {@link PreparedStatement#executeUpdate()}
