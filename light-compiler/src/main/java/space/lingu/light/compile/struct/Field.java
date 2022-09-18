@@ -227,6 +227,9 @@ public class Field implements Configurable {
 
     @Override
     public Configurations getConfigurations() {
+        if (configurations == null) {
+            return Configurations.empty();
+        }
         return configurations;
     }
 

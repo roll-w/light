@@ -27,24 +27,42 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.TYPE})
 public @interface DataTable {
+    /**
+     * Table name. If leave it empty, will use class name as table name.
+     *
+     * @return table name
+     */
     String tableName() default "";
 
+    /**
+     * Indices of the table.
+     *
+     * @return {@link Index} array
+     */
     Index[] indices() default {};
 
+    /**
+     * Primary key columns.
+     * <p>
+     * Since the upper limit of the PrimaryKey annotation
+     * is now 1 (it may not be limited in the future),
+     * if you want to define multiple primary keys,
+     * you need to specify columns in the array.
+     *
+     * @return primary key columns
+     */
     String[] primaryKeys() default {};
 
     String description() default "";
 
     /**
-     * Set create this table by Light or not.
+     * Configurations.
      * <p>
-     * If you want to control the table creation yourself or
-     * already have an exist table,
-     * you can set this flag to true.
+     * It will pass all configurations to fields and indexes.
+     * If you specify a duplicate configuration in the field or index,
+     * the configuration here will be overwritten.
      *
-     * @return set to <code>true</code> to have this table created by Light
+     * @return {@link LightConfiguration}
      */
-    boolean created() default false;
-
     LightConfiguration[] configuration() default {};
 }

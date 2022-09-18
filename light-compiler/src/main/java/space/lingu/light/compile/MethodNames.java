@@ -16,6 +16,7 @@
 
 package space.lingu.light.compile;
 
+import space.lingu.light.LightDatabase;
 import space.lingu.light.struct.Table;
 
 import java.util.List;
@@ -35,6 +36,11 @@ public final class MethodNames {
      * {@link space.lingu.light.LightDatabase#registerTable(Table)}
      */
     public static final String sRegisterTable = "registerTable";
+
+    /**
+     * {@link LightDatabase#registerAllTables()}
+     */
+    public static final String sRegisterAllTables = "registerAllTables";
 
 
     private MethodNames() {

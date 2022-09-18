@@ -132,7 +132,6 @@ public class DataTableProcessor implements Processor<DataTable> {
             return filtered.get(0);
         }
 
-        // TODO 在无需抛出编译异常的位置使用日志输出错误信息
         mEnv.getLog().error("Multiple primary keys were found, there are only one can be used @PrimaryKey.", typeElement);
         throw new LightCompileException("Multiple primary keys were found, there are only one can be used @PrimaryKey.");
     }
@@ -151,17 +150,25 @@ public class DataTableProcessor implements Processor<DataTable> {
     private List<Index> processIndices(List<Field> fields) {
         List<Index> indices = new ArrayList<>();
         for (space.lingu.light.Index index : anno.indices()) {
+            Configurations configurations =
+                    Configurations.createFrom(index.configurations());
             List<Field> indexFields = new ArrayList<>();
-            for (String s : index.value()) {
-                Field field = findFieldByColumnName(fields, s);
+            for (String columnName : index.value()) {
+                Field field = findFieldByColumnName(fields, columnName);
                 if (field == null) {
-                    throw new LightCompileException("Please check indices' column name.");
+                    mEnv.getLog().error(CompileErrors.cannotFoundIndexField(columnName), mElement);
+                    continue;
                 }
                 indexFields.add(field);
             }
 
-            indices.add(new Index(index.name(), index.unique(),
-                    new Field.Fields(indexFields), Arrays.asList(index.orders())));
+            Index processedIndex = new Index(index.name(),
+                    index.unique(),
+                    new Field.Fields(indexFields),
+                    Arrays.asList(index.orders()),
+                    configurations
+            );
+            indices.add(processedIndex);
         }
 
         return indices;

@@ -59,4 +59,6 @@ public @interface Index {
      */
     boolean unique() default false;
 
+
+    LightConfiguration[] configurations() default {};
 }

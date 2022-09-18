@@ -17,8 +17,19 @@
 package space.lingu.light;
 
 /**
+ * Order
+ *
  * @author RollW
  */
 public enum Order {
-    ASC, DESC
+
+    /**
+     * Asc
+     */
+    ASC,
+
+    /**
+     * Desc
+     */
+    DESC;
 }

@@ -99,6 +99,9 @@ public class Database implements Configurable {
 
     @Override
     public Configurations getConfigurations() {
+        if (configurations == null) {
+            return Configurations.empty();
+        }
         return configurations;
     }
 

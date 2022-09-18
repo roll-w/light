@@ -74,6 +74,14 @@ public final class CompileErrors {
         return CANNOT_FOUND_SETTER + candidates;
     }
 
+    private static final String INDEX_FIELD_CANNOT_FOUND = "Column name %s defined in index is not exist," +
+            " please check for errors.";
+
+    public static String cannotFoundIndexField(String field) {
+        return String.format(INDEX_FIELD_CANNOT_FOUND, field);
+    }
+
+
     public static final String UNKNOWN_TYPE =
             "Unknown data type, cannot be processed.";
 

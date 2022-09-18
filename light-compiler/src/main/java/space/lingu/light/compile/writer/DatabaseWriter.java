@@ -45,12 +45,22 @@ public class DatabaseWriter extends ClassWriter {
     protected TypeSpec.Builder createTypeSpecBuilder() {
         TypeSpec.Builder builder = TypeSpec.classBuilder(implClassName)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addInitializerBlock(createRegisterRuntimeStructCode())
                 .addMethod(createClearAllTablesMethod())
+                .addMethod(createRegisterTablesMethod())
                 .superclass(ClassName.get(mDatabase.getSuperClassElement()));
         writeDaos();
         addDaoImpl(builder);
         return builder;
+    }
+
+    private MethodSpec createRegisterTablesMethod() {
+        return MethodSpec.methodBuilder(MethodNames.sRegisterAllTables)
+                .addCode(createRegisterRuntimeStructCode())
+                .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                .addAnnotation(Override.class)
+                .returns(TypeName.VOID)
+                .addComment("here create all runtime structures")
+                .build();
     }
 
     private CodeBlock createRegisterRuntimeStructCode() {

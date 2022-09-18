@@ -21,8 +21,6 @@ import space.lingu.light.LightConfiguration;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.StringJoiner;
 
 /**
@@ -34,14 +32,7 @@ public interface Configurable {
     }
 
     static Configurations createFrom(LightConfiguration[] lightConfigurations) {
-        List<Configurations.Configuration> configurations = new ArrayList<>();
-        for (LightConfiguration lightConfiguration : lightConfigurations) {
-            configurations.add(new Configurations.Configuration(
-                    lightConfiguration.key(),
-                    lightConfiguration.value()
-            ));
-        }
-        return Configurations.createFrom(configurations);
+        return Configurations.createFrom(lightConfigurations);
     }
 
     static void newConfiguration(Configurations.Configuration configuration,
@@ -57,6 +48,7 @@ public interface Configurable {
                                      GenerateCodeBlock block) {
         final String varName = block.getTempVar("_configs" + prefix);
         StringJoiner varNameJoiner = new StringJoiner(", ");
+
         for (Configurations.Configuration configuration : configurable.getConfigurations().configurations()) {
             String confVarName = block.getTempVar("_configuration_tmp_" + prefix);
             Configurable.newConfiguration(configuration, confVarName, block);

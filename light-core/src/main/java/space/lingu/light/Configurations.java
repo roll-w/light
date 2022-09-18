@@ -90,14 +90,27 @@ public final class Configurations {
     }
 
     public static Configurations createFrom(List<Configuration> configurations) {
+        if (configurations == null || configurations.isEmpty()) {
+            return empty();
+        }
         return new Configurations(configurations.toArray(new Configuration[0]));
     }
 
     public static Configurations createFrom(Configuration... configurations) {
+        if (configurations == null || configurations.length == 0) {
+            return empty();
+        }
         return new Configurations(configurations);
     }
 
+    public static Configurations createFrom() {
+        return empty();
+    }
+
     public static Configurations createFrom(LightConfiguration[] configurations) {
+        if (configurations == null || configurations.length == 0) {
+            return empty();
+        }
         Configuration[] confs = new Configuration[configurations.length];
         for (int i = 0; i < configurations.length; i++) {
             confs[i] = new Configuration(
@@ -107,11 +120,11 @@ public final class Configurations {
         return new Configurations(confs);
     }
 
+    static final Configurations EMPTY = new Configurations(new Configuration[0]);
+
     public static Configurations empty() {
         return EMPTY;
     }
-
-    static final Configurations EMPTY = createFrom();
 
     /**
      * Configuration. For Light module use.

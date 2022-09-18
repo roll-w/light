@@ -66,6 +66,8 @@ public abstract class LightDatabase {
     }
 
     protected void init(DatabaseConfiguration conf) {
+        registerAllTables();
+
         this.mName = conf.name;
         this.mSourceConfig = conf.datasourceConfig;
         if (conf.logger != null) {
@@ -74,6 +76,28 @@ public abstract class LightDatabase {
         this.mDialectProvider = conf.dialectProvider;
         conf.connectionPool.setDataSourceConfig(mSourceConfig);
         this.mConnectionPool = conf.connectionPool;
+
+        createTables();
+    }
+
+    protected void registerAllTables() {
+    }
+
+    private void createTables() {
+        List<String> statements = mTableStructCache.values()
+                .stream().map(table ->
+                        mDialectProvider.create(table))
+                .collect(Collectors.toList());
+        for (String statement : statements) {
+            if (mLogger != null) {
+                mLogger.debug("execute create table statement, statement: " + statement);
+            }
+            executeRawSqlWithNoReturn(statement);
+        }
+    }
+
+    private void createInfoTable() {
+        executeRawSqlWithNoReturn(mDialectProvider.create(sInfoTable));
     }
 
     public void executeRawSqlWithNoReturn(String sql) {
@@ -143,14 +167,21 @@ public abstract class LightDatabase {
     }
 
     protected void clearAllTables() {
+        mTableStructCache.values().forEach(table ->
+                destroyTable(table.getName()));
     }
 
     protected void destroyTable(String tableName) {
-        executeRawSqlWithNoReturn(mDialectProvider.destroyTable(tableName));
+        Table table = findTable(tableName);
+        if (table == null) {
+            return;
+        }
+        executeRawSqlWithNoReturn(mDialectProvider.drop(table));
     }
 
     private final Map<String, Table> mTableStructCache =
             Collections.synchronizedMap(new HashMap<>());
+
     protected void registerTable(Table table) {
         if (table == null) {
             return;
@@ -281,7 +312,7 @@ public abstract class LightDatabase {
             if (database.datasourceConfig().isEmpty()) {
                 mConfig = new DatasourceLoader().load();
             } else {
-                mConfig = new DatasourceLoader(database.datasourceConfig()).load();
+                mConfig = new DatasourceLoader(database.datasourceConfig(), database.name()).load();
             }
         }
 

@@ -19,7 +19,8 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标记主键
+ * Primary key.
+ *
  * @author RollW
  */
 @Documented
@@ -27,8 +28,10 @@ import java.lang.annotation.*;
 @Target(value = {ElementType.FIELD})
 public @interface PrimaryKey {
     /**
-     * 是否自动生成主键
-     * @return 是否自增主键
+     * Whether to automatically generate the primary key.
+     * If you are define multiple primary keys, this probably not working.
+     *
+     * @return If automatically generate or not.
      */
     boolean autoGenerate() default false;
 }

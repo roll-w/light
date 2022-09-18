@@ -16,6 +16,7 @@
 
 package space.lingu.light.compile.struct;
 
+import space.lingu.light.Configurations;
 import space.lingu.light.Order;
 
 import java.util.List;
@@ -24,20 +25,23 @@ import java.util.List;
  * 索引
  * @author RollW
  */
-public class Index {
+public class Index implements Configurable {
     public static final String DEFAULT_PREFIX = "index_";
 
     private final String name;
     private final boolean unique;
     private final Field.Fields fields;
     private final List<Order> orders;
+    private final Configurations configurations;
 
     public Index(String name, boolean unique,
-                 Field.Fields fields, List<Order> orders) {
+                 Field.Fields fields, List<Order> orders,
+                 Configurations configurations) {
         this.name = name;
         this.unique = unique;
         this.fields = fields;
         this.orders = orders;
+        this.configurations = configurations;
     }
 
     public String getName() {
@@ -54,5 +58,13 @@ public class Index {
 
     public List<Order> getOrders() {
         return orders;
+    }
+
+    @Override
+    public Configurations getConfigurations() {
+        if (configurations == null) {
+            return Configurations.empty();
+        }
+        return configurations;
     }
 }

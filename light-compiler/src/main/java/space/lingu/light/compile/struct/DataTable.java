@@ -114,6 +114,9 @@ public class DataTable extends Pojo implements Configurable {
 
     @Override
     public Configurations getConfigurations() {
+        if (configurations == null) {
+            return Configurations.empty();
+        }
         return configurations;
     }
 

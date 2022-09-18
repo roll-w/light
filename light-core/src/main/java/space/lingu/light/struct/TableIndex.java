@@ -16,6 +16,7 @@
 
 package space.lingu.light.struct;
 
+import space.lingu.light.Configurations;
 import space.lingu.light.Order;
 
 /**
@@ -27,17 +28,20 @@ public class TableIndex {
     private final boolean isUnique;
     private final Order[] orders;
     private final String[] columns;
+    private final Configurations configurations;
 
     public TableIndex(String tableName,
                       String name,
                       boolean isUnique,
                       Order[] orders,
-                      String[] columns) {
+                      String[] columns,
+                      Configurations configurations) {
         this.tableName = tableName;
         this.name = name;
         this.isUnique = isUnique;
         this.orders = orders;
         this.columns = columns;
+        this.configurations = configurations;
     }
 
     public String getName() {
@@ -58,5 +62,9 @@ public class TableIndex {
 
     public String[] getColumns() {
         return columns;
+    }
+
+    public Configurations getConfigurations() {
+        return configurations;
     }
 }

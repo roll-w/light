@@ -16,9 +16,11 @@
 
 package space.lingu.light.compile.writer;
 
+import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import space.lingu.light.Order;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.MethodNames;
@@ -32,6 +34,7 @@ import space.lingu.light.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 /**
  * Convert to runtime struct.
@@ -76,7 +79,7 @@ public class RuntimeStructWriter {
                 "TbOf" + mTable.getElement().getSimpleName().toString(),
                 databaseConfVarName, block);
         mTable.getIndices().forEach(index ->
-                writeIndex(block, index, indexListVarName));
+                writeIndex(block, index, indexListVarName, tableConfVarName));
         mTable.getFields().forEach(field ->
                 writeTableColumn(block, field, columnListVarName, tableConfVarName));
         final String pkVarName = writePrimaryKey(block, columnListVarName, mTable.getPrimaryKey());
@@ -143,16 +146,39 @@ public class RuntimeStructWriter {
                 .addStatement("$L.add($L)", listVarName, tableColumnVarName);
     }
 
-    private void writeIndex(GenerateCodeBlock block, Index index, String indexListVarName) {
-        final String tableIndexVarName = block.getTempVar("_tableIndex" + StringUtil.firstUpperCase(index.getName()));
+    private void writeIndex(GenerateCodeBlock block,
+                            Index index, String indexListVarName,
+                            String tableConfVarName) {
+        final String tableIndexVarName = block.getTempVar("_tableIndexOf" + index.getName());
+        ArrayTypeName orderArrayType = ArrayTypeName.of(ClassName.get(Order.class));
+        ArrayTypeName stringArrayType = ArrayTypeName.of(ClassName.get(String.class));
+        String indexConfVarName = writeConfigurationsAndFork(index,
+                "ColumnOf" + index.getName(), tableConfVarName, block);
+
+        final String indexOrderArrayVarName = block.getTempVar("_tableIndexOrdersOf" + index.getName());
+        final String indexColumnsArrayVarName = block.getTempVar("_tableIndexColumnsOf" + index.getName());
+        StringJoiner orders = new StringJoiner(", ");
+        index.getOrders().forEach(order ->
+                orders.add("Order." + order.name())
+        );
+
+        StringJoiner columnsJoiner = new StringJoiner(", ");
+        index.getFields().fields.forEach(field ->
+                columnsJoiner.add("\"" + field.getColumnName() + "\""));
+
         block.builder()
-                .addStatement("$T $L = new $T($S, $S, $L, $L, $L)",
+                .addStatement("$T $L = {$L}", orderArrayType,
+                        tableIndexVarName, orders.toString())
+                .addStatement("$T $L = {$L}", stringArrayType,
+                        indexColumnsArrayVarName, columnsJoiner.toString())
+                .addStatement("$T $L = new $T($S, $S, $L, $L, $L, $L)",
                         TableIndex.class, tableIndexVarName, TableIndex.class,
                         mTable.getTableName(),
-                        index.getName(), index.isUnique(), null, null
+                        index.getName(), index.isUnique(),
+                        indexOrderArrayVarName,
+                        null, indexConfVarName
                 )
                 .addStatement("$L.add($L)", indexListVarName, tableIndexVarName);
-
     }
 
     private String writePrimaryKey(GenerateCodeBlock block,
