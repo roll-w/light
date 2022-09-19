@@ -18,7 +18,6 @@ package space.lingu.light.sql;
 
 import space.lingu.light.struct.DatabaseInfo;
 import space.lingu.light.struct.Table;
-import space.lingu.light.struct.TableForeignKey;
 import space.lingu.light.struct.TableIndex;
 
 /**
@@ -46,8 +45,6 @@ public interface DialectProvider extends SQLEscaper {
      * @return create index statement
      */
     String create(TableIndex index);
-
-    String create(TableForeignKey index);
 
     /**
      * Get the statement that created the database.

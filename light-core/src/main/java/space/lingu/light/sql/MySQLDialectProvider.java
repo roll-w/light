@@ -106,8 +106,7 @@ public class MySQLDialectProvider extends AsciiSQLGenerator
         }
     }
 
-    @Override
-    public String create(TableForeignKey index) {
+    private String createForeignKey(TableForeignKey index) {
         return "";
     }
 
