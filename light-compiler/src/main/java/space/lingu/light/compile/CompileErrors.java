@@ -74,13 +74,22 @@ public final class CompileErrors {
         return CANNOT_FOUND_SETTER + candidates;
     }
 
-    private static final String INDEX_FIELD_CANNOT_FOUND = "Column name %s defined in index is not exist," +
+    private static final String FIELD_CANNOT_FOUND = "Column name %s defined in %s is not exist," +
             " please check for errors.";
 
     public static String cannotFoundIndexField(String field) {
-        return String.format(INDEX_FIELD_CANNOT_FOUND, field);
+        return String.format(FIELD_CANNOT_FOUND, field, "index");
     }
 
+    public static String cannotFoundPrimaryKeyField(String field) {
+        return String.format(FIELD_CANNOT_FOUND, field, "primary key");
+    }
+
+    private static final String TABLE_COLUMN_NAME_DUPLICATED = "Column name '%s' are duplicated.";
+
+    public static String duplicatedTableColumnName(String columnName) {
+        return String.format(TABLE_COLUMN_NAME_DUPLICATED, columnName);
+    }
 
     public static final String UNKNOWN_TYPE =
             "Unknown data type, cannot be processed.";

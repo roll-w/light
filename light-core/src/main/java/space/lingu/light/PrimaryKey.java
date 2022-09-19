@@ -29,7 +29,8 @@ import java.lang.annotation.*;
 public @interface PrimaryKey {
     /**
      * Whether to automatically generate the primary key.
-     * If you are define multiple primary keys, this probably not working.
+     * <p>
+     * If you are define composite primary key, this will not work.
      *
      * @return If automatically generate or not.
      */

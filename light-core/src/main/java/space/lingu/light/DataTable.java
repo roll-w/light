@@ -43,14 +43,11 @@ public @interface DataTable {
 
     /**
      * Primary key columns.
-     * <p>
-     * Since the upper limit of the PrimaryKey annotation
-     * is now 1 (it may not be limited in the future),
-     * if you want to define multiple primary keys,
-     * you need to specify columns in the array.
      *
+     * @deprecated use {@link PrimaryKey} annotation instead.
      * @return primary key columns
      */
+    @Deprecated
     String[] primaryKeys() default {};
 
     String description() default "";

@@ -19,21 +19,24 @@ package space.lingu.light.compile.struct;
 import javax.lang.model.element.TypeElement;
 
 /**
- * 主键结构
+ * Primary key structure.
+ * {@link space.lingu.light.PrimaryKey}
+ *
  * @author RollW
  */
 public class PrimaryKey {
+    public static final PrimaryKey MISSING = new PrimaryKey(null, new Field.Fields(), false);
+
     private final TypeElement declaredIn;
     private final Field.Fields fields;
     private final boolean autoGenerate;
 
-    public PrimaryKey(TypeElement declaredIn, Field.Fields fields, boolean autoGenerate) {
+    public PrimaryKey(TypeElement declaredIn,
+                      Field.Fields fields, boolean autoGenerate) {
         this.declaredIn = declaredIn;
         this.fields = fields;
         this.autoGenerate = autoGenerate;
     }
-
-    public static final PrimaryKey MISSING = new PrimaryKey(null, new Field.Fields(), false);
 
     public TypeElement getDeclaredIn() {
         return declaredIn;

@@ -20,6 +20,8 @@ package space.lingu.light.compile;
  * @author RollW
  */
 public final class Warnings {
+    public static final String DEPRECATED = "\n\nYou are using a deprecated API, please replace it in time.";
+
     public static final String INFO =
             "\n\nThis warning is intended to allow you to recheck the correctness of your annotations. " +
                     "To ignore this warning permanently, use the @LightIgnore annotation.";

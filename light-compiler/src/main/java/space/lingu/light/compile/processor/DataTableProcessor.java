@@ -79,7 +79,8 @@ public class DataTableProcessor implements Processor<DataTable> {
 
     private PrimaryKey findPrimaryKey(List<Field> fields) {
         List<PrimaryKey> primaryKeys = new ArrayList<>();
-        primaryKeys.addAll(getPrimaryKeysFromPrimaryKey(fields));
+
+        primaryKeys.add(getPrimaryKeyFromPrimaryKey(fields));
         primaryKeys.addAll(getPrimaryKeysFromDataEntity(fields));
 
         return choosePrimaryKey(primaryKeys, mElement);
@@ -90,33 +91,62 @@ public class DataTableProcessor implements Processor<DataTable> {
         if (keys.isEmpty()) {
             return new ArrayList<>();
         }
+        mEnv.getLog().warn(
+                "You are still using primaryKeys() to define the primary key. This will be removed in the future." +
+                        Warnings.DEPRECATED,
+                mElement);
 
         List<PrimaryKey> primaryKeys = new ArrayList<>();
         List<Field> primaryKeyFields = new ArrayList<>();
 
-        keys.forEach(s ->
-                primaryKeyFields.add(findFieldByColumnName(fields, s)));
-        primaryKeys.add(new PrimaryKey(mElement,
-                new Field.Fields(primaryKeyFields),
-                false));
+        keys.forEach(s -> {
+            Field field = findFieldByColumnName(fields, s);
+            if (field == null) {
+                mEnv.getLog().error(
+                        CompileErrors.cannotFoundPrimaryKeyField(s),
+                        mElement);
+                return;
+            }
+            primaryKeyFields.add(field);
+        });
+        primaryKeys.add(
+                new PrimaryKey(
+                        mElement,
+                        new Field.Fields(primaryKeyFields),
+                        false)
+        );
 
         return primaryKeys;
     }
 
-    private List<PrimaryKey> getPrimaryKeysFromPrimaryKey(List<Field> fields) {
-        List<PrimaryKey> primaryKeys = new ArrayList<>();
+    private PrimaryKey getPrimaryKeyFromPrimaryKey(List<Field> fields) {
+        if (fields == null || fields.isEmpty()) {
+            return PrimaryKey.MISSING;
+        }
+        List<Field> hasAnnotationFields = new ArrayList<>();
         fields.forEach(field -> {
             space.lingu.light.PrimaryKey keyAnno =
                     field.getElement().getAnnotation(space.lingu.light.PrimaryKey.class);
             if (keyAnno == null) {
                 return;
             }
-            primaryKeys.add(
-                    new PrimaryKey(mElement, new Field.Fields(field),
-                            keyAnno.autoGenerate())
-            );
+            hasAnnotationFields.add(field);
         });
-        return primaryKeys;
+        if (hasAnnotationFields.isEmpty()) {
+            return PrimaryKey.MISSING;
+        }
+        boolean autoGenerate = false;
+        if (hasAnnotationFields.size() == 1) {
+            autoGenerate = hasAnnotationFields.get(0)
+                    .getElement()
+                    .getAnnotation(space.lingu.light.PrimaryKey.class)
+                    .autoGenerate();
+        }
+        return new PrimaryKey(
+                mElement,
+                new Field.Fields(hasAnnotationFields),
+                autoGenerate
+        );
     }
 
     private PrimaryKey choosePrimaryKey(List<PrimaryKey> candidates, TypeElement typeElement) {
@@ -141,7 +171,11 @@ public class DataTableProcessor implements Processor<DataTable> {
         Set<String> names = new HashSet<>();
         fields.forEach(field -> {
             if (names.contains(field.getColumnName())) {
-                throw new LightCompileException("Column names can not be repeatable.");
+                mEnv.getLog().error(
+                        CompileErrors.duplicatedTableColumnName(field.getColumnName()),
+                        field.getElement()
+                );
+                return;
             }
             names.add(field.getColumnName());
         });
