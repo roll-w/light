@@ -67,11 +67,17 @@ public class SharedConnection {
         if (notSupportTransaction()) {
             return;
         }
+        if (mConnection == null) {
+            mConnection = acquire();
+        }
         autoCommit(false);
     }
 
     public void commit() {
         if (notSupportTransaction()) {
+            return;
+        }
+        if (mConnection == null) {
             return;
         }
         try {
@@ -85,6 +91,9 @@ public class SharedConnection {
 
     public void rollback() {
         if (notSupportTransaction()) {
+            return;
+        }
+        if (mConnection == null) {
             return;
         }
         try {
@@ -107,6 +116,9 @@ public class SharedConnection {
     }
 
     private void autoCommit(boolean autoCommit) {
+        if (mConnection == null) {
+            mConnection = acquire();
+        }
         try {
             mConnection.setAutoCommit(autoCommit);
         } catch (SQLException e) {
