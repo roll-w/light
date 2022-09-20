@@ -24,6 +24,7 @@ import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.*;
+import space.lingu.light.util.StringUtil;
 
 import javax.lang.model.element.TypeElement;
 import java.util.*;
@@ -74,7 +75,7 @@ public class DataTableProcessor implements Processor<DataTable> {
         return dataTable
                 .setConfigurations(configurations)
                 .setPrimaryKey(primaryKey)
-                .setIndices(processIndices(pojo.getFields()));
+                .setIndices(processIndices(dataTable.getTableName(), pojo.getFields()));
     }
 
     private PrimaryKey findPrimaryKey(List<Field> fields) {
@@ -181,7 +182,8 @@ public class DataTableProcessor implements Processor<DataTable> {
         });
     }
 
-    private List<Index> processIndices(List<Field> fields) {
+    private List<Index> processIndices(String tableName,
+                                       List<Field> fields) {
         List<Index> indices = new ArrayList<>();
         for (space.lingu.light.Index index : anno.indices()) {
             Configurations configurations =
@@ -195,8 +197,16 @@ public class DataTableProcessor implements Processor<DataTable> {
                 }
                 indexFields.add(field);
             }
-
-            Index processedIndex = new Index(index.name(),
+            List<String> fieldNames =
+                    indexFields.stream()
+                            .map(Field::getColumnName)
+                            .collect(Collectors.toList());
+            String indexName = generateIndexName(
+                    index.name(),
+                    tableName,
+                    fieldNames);
+            Index processedIndex = new Index(
+                    indexName,
                     index.unique(),
                     new Field.Fields(indexFields),
                     Arrays.asList(index.orders()),
@@ -205,7 +215,41 @@ public class DataTableProcessor implements Processor<DataTable> {
             indices.add(processedIndex);
         }
 
-        return indices;
+        for (Field field : fields) {
+            if (field.isIndexed()) {
+                Index index = new Index(
+                        generateIndexName(
+                                null,
+                                tableName,
+                                Collections.singletonList(field.getColumnName())),
+                        false,
+                        new Field.Fields(field),
+                        Collections.emptyList(),
+                        field.getConfigurations()
+                );
+                indices.add(index);
+            }
+        }
+        // with same name, prefer defined in @Index
+        Set<String> indexNames = new HashSet<>();
+        return indices.stream().filter(index -> {
+            if (!indexNames.contains(index.getName())) {
+                indexNames.add(index.getName());
+                return true;
+            }
+            return false;
+        }).collect(Collectors.toList());
+    }
+
+    private String generateIndexName(String defaultName,
+                                     String tableName,
+                                     List<String> columnNames) {
+        if (!StringUtil.isEmpty(defaultName)) {
+            return defaultName;
+        }
+        StringJoiner columns = new StringJoiner("_");
+        columnNames.forEach(columns::add);
+        return Index.DEFAULT_PREFIX + "_" + tableName + "_" + columns;
     }
 
     private static Field findFieldByColumnName(List<Field> fields, String columnName) {

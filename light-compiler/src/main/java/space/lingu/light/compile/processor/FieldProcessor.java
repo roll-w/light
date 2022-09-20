@@ -83,7 +83,8 @@ public class FieldProcessor implements Processor<Field> {
                 .setNullability(nullability)
                 .setHasDefault(hasDefault)
                 .setConfigurations(configurations)
-                .setDefaultValue(defaultValue);
+                .setDefaultValue(defaultValue)
+                .setIndexed(dataColumn.index());
         StatementBinder binder = mEnv.getBinders()
                 .findStatementBinder(field.getTypeMirror(), field.getDataType());
         ColumnValueReader reader = mEnv.getBinders()

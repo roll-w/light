@@ -25,7 +25,7 @@ import java.lang.annotation.*;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.FIELD})
+@Target(value = {})
 public @interface Index {
     /**
      * Columns included in the index.
