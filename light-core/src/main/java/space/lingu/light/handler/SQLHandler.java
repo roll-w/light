@@ -51,19 +51,20 @@ public class SQLHandler extends SharedConnection {
                     .placeHolders(args[n]);
         }
         SQLExpressionParser parser = new SQLExpressionParser(sql);
+        String unescaped = SQLExpressionParser.unescape(sql);
         List<SQLExpressionParser.Detail> details = parser.getDetails();
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < details.size(); i++) {
             SQLExpressionParser.Detail detail = details.get(i);
             if (i == 0) {
-                builder.append(sql, 0, detail.start);
+                builder.append(unescaped, 0, detail.start);
             }
             builder.append(" (").append(placeholders[i]).append(") ");
             if (i != 0) {
-                builder.append(sql, details.get(i - 1).end, detail.start);
+                builder.append(unescaped, details.get(i - 1).end, detail.start);
             }
             if (i == details.size() - 1) {
-                builder.append(sql, detail.end, sql.length());
+                builder.append(unescaped, detail.end, unescaped.length());
             }
         }
         return builder.toString();

@@ -24,15 +24,32 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
+ * Internal API. Parse a sql expression.
+ *
  * @author RollW
  */
 public class SQLExpressionParser {
+    private static final int INITIAL = -1;
+
+    private static final char START = '{';
+    private static final char END = '}';
+    private static final char INVALID = CharacterIterator.DONE;
+
     private List<String> expressions;
+    private final String sql;
+    private final String unescapedSql;
     private final List<Detail> details;
 
     public SQLExpressionParser(String sql) {
-        details = Collections.unmodifiableList(parse(sql));
+        this.sql = sql;
+        this.unescapedSql = unescapedWithPlaceholder();
+        this.details = parseWith();
     }
+
+    private List<Detail> parseWith() {
+        return Collections.unmodifiableList(parse(unescapedSql));
+    }
+
 
     public List<String> getExpressions() {
         if (expressions == null) {
@@ -44,6 +61,35 @@ public class SQLExpressionParser {
         return expressions;
     }
 
+    /**
+     * A temp placeholder, in order to ensure the same position after escaping.
+     */
+    static final String TEMP_PLACEHOLDER = "%";
+
+    private String unescapedWithPlaceholder() {
+        return sql
+                .replaceAll(Pattern.quote("{{"), TEMP_PLACEHOLDER)
+                .replaceAll(Pattern.quote("}}"), TEMP_PLACEHOLDER);
+    }
+
+    public String unescaped(String s) {
+        return unescape(s);
+    }
+
+    public static String unescape(String s) {
+        return s
+                .replaceAll(Pattern.quote("{{"), "{")
+                .replaceAll(Pattern.quote("}}"), "}");
+    }
+
+    /**
+     * Returns parsed details.
+     * <p>
+     * The start and end positions represent positions
+     * within an unescaped expression string.
+     *
+     * @return list of {@link Detail}
+     */
     public List<Detail> getDetails() {
         return details;
     }
@@ -54,30 +100,42 @@ public class SQLExpressionParser {
         char next;
         StringBuilder builder = new StringBuilder();
         boolean start = false, end = false;
-        int startPos = -1, endPos = -1;
+        int startPos = INITIAL, endPos = INITIAL;
         int idx = 0;
-        while ((next = iterator.next()) != CharacterIterator.DONE) {
+
+        while ((next = iterator.next()) != INVALID) {
             idx++;
-            if (next == '{') {
+            if (next == START) {
                 start = true;
                 startPos = idx;
             }
-            if (next == '}') {
+            if (next == END) {
                 end = true;
                 endPos = idx + 1;
             }
+
             if (start && !end) {
                 builder.append(next);
             }
-            if (end) {
+
+            if (end && !start) {
+                // only one '}' is meaningless
+                end = false;
+                endPos = INITIAL;
+            }
+
+            if (start && end) {
                 String expression = builder.toString()
                         .replaceFirst(Pattern.quote("{"), "");
                 Detail detail = new Detail(expression, startPos, endPos);
                 details.add(detail);
                 start = end = false;
-                startPos = endPos = -1;
+                startPos = endPos = INITIAL;
                 builder = new StringBuilder();
             }
+        }
+        if (start) {
+            throw new IllegalArgumentException("Can't reach the end, can't find the right expression.");
         }
         return details;
     }
