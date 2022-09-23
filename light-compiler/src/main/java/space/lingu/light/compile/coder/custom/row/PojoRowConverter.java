@@ -22,7 +22,6 @@ import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.compile.writer.FieldReadWriteWriter;
-import space.lingu.light.util.Pair;
 import space.lingu.light.util.StringUtil;
 
 import javax.lang.model.type.TypeMirror;
@@ -35,7 +34,7 @@ import java.util.List;
 public class PojoRowConverter extends RowConverter {
     private final Pojo mPojo;
     private final List<Field> usedFields = new ArrayList<>();
-    private final List<Pair<Field, String>> fieldWithNumber = new ArrayList<>();
+    private final List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
 
     public PojoRowConverter(Pojo pojo, TypeMirror outType) {
         super(outType);
@@ -51,13 +50,13 @@ public class PojoRowConverter extends RowConverter {
             block.builder().addStatement("final $T $L = $T.getColumnIndexSwallow($L, $S)",
                     TypeName.INT, numberVar, JavaPoetClass.UtilNames.RESULT_SET_UTIL,
                     resultSetName, field.getColumnName());
-            fieldWithNumber.add(Pair.createPair(field, numberVar));
+            fieldWithNumberList.add(new FieldReadWriteWriter.FieldWithNumber(field, numberVar));
         });
     }
 
     @Override
     public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
-        FieldReadWriteWriter.readFromResultSet(outVarName, mPojo, resultSetName, fieldWithNumber, block);
+        FieldReadWriteWriter.readFromResultSet(outVarName, mPojo, resultSetName, fieldWithNumberList, block);
     }
 
     @Override

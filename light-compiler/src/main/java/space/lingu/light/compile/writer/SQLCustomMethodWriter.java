@@ -47,8 +47,8 @@ public class SQLCustomMethodWriter {
     }
 
     private List<Pair<ExpressionBind, String>> createSqlQueryAndArgs(String outVarName,
-                                                                         String handlerName,
-                                                                         GenerateCodeBlock block) {
+                                                                     String handlerName,
+                                                                     GenerateCodeBlock block) {
         List<Pair<ExpressionBind, String>> pairList = new ArrayList<>();
         final String argCountArray = block.getTempVar("_argsCountArray");
         List<String> argsSizeParams = new ArrayList<>();

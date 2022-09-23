@@ -23,7 +23,6 @@ import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Pojo;
-import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
@@ -57,12 +56,15 @@ public class AnnotatedMethodWriter {
                         .builder(pojo.getTypeName(), "value")
                         .build());
 
-        List<Pair<Field, String>> pairList = new ArrayList<>();
+        List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
         IntStream.range(0, fields.size()).forEach(value -> {
             Field field = fields.get(value);
-            pairList.add(Pair.createPair(field, String.valueOf(value + 1 + offset)));
+            fieldWithNumberList.add(new FieldReadWriteWriter.FieldWithNumber(
+                    field,
+                    String.valueOf(value + 1 + offset))
+            );
         });
-        FieldReadWriteWriter.bindToStatement("value", "stmt", pairList, bindBlock);
+        FieldReadWriteWriter.bindToStatement("value", "stmt", fieldWithNumberList, bindBlock);
         bindMethodBuilder.addCode(bindBlock.builder().build());
         return bindMethodBuilder.build();
     }

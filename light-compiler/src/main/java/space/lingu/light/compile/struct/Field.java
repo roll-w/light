@@ -35,6 +35,7 @@ import java.util.*;
  * @author RollW
  */
 public class Field implements Configurable {
+    // TODO: makes all properties final.
     private final VariableElement element;
     private final String name;
     private TypeElement type;

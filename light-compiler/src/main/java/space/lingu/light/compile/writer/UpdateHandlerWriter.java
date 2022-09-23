@@ -23,7 +23,6 @@ import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.ParamEntity;
 import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.compile.struct.UpdateMethod;
-import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
@@ -97,20 +96,25 @@ public class UpdateHandlerWriter {
                         .build())
                 .returns(TypeName.VOID);
 
-        List<Pair<Field, String>> fieldWithNumber = new ArrayList<>();
+        List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
         IntStream.range(0, mPojo.getFields().size()).forEach(value -> {
             Field field = mPojo.getFields().get(value);
-            fieldWithNumber.add(Pair.createPair(field, String.valueOf(value + 1)));
+            fieldWithNumberList.add(new FieldReadWriteWriter.FieldWithNumber(
+                    field,
+                    String.valueOf(value + 1))
+            );
         });
 
         final int primaryKeyStart = mPojo.getFields().size();
         IntStream.range(0, mEntity.getPrimaryKey().getFields().fields.size()).forEach(value -> {
             Field field = mEntity.getPrimaryKey().getFields().fields.get(value);
-            fieldWithNumber.add(Pair.createPair(field,
-                    String.valueOf(value + 1 + primaryKeyStart)));
+            fieldWithNumberList.add(new FieldReadWriteWriter.FieldWithNumber(
+                    field,
+                    String.valueOf(value + 1 + primaryKeyStart))
+            );
         });
 
-        FieldReadWriteWriter.bindToStatement("value", "stmt", fieldWithNumber, bindBlock);
+        FieldReadWriteWriter.bindToStatement("value", "stmt", fieldWithNumberList, bindBlock);
         bindMethodBuilder.addCode(bindBlock.builder().build());
 
         builder.addMethod(bindMethodBuilder.build());

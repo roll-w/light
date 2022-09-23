@@ -35,13 +35,13 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 处理一个有{@link space.lingu.light.Dao}注解的类
+ * Process a class annotated with {@link space.lingu.light.Dao}.
+ *
  * @author RollW
  */
 public class DaoProcessor implements Processor<Dao> {
     private final TypeElement mDaoElement;
     private final ProcessEnv mEnv;
-    private final Dao dao = new Dao();
 
     public static final List<Class<? extends Annotation>> sHandleAnnotations =
             Arrays.asList(Insert.class, Query.class, Delete.class, Update.class);
@@ -54,18 +54,24 @@ public class DaoProcessor implements Processor<Dao> {
     @Override
     public Dao process() {
         final String packageName = ElementUtil.getPackage(mDaoElement).getQualifiedName().toString();
-        ClassName implClassName = ClassName.get(packageName,
-                mDaoElement.getSimpleName().toString() + ClassWriter.CLASS_SUFFIX);
-        dao.setElement(mDaoElement)
-                .setSimpleName(mDaoElement.getSimpleName().toString())
-                .setImplName(implClassName.simpleName())
-                .setImplClassName(implClassName);
+        final String simpleName = mDaoElement.getSimpleName().toString() + ClassWriter.CLASS_SUFFIX;
+        ClassName implClassName = ClassName.get(packageName, simpleName);
 
-        dispatchProcessMethod();
-        return dao;
+        Methods methods = dispatchProcessMethod();
+        return new Dao(
+                mDaoElement,
+                simpleName,
+                implClassName,
+                implClassName.simpleName(),
+                methods.insertMethods,
+                methods.updateMethods,
+                methods.deleteMethods,
+                methods.queryMethods,
+                methods.transactionMethods
+        );
     }
 
-    private void dispatchProcessMethod() {
+    private Methods dispatchProcessMethod() {
         List<ExecutableElement> allMethods = getAllMethods(mDaoElement);
         List<QueryMethod> queryMethods = new ArrayList<>();
         List<DeleteMethod> deleteMethods = new ArrayList<>();
@@ -128,12 +134,29 @@ public class DaoProcessor implements Processor<Dao> {
             }
             transactionMethods.add(processTransactionMethod(element));
         });
+        return new Methods(insertMethods,
+                updateMethods, deleteMethods,
+                queryMethods, transactionMethods);
+    }
 
-        dao.setQueryMethods(queryMethods)
-                .setInsertMethods(insertMethods)
-                .setDeleteMethods(deleteMethods)
-                .setUpdateMethods(updateMethods)
-                .setTransactionMethods(transactionMethods);
+    private static final class Methods {
+        final List<InsertMethod> insertMethods;
+        final List<UpdateMethod> updateMethods;
+        final List<DeleteMethod> deleteMethods;
+        final List<QueryMethod> queryMethods;
+        final List<TransactionMethod> transactionMethods;
+
+        private Methods(List<InsertMethod> insertMethods,
+                        List<UpdateMethod> updateMethods,
+                        List<DeleteMethod> deleteMethods,
+                        List<QueryMethod> queryMethods,
+                        List<TransactionMethod> transactionMethods) {
+            this.insertMethods = insertMethods;
+            this.updateMethods = updateMethods;
+            this.deleteMethods = deleteMethods;
+            this.queryMethods = queryMethods;
+            this.transactionMethods = transactionMethods;
+        }
     }
 
     private static <T> void addNonNull(List<T> list, T t) {
@@ -178,7 +201,6 @@ public class DaoProcessor implements Processor<Dao> {
         }
         return methodElements;
     }
-
 
 
 }

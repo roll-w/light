@@ -18,6 +18,7 @@ package space.lingu.light.compile.processor;
 
 import com.squareup.javapoet.ClassName;
 import space.lingu.light.DataColumn;
+import space.lingu.light.Embedded;
 import space.lingu.light.LightIgnore;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.Warnings;
@@ -84,12 +85,22 @@ public class PojoProcessor implements Processor<Pojo> {
             if (!hasColumn) {
                 return;
             }
+            Embedded embedded = e.getAnnotation(Embedded.class);
+            if (embedded == null) {
+                Field field = new FieldProcessor((VariableElement) e, mEnv).process();
+                fields.add(field);
+                return;
+            }
 
-            Field field = new FieldProcessor((VariableElement) e, mEnv).process();
-            fields.add(field);
+
         });
         return fields;
     }
+
+    private void processEmbeddedField(VariableElement element, Embedded embedded) {
+
+    }
+
 
     private Constructor chooseConstructor(List<Field> fields) {
         // 从参数数量由少到多寻找
@@ -175,7 +186,8 @@ public class PojoProcessor implements Processor<Pojo> {
         FieldGetter getter = new FieldGetter(
                 field.getElement(),
                 Field.CallType.METHOD,
-                filteredElements.get(0).getSimpleName().toString());
+                filteredElements.get(0).getSimpleName().toString()
+        );
         field.setGetter(getter);
     }
 

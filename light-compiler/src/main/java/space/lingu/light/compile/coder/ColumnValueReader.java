@@ -21,7 +21,8 @@ import space.lingu.light.SQLDataType;
 import javax.lang.model.type.TypeMirror;
 
 /**
- * 从获取的{@code ResultSet}中读取列的值。
+ * Read value from {@code ResultSet}.
+ *
  * @author RollW
  */
 public interface ColumnValueReader {

@@ -23,8 +23,6 @@ import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.DataTable;
-import space.lingu.light.compile.struct.Field;
-import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
@@ -62,15 +60,25 @@ public class DataTableResultSetConverterWriter extends ClassWriter.SharedMethodS
         GenerateCodeBlock block = new GenerateCodeBlock(writer);
         String tableVar = block.getTempVar("_dataTable");
         block.builder().addStatement("final $T $L", mTable.getTypeName(), tableVar);
-        List<Pair<Field, String>> fieldsWithIndex = new ArrayList<>();
+        List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
+
         mTable.getFields().forEach(field -> {
             String indexVar = block.getTempVar("_resultSetIndexOf" + mTable.getElement().getSimpleName());
-            block.builder().addStatement("final $T $L = $T.getColumnIndexSwallow($N, $S)",
-                    TypeName.INT, indexVar, JavaPoetClass.UtilNames.RESULT_SET_UTIL,
-                    resultSetParam, field.getColumnName());
-            fieldsWithIndex.add(Pair.createPair(field, indexVar));
+            block.builder()
+                    .addStatement("final $T $L = $T.getColumnIndexSwallow($N, $S)",
+                            TypeName.INT, indexVar,
+                            JavaPoetClass.UtilNames.RESULT_SET_UTIL,
+                            resultSetParam,
+                            field.getColumnName());
+
+            fieldWithNumberList.add(
+                    new FieldReadWriteWriter.FieldWithNumber(field, indexVar)
+            );
         });
-        FieldReadWriteWriter.readFromResultSet(tableVar, mTable, resultSetParam.name, fieldsWithIndex, block);
+
+        FieldReadWriteWriter.readFromResultSet(tableVar, mTable,
+                resultSetParam.name, fieldWithNumberList, block);
+
         block.builder().addStatement("return $L", tableVar);
         return block.generate();
     }

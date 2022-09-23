@@ -90,8 +90,6 @@ public class FieldProcessor implements Processor<Field> {
         ColumnValueReader reader = mEnv.getBinders()
                 .findColumnReader(field.getTypeMirror(), field.getDataType());
 
-        field.setColumnValueReader(reader)
-                .setStatementBinder(binder);
         // todo
         if (binder == null || reader == null) {
             mEnv.getLog().error(
@@ -99,7 +97,9 @@ public class FieldProcessor implements Processor<Field> {
                     mElement
             );
         }
-        return field;
+        return field
+                .setColumnValueReader(reader)
+                .setStatementBinder(binder);
         // TODO 嵌套类 等处理。
     }
 

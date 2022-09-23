@@ -17,116 +17,90 @@
 package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.TypeName;
 
 import javax.lang.model.element.TypeElement;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * DAO
+ *
  * @author RollW
  */
 public class Dao {
-    private TypeElement element;
+    private final TypeElement element;
     private ClassName className;
-    private String simpleName;
+    private final String simpleName;
 
-    private List<InsertMethod> insertMethods;
-    private List<UpdateMethod> updateMethods;
-    private List<DeleteMethod> deleteMethods;
-    private List<QueryMethod> queryMethods;
-    private List<TransactionMethod> transactionMethods;
+    private final List<InsertMethod> insertMethods;
+    private final List<UpdateMethod> updateMethods;
+    private final List<DeleteMethod> deleteMethods;
+    private final List<QueryMethod> queryMethods;
+    private final List<TransactionMethod> transactionMethods;
 
-    private ClassName implClassName;
-    private String implName;
+    private final ClassName implClassName;
+    private final String implName;
 
-    public ClassName getClassName() {
-        return className;
+    public Dao(TypeElement element,
+               String simpleName,
+               ClassName implClassName,
+               String implName,
+               List<InsertMethod> insertMethods,
+               List<UpdateMethod> updateMethods,
+               List<DeleteMethod> deleteMethods,
+               List<QueryMethod> queryMethods,
+               List<TransactionMethod> transactionMethods) {
+        this.element = element;
+        this.simpleName = simpleName;
+        this.implClassName = implClassName;
+        this.implName = implName;
+        this.insertMethods = Collections.unmodifiableList(insertMethods);
+        this.updateMethods = Collections.unmodifiableList(updateMethods);
+        this.deleteMethods = Collections.unmodifiableList(deleteMethods);
+        this.queryMethods = Collections.unmodifiableList(queryMethods);
+        this.transactionMethods = Collections.unmodifiableList(transactionMethods);
     }
 
-    public Dao setClassName(ClassName className) {
-        this.className = className;
-        return this;
+    public ClassName getClassName() {
+        if (className == null) {
+            className = ClassName.get(element);
+        }
+        return className;
     }
 
     public String getSimpleName() {
         return simpleName;
     }
 
-    public Dao setSimpleName(String simpleName) {
-        this.simpleName = simpleName;
-        return this;
-    }
-
     public ClassName getImplClassName() {
         return implClassName;
-    }
-
-    public Dao setImplClassName(ClassName implClassName) {
-        this.implClassName = implClassName;
-        return this;
     }
 
     public List<TransactionMethod> getTransactionMethods() {
         return transactionMethods;
     }
 
-    public Dao setTransactionMethods(List<TransactionMethod> transactionMethods) {
-        this.transactionMethods = transactionMethods;
-        return this;
-    }
-
     public TypeElement getElement() {
         return element;
-    }
-
-    public Dao setElement(TypeElement element) {
-        this.element = element;
-        return setClassName(ClassName.get(element));
     }
 
     public List<InsertMethod> getInsertMethods() {
         return insertMethods;
     }
 
-    public Dao setInsertMethods(List<InsertMethod> insertMethods) {
-        this.insertMethods = insertMethods;
-        return this;
-    }
-
     public List<UpdateMethod> getUpdateMethods() {
         return updateMethods;
-    }
-
-    public Dao setUpdateMethods(List<UpdateMethod> updateMethods) {
-        this.updateMethods = updateMethods;
-        return this;
     }
 
     public List<DeleteMethod> getDeleteMethods() {
         return deleteMethods;
     }
 
-    public Dao setDeleteMethods(List<DeleteMethod> deleteMethods) {
-        this.deleteMethods = deleteMethods;
-        return this;
-    }
-
     public List<QueryMethod> getQueryMethods() {
         return queryMethods;
     }
 
-    public Dao setQueryMethods(List<QueryMethod> queryMethods) {
-        this.queryMethods = queryMethods;
-        return this;
-    }
-
     public String getImplName() {
         return implName;
-    }
-
-    public Dao setImplName(String implName) {
-        this.implName = implName;
-        return this;
     }
 }

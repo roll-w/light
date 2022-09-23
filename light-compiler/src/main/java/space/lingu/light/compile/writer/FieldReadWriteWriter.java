@@ -22,7 +22,6 @@ import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.Constructor;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Pojo;
-import space.lingu.light.util.Pair;
 import space.lingu.light.util.StringUtil;
 
 import java.util.*;
@@ -43,43 +42,43 @@ public class FieldReadWriteWriter {
     }
 
     public static void bindToStatement(String owner, String stmt,
-                                       List<Pair<Field, String>> fieldsWithIndex,
+                                       List<FieldWithNumber> fieldsWithIndex,
                                        GenerateCodeBlock block) {
-        fieldsWithIndex.forEach(pair -> {
+        fieldsWithIndex.forEach(fieldWithNumber -> {
             // TODO 嵌套
-            new FieldReadWriteWriter(pair.first, pair.second)
+            new FieldReadWriteWriter(fieldWithNumber.field, fieldWithNumber.indexNum)
                     .bindToStatement(owner, stmt, block);
         });
     }
 
     public static void readFromResultSet(String owner, Pojo outPojo, String resSetVar,
-                                         List<Pair<Field, String>> fieldsWithIndex,
+                                         List<FieldWithNumber> fieldsWithIndex,
                                          GenerateCodeBlock block) {
-        Map<String, Pair<Field, String>> constructorField = new HashMap<>();
-        List<Pair<Field, String>> filteredFields = fieldsWithIndex
+        Map<String, FieldWithNumber> constructorField = new HashMap<>();
+        List<FieldWithNumber> filteredFields = fieldsWithIndex
                 .stream()
-                .filter(fieldStringPair ->
-                        fieldStringPair.first.getSetter().getCallType() == Field.CallType.CONSTRUCTOR)
+                .filter(fieldWithNumber ->
+                        fieldWithNumber.field.getSetter().getCallType() == Field.CallType.CONSTRUCTOR)
                 .collect(Collectors.toList());
-        filteredFields.forEach(fieldStringPair -> constructorField.put(
-                new FieldReadWriteWriter(fieldStringPair.first, fieldStringPair.second).readIntoTempVar(resSetVar,
-                        ClassName.get(fieldStringPair
-                                .first
+        filteredFields.forEach(fieldWithNumber -> constructorField.put(
+                new FieldReadWriteWriter(fieldWithNumber.field, fieldWithNumber.indexNum).readIntoTempVar(resSetVar,
+                        ClassName.get(fieldWithNumber
+                                .field
                                 .getSetter()
                                 .getElement()
                                 .asType()), block),
-                fieldStringPair)
+                fieldWithNumber)
         );
         setFromConstructor(owner, outPojo.getConstructor(), outPojo.getTypeName(), constructorField, block);
         fieldsWithIndex.forEach(pair ->
-                new FieldReadWriteWriter(pair.first, pair.second)
+                new FieldReadWriteWriter(pair.field, pair.indexNum)
                         .readFromResultSet(owner, resSetVar, block)
         );
     }
 
     public static void setFromConstructor(String outVar, Constructor constructor,
                                           TypeName typeName,
-                                          Map<String, Pair<Field, String>> varNames,
+                                          Map<String, FieldWithNumber> varNames,
                                           GenerateCodeBlock block) {
         if (constructor == null) {
             block.builder().addStatement("$L = new $T()", outVar, typeName);
@@ -88,8 +87,8 @@ public class FieldReadWriteWriter {
         List<String> vars = new ArrayList<>();
         Set<String> usedNames = new HashSet<>();
         constructor.getFields().forEach(constructorField ->
-                varNames.forEach((tempVarName, fieldStringPair) -> {
-                    String name = fieldStringPair.first.getName();
+                varNames.forEach((tempVarName, fieldWithNumber) -> {
+                    String name = fieldWithNumber.field.getName();
                     if (usedNames.contains(name)) {
                         return;
                     }
@@ -142,5 +141,15 @@ public class FieldReadWriteWriter {
         block.builder().addStatement("final $T $L", typeName, tmpVar);
         field.getColumnValueReader().readFromResultSet(tmpVar, resSetName, indexVar, block);
         return tmpVar;
+    }
+
+    public static class FieldWithNumber {
+        final Field field;
+        final String indexNum;
+
+        public FieldWithNumber(Field field, String indexNum) {
+            this.field = field;
+            this.indexNum = indexNum;
+        }
     }
 }
