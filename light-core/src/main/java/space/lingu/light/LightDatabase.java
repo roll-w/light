@@ -17,15 +17,15 @@
 package space.lingu.light;
 
 
-import space.lingu.light.sql.DialectProvider;
-import space.lingu.light.log.JdkDefaultLogger;
-import space.lingu.light.log.LightLogger;
 import space.lingu.light.connect.ConnectionPool;
+import space.lingu.light.log.JdkDefaultLogger;
+import space.lingu.light.sql.DialectProvider;
 import space.lingu.light.struct.Table;
 
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 /**
  * @author RollW
@@ -38,7 +38,6 @@ public abstract class LightDatabase {
     private DatasourceConfig mSourceConfig;
 
     private Executor mQueryExecutor;
-    private Executor mTransactionExecutor;
 
     private String mName;
 
@@ -51,9 +50,15 @@ public abstract class LightDatabase {
     }
 
     private LightLogger mLogger = JdkDefaultLogger.getGlobalLogger();
+
     public final LightLogger getLogger() {
         return mLogger;
     }
+
+    /**
+     * Do not implement or call this method in your program!
+     */
+    protected abstract LightInfo.LightInfoDao _LightInfoDao();
 
     public void setLogger(LightLogger logger) {
         if (logger == null) {
@@ -85,8 +90,13 @@ public abstract class LightDatabase {
 
     private void createTables() {
         List<String> statements = mTableStructCache.values()
-                .stream().map(table ->
-                        mDialectProvider.create(table))
+                .stream().map(table -> {
+                    if (Objects.equals(table.getName(), LightInfo.sTableName)) {
+                        // not create the [LightInfo] table current until complete verify function.
+                        return null;
+                    }
+                    return mDialectProvider.create(table);
+                })
                 .collect(Collectors.toList());
         for (String statement : statements) {
             if (mLogger != null) {
@@ -96,11 +106,10 @@ public abstract class LightDatabase {
         }
     }
 
-    private void createInfoTable() {
-        executeRawSqlWithNoReturn(mDialectProvider.create(sInfoTable));
-    }
-
     public void executeRawSqlWithNoReturn(String sql) {
+        if (sql == null) {
+            return;
+        }
         Connection conn = requireConnection();
         PreparedStatement stmt = resolveStatement(sql, conn, false);
         try {
@@ -148,7 +157,7 @@ public abstract class LightDatabase {
     }
 
     public PreparedStatement resolveStatement(String sql, Connection connection, boolean returnsGeneratedKey) {
-        PreparedStatement stmt = null;
+        PreparedStatement stmt;
         if (connection == null) {
             throw new IllegalStateException("Connection is null!");
         }
@@ -159,8 +168,8 @@ public abstract class LightDatabase {
                 stmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             }
         } catch (SQLException e) {
-            mLogger.error("An error occurred while require PreparedStatement.", e);
-            mLogger.trace(e);
+            mLogger.error("An error occurred while require a PreparedStatement.", e);
+            throw new LightRuntimeException(e);
         }
 
         return stmt;
@@ -237,6 +246,80 @@ public abstract class LightDatabase {
         }
     }
 
+    public static class MigrationContainer {
+        private final HashMap<Integer, TreeMap<Integer, Migration>> mMigrations = new HashMap<>();
+
+        public void addMigrations(Migration... migrations) {
+            for (Migration migration : migrations) {
+                addMigration(migration);
+            }
+        }
+
+        public void addMigrations(List<Migration> migrations) {
+            for (Migration migration : migrations) {
+                addMigration(migration);
+            }
+        }
+
+        private void addMigration(Migration migration) {
+            final int start = migration.startVersion;
+            final int end = migration.endVersion;
+            TreeMap<Integer, Migration> targetMap =
+                    mMigrations.computeIfAbsent(start, k -> new TreeMap<>());
+            targetMap.put(end, migration);
+        }
+
+        public Map<Integer, Map<Integer, Migration>> getMigrations() {
+            return Collections.unmodifiableMap(mMigrations);
+        }
+
+        public List<Migration> findMigrationPath(int start, int end) {
+            if (start == end) {
+                return Collections.emptyList();
+            }
+            boolean migrateUp = end > start;
+            List<Migration> result = new ArrayList<>();
+            return findUpMigrationPath(result, migrateUp, start, end);
+        }
+
+        private List<Migration> findUpMigrationPath(List<Migration> result,
+                                                    boolean upgrade,
+                                                    int start, int end) {
+            while (upgrade ? start < end : start > end) {
+                TreeMap<Integer, Migration> targetNodes = mMigrations.get(start);
+                if (targetNodes == null) {
+                    return null;
+                }
+                Set<Integer> keySet;
+                if (upgrade) {
+                    keySet = targetNodes.descendingKeySet();
+                } else {
+                    keySet = targetNodes.keySet();
+                }
+                boolean found = false;
+                for (int targetVersion : keySet) {
+                    final boolean shouldAddToPath;
+                    if (upgrade) {
+                        shouldAddToPath = targetVersion <= end && targetVersion > start;
+                    } else {
+                        shouldAddToPath = targetVersion >= end && targetVersion < start;
+                    }
+                    if (shouldAddToPath) {
+                        result.add(targetNodes.get(targetVersion));
+                        start = targetVersion;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    return null;
+                }
+            }
+            return result;
+        }
+
+    }
+
     public static class Builder<T extends LightDatabase> {
         private final Class<T> mDatabaseClass;
         private final String mName;
@@ -245,6 +328,7 @@ public abstract class LightDatabase {
         private final DialectProvider mProvider;
         private ConnectionPool mConnectionPool;
         private LightLogger mLogger;
+        private final MigrationContainer mMigrationContainer;
 
         Builder(Class<T> clazz, DialectProvider provider) {
             if (clazz == null || provider == null) {
@@ -257,7 +341,7 @@ public abstract class LightDatabase {
                 throw new IllegalStateException("Must be annotated with '@Database'!");
             }
             mName = database.name();
-
+            mMigrationContainer = new MigrationContainer();
         }
 
         Builder(Class<T> clazz, Class<? extends DialectProvider> providerClass) {
@@ -271,11 +355,13 @@ public abstract class LightDatabase {
 
         @LightExperimentalApi
         public Builder<T> addMigrations(Migration... migrations) {
+            mMigrationContainer.addMigrations(migrations);
             return this;
         }
 
         /**
          * 设置冲突时重建数据表
+         *
          * @return this
          */
         @LightExperimentalApi
@@ -285,6 +371,8 @@ public abstract class LightDatabase {
 
         /**
          * 设置冲突时是否重建数据表
+         *
+         * @param enable enable
          * @return this
          */
         @LightExperimentalApi
@@ -323,8 +411,8 @@ public abstract class LightDatabase {
                     mConfig,
                     mConnectionPool,
                     mProvider,
-                    mLogger
-            );
+                    mLogger,
+                    mMigrationContainer);
         }
 
         public T build() {

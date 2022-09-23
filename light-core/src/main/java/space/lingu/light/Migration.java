@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-package space.lingu.light.struct;
-
-import space.lingu.light.Configurations;
-
-import java.util.List;
+package space.lingu.light;
 
 /**
  * @author RollW
  */
-public class DatabaseInfo {
-    private final String name;
-    private final List<Table> tables;
-    private Configurations configurations;
+@LightExperimentalApi
+public abstract class Migration {
+    public final int startVersion;
+    public final int endVersion;
 
-    public DatabaseInfo(String name, List<Table> tables) {
-        this.name = name;
-        this.tables = tables;
+    /**
+     * Creates a new migration between {@code startVersion} and {@code endVersion}.
+     *
+     * @param startVersion The start version of the database.
+     * @param endVersion The end version of the database after this migration is applied.
+     */
+    public Migration(int startVersion, int endVersion) {
+        this.startVersion = startVersion;
+        this.endVersion = endVersion;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public List<Table> getTables() {
-        return tables;
-    }
-
+    public abstract void migrate(SharedConnection connection);
 }

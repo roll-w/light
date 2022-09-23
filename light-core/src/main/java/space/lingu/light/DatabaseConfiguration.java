@@ -17,7 +17,6 @@
 package space.lingu.light;
 
 import space.lingu.light.connect.ConnectionPool;
-import space.lingu.light.log.LightLogger;
 import space.lingu.light.sql.DialectProvider;
 
 /**
@@ -29,16 +28,19 @@ public class DatabaseConfiguration {
     public final ConnectionPool connectionPool;
     public final DialectProvider dialectProvider;
     public final LightLogger logger;
+    public final LightDatabase.MigrationContainer migrationContainer;
 
     public DatabaseConfiguration(String name,
                                  DatasourceConfig datasourceConfig,
                                  ConnectionPool connectionPool,
                                  DialectProvider dialectProvider,
-                                 LightLogger logger) {
+                                 LightLogger logger,
+                                 LightDatabase.MigrationContainer migrationContainer) {
         this.name = name;
         this.datasourceConfig = datasourceConfig;
         this.connectionPool = connectionPool;
         this.dialectProvider = dialectProvider;
         this.logger = logger;
+        this.migrationContainer = migrationContainer;
     }
 }

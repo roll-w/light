@@ -139,15 +139,7 @@ public final class Configurations {
             this.key = key;
             this.value = value;
         }
-
-        public int intValue() {
-            return Integer.parseInt(value);
-        }
-
-        public boolean booleanValue() {
-            return Boolean.parseBoolean(value);
-        }
-
+        
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
