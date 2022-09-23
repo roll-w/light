@@ -26,6 +26,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
+ * Internal API. Handle custom SQL expression.
+ *
  * @author RollW
  */
 public class SQLHandler extends SharedConnection {

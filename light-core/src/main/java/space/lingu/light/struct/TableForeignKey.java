@@ -16,8 +16,16 @@
 
 package space.lingu.light.struct;
 
+import java.util.List;
+
 /**
+ * Foreign key.
+ *
  * @author RollW
  */
 public class TableForeignKey {
+    String parentTable;
+    List<String> parentColumns;
+    List<String> childColumns;
+
 }

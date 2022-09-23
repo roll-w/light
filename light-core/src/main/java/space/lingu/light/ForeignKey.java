@@ -32,4 +32,19 @@ public @interface ForeignKey {
     String[] parentColumns();
 
     String[] childColumns();
+
+    Action onDelete() default Action.NO_ACTION;
+
+    Action onUpdate() default Action.NO_ACTION;
+
+    /**
+     * @author RollW
+     */
+    enum Action {
+        NO_ACTION,
+        RESTRICT,
+        SET_NULL,
+        SET_DEFAULT,
+        CASCADE;
+    }
 }
