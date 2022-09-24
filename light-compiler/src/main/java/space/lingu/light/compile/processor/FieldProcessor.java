@@ -23,7 +23,6 @@ import space.lingu.light.Configurations;
 import space.lingu.light.DataColumn;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -62,7 +61,8 @@ public class FieldProcessor implements Processor<Field> {
         field.setDataType(dataColumn.dataType());
 
         if (field.getColumnName() == null || field.getColumnName().isEmpty()) {
-            throw new LightCompileException("Field cannot have an empty column name!");
+            // should not happen
+            throw new IllegalArgumentException("Field cannot have an empty column name.");
         }
         boolean hasDefault = !dataColumn.defaultValue().equals(DataColumn.NO_DEFAULT_VALUE);
 

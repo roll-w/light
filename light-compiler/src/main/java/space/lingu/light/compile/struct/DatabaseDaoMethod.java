@@ -23,27 +23,20 @@ import javax.lang.model.element.ExecutableElement;
  * @author RollW
  */
 public class DatabaseDaoMethod {
-    private ExecutableElement element;
-    private Dao dao;
+    private final ExecutableElement element;
+    private final Dao dao;
 
-    public DatabaseDaoMethod() {
+    public DatabaseDaoMethod(ExecutableElement element, Dao dao) {
+        this.element = element;
+        this.dao = dao;
     }
+
 
     public ExecutableElement getElement() {
         return element;
     }
 
-    public DatabaseDaoMethod setElement(ExecutableElement element) {
-        this.element = element;
-        return this;
-    }
-
     public Dao getDao() {
         return dao;
-    }
-
-    public DatabaseDaoMethod setDao(Dao dao) {
-        this.dao = dao;
-        return this;
     }
 }

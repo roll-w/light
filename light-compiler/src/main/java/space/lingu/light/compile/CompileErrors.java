@@ -16,6 +16,7 @@
 
 package space.lingu.light.compile;
 
+import javax.lang.model.element.TypeElement;
 import java.util.List;
 
 /**
@@ -51,8 +52,23 @@ public final class CompileErrors {
     public static final String DATABASE_NAME_EMPTY =
             "Database name cannot be empty.";
 
+    public static final String DAO_METHOD_NOT_PARAMLESS =
+            "A Dao getter method must be a parameterless method.";
+
+    public static final String DATA_TABLE_NOT_ANNOTATED =
+            "A data table class must be annotated with @DataTable.";
+
+    public static final String DATA_TABLE_NOT_CLASS =
+            "Please check if the classes in [tables()] contains non-class types.";
+
     public static final String TABLE_NO_FIELDS =
             "You are trying to create a table with no columns, it should contain at least 1 field.";
+
+    private static final String DUPLICATED_TABLE_NAME = "Duplicate table name '%s' found.";
+
+    public static String duplicatedTableName(String tableName) {
+        return String.format(DUPLICATED_TABLE_NAME, tableName);
+    }
 
     public static final String CANNOT_FOUND_CONSTRUCTOR =
             "Cannot find a constructor for it.";
@@ -89,6 +105,15 @@ public final class CompileErrors {
 
     public static String duplicatedTableColumnName(String columnName) {
         return String.format(TABLE_COLUMN_NAME_DUPLICATED, columnName);
+    }
+
+    public static final String MULTIPLE_PRIMARY_KEY_FOUND =
+            "More than one defined primary key was found.";
+
+    private static final String TYPE_NOT_ITERATOR = "iterator() not found in Iterable %s.";
+
+    public static String typeNotIterator(TypeElement element) {
+        return String.format(TYPE_NOT_ITERATOR, element.getQualifiedName());
     }
 
     public static final String UNKNOWN_TYPE =
@@ -131,6 +156,8 @@ public final class CompileErrors {
                     "please check the return type and parameter.";
 
 
+    public static final String QUERY_SQL_EMPTY = "Query method value cannot be empty, must be a sql expression.";
+
     public static final String QUERY_UNKNOWN_PARAM =
             "Unknown parameter type.";
 
@@ -146,6 +173,11 @@ public final class CompileErrors {
             "The SQL expression in the annotation cannot be empty " +
                     "and must be a meaningful SQL expression.";
 
+    public static final String TRANSACTION_METHOD_NOT_DEFAULT =
+            "The transaction method in an interface must have a default implementation.";
+
+    public static final String TRANSACTION_METHOD_ABSTRACT =
+            "The transaction method cannot be abstract.";
 
     public static final String DATA_CONVERTER_TOO_MUCH_PARAMS =
             "A DataConverter method can only have one parameter.";

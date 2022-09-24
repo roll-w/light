@@ -18,7 +18,6 @@ package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.TypeUtil;
 
 import javax.lang.model.element.ElementKind;
@@ -29,39 +28,32 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 构造函数
+ * Constructor
+ *
  * @author RollW
  */
 public class Constructor {
-    private ExecutableElement element;
-    private List<Field> fields;
+    private final ExecutableElement element;
+    private final List<Field> fields;
 
-    public Constructor() {
+    public Constructor(ExecutableElement element, List<Field> fields) {
+        this.element = element;
+        this.fields = fields;
     }
 
     public List<Field> getFields() {
         return fields;
     }
 
-    public Constructor setFields(List<Field> fields) {
-        this.fields = fields;
-        return this;
-    }
-
     public ExecutableElement getElement() {
         return element;
-    }
-
-    public Constructor setElement(ExecutableElement element) {
-        this.element = element;
-        return this;
     }
 
     public boolean containsField(Field field) {
         List<? extends VariableElement> elements = element.getParameters();
         AtomicBoolean flag = new AtomicBoolean(false);
         elements.forEach(e -> {
-            // 比较名称和类型是否相同
+            // compare name and typeMirror
             if (e.getSimpleName().contentEquals(field.getName()) &&
                     TypeUtil.equalTypeMirror(e.asType(), field.getTypeMirror())) {
                 flag.set(true);
@@ -82,7 +74,7 @@ public class Constructor {
             builder.addStatement("$L = $T.$L($L)", out, ClassName.get((TypeElement) element.getEnclosingElement()),
                     element.getSimpleName().toString(), args);
         } else {
-            throw new LightCompileException("Invalid constructor for " + element.getKind());
+            throw new IllegalArgumentException("Invalid constructor for " + element.getKind());
         }
     }
 }

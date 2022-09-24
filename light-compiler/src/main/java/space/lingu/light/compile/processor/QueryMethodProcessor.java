@@ -19,7 +19,6 @@ package space.lingu.light.compile.processor;
 import space.lingu.light.Query;
 import space.lingu.light.Transaction;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.ExpressionBind;
@@ -55,7 +54,7 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
     public QueryMethod process() {
         Query queryAnno = mExecutable.getAnnotation(Query.class);
         if (queryAnno.value().isEmpty()) {
-            throw new LightCompileException("Query method value cannot be empty, must be a sql sentence.");
+            mEnv.getLog().error(CompileErrors.QUERY_SQL_EMPTY, mExecutable);
         }
         DaoProcessor.sHandleAnnotations.forEach(anno -> {
             if (anno != Query.class && mExecutable.getAnnotation(anno) != null) {

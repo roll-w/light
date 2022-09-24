@@ -18,7 +18,6 @@ package space.lingu.light.compile.processor;
 
 import space.lingu.light.Insert;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.annotated.binder.DirectInsertMethodBinder;
 import space.lingu.light.compile.coder.annotated.translator.InsertMethodTranslator;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -58,7 +57,7 @@ public class InsertMethodProcessor implements Processor<InsertMethod> {
         Insert insertAnno = mExecutable.getAnnotation(Insert.class);
         if (insertAnno == null) {
             // but this will never happen.
-            throw new LightCompileException("An insertion method must be annotated with @Insert.");
+            throw new IllegalStateException("An insertion method must be annotated with @Insert.");
         }
         DaoProcessor.sHandleAnnotations.forEach(anno -> {
             if (anno != Insert.class && mExecutable.getAnnotation(anno) != null) {

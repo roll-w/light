@@ -20,15 +20,17 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import space.lingu.light.LightRuntimeException;
+import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.JavaPoetClass;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.writer.ClassWriter;
-import space.lingu.light.SQLDataType;
 
-import javax.lang.model.element.*;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -46,7 +48,7 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
         super(type, SQLDataType.VARCHAR);
         mElement = ElementUtil.asTypeElement(type);
         if (mElement == null || mElement.getKind() != ElementKind.ENUM) {
-            throw new LightCompileException("Cannot parse enum kind.");
+            throw new IllegalArgumentException("Not an enum kind.");
         }
         enumConstants = getEnumConstants();
     }

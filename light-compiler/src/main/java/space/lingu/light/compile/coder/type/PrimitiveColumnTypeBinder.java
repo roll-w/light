@@ -19,7 +19,6 @@ package space.lingu.light.compile.coder.type;
 
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.SQLDataType;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
@@ -111,7 +110,7 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
                     sqlDataType = SQLDataType.BOOLEAN;
                     break;
                 default: {
-                    throw new LightCompileException("Illegal type.");
+                    throw new IllegalArgumentException("Illegal type of " + parseDataType);
                 }
             }
 

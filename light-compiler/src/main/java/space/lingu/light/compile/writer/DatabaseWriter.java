@@ -17,7 +17,6 @@
 package space.lingu.light.compile.writer;
 
 import com.squareup.javapoet.*;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
@@ -59,7 +58,7 @@ public class DatabaseWriter extends ClassWriter {
                 .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                 .addAnnotation(Override.class)
                 .returns(TypeName.VOID)
-                .addComment("here create all runtime structures")
+                .addComment("here creates all runtime structures")
                 .build();
     }
 
@@ -101,10 +100,6 @@ public class DatabaseWriter extends ClassWriter {
     }
 
     private MethodSpec createDaoGetter(FieldSpec field, DatabaseDaoMethod method) {
-        if (!method.getElement().getParameters().isEmpty()) {
-            throw new LightCompileException("A Dao getter method must be a parameterless method.");
-        }
-
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(method.getElement().getSimpleName().toString())
                 .addAnnotation(Override.class)
                 .returns(ClassName.get(method.getDao().getElement()));

@@ -35,6 +35,11 @@ public final class Warnings {
     public static final String CANNOT_APPLY_TO_STATIC_FIELD =
             "" + INFO;
 
+    public static final String PRIMARY_KEYS_DEPRECATED =
+            "You are still using primaryKeys() to define the primary key." +
+                    " This will be removed in the future." + DEPRECATED;
+
+
     private Warnings() {
     }
 

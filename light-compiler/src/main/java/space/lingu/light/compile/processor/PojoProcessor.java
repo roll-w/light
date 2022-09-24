@@ -154,9 +154,7 @@ public class PojoProcessor implements Processor<Pojo> {
             }
             constructorParams.add(find);
         }
-        return new Constructor()
-                .setElement(constructorMethod)
-                .setFields(constructorParams);
+        return new Constructor(constructorMethod, constructorParams);
     }
 
     private void setFieldsGetterMethod(List<Field> fields, List<ExecutableElement> elements) {

@@ -17,7 +17,6 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
@@ -25,7 +24,10 @@ import space.lingu.light.compile.struct.AnnotateParameter;
 import space.lingu.light.compile.writer.ClassWriter;
 import space.lingu.light.util.Pair;
 
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
@@ -33,6 +35,7 @@ import java.util.List;
 /**
  * @author RollW
  */
+@SuppressWarnings({"deprecation"})
 public class AnnotateParameterProcessor implements Processor<AnnotateParameter> {
     private final VariableElement mElement;
     private final ProcessEnv mEnv;
@@ -75,7 +78,10 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
                 return ElementUtil.getGenericElements(TypeUtil.asExecutable(asMember).getReturnType()).get(0);
             }
         }
-        throw new LightCompileException("iterator() not found in Iterable " + type.getQualifiedName());
+        mEnv.getLog().error(
+                CompileErrors.typeNotIterator(type),
+                mElement);
+        return null;
     }
 
     private Pair<TypeElement, Boolean> extractPojo(TypeMirror typeMirror) {

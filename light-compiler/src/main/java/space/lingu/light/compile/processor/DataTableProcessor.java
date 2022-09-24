@@ -19,7 +19,6 @@ package space.lingu.light.compile.processor;
 import space.lingu.light.Configurations;
 import space.lingu.light.LightIgnore;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -40,12 +39,12 @@ public class DataTableProcessor implements Processor<DataTable> {
     private final ProcessEnv mEnv;
 
     public DataTableProcessor(TypeElement element, ProcessEnv env) {
+        mEnv = env;
         mElement = element;
         anno = element.getAnnotation(space.lingu.light.DataTable.class);
         if (anno == null) {
-            throw new LightCompileException("A data table class must be annotated with @DataTable.");
+            mEnv.getLog().error(CompileErrors.DATA_TABLE_NOT_ANNOTATED, element);
         }
-        mEnv = env;
     }
 
     @Override
@@ -93,8 +92,7 @@ public class DataTableProcessor implements Processor<DataTable> {
             return new ArrayList<>();
         }
         mEnv.getLog().warn(
-                "You are still using primaryKeys() to define the primary key. This will be removed in the future." +
-                        Warnings.DEPRECATED,
+                Warnings.PRIMARY_KEYS_DEPRECATED,
                 mElement);
 
         List<PrimaryKey> primaryKeys = new ArrayList<>();
@@ -163,8 +161,8 @@ public class DataTableProcessor implements Processor<DataTable> {
             return filtered.get(0);
         }
 
-        mEnv.getLog().error("Multiple primary keys were found, there are only one can be used @PrimaryKey.", typeElement);
-        throw new LightCompileException("Multiple primary keys were found, there are only one can be used @PrimaryKey.");
+        mEnv.getLog().error(CompileErrors.MULTIPLE_PRIMARY_KEY_FOUND, typeElement);
+        return null;
     }
 
     private void checkColumnName(DataTable dataTable) {

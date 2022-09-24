@@ -19,11 +19,10 @@ package space.lingu.light.compile.processor;
 import com.squareup.javapoet.ClassName;
 import space.lingu.light.*;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.struct.*;
 import space.lingu.light.compile.struct.Dao;
+import space.lingu.light.compile.struct.*;
 import space.lingu.light.compile.writer.ClassWriter;
 
 import javax.lang.model.element.Element;
@@ -125,11 +124,13 @@ public class DaoProcessor implements Processor<Dao> {
             }
             if (isInterface) {
                 if (!ElementUtil.isDefault(element)) {
-                    throw new LightCompileException("The transaction method in an interface must have a default implementation.");
+                    mEnv.getLog().error(CompileErrors.TRANSACTION_METHOD_NOT_DEFAULT, element);
+                    return;
                 }
             } else {
                 if (ElementUtil.isAbstract(element)) {
-                    throw new LightCompileException("The transaction method cannot be abstract.");
+                    mEnv.getLog().error(CompileErrors.TRANSACTION_METHOD_ABSTRACT, element);
+                    return;
                 }
             }
             transactionMethods.add(processTransactionMethod(element));

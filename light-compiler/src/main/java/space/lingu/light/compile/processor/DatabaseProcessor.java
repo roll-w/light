@@ -22,7 +22,6 @@ import space.lingu.light.Dao;
 import space.lingu.light.DataConverters;
 import space.lingu.light.LightInfo;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.*;
@@ -95,13 +94,16 @@ public class DatabaseProcessor implements Processor<Database> {
 
     private List<DataTable> processDataTables(List<? extends TypeMirror> mirrors) {
         if (mirrors == null) {
-            throw new LightCompileException("Cannot required data table classes.");
+            throw new IllegalArgumentException("Cannot get data table classes");
         }
         List<DataTable> dataTableList = new ArrayList<>();
         mirrors.forEach(typeMirror -> {
             TypeElement element = ElementUtil.asTypeElement(typeMirror);
             if (element == null) {
-                throw new LightCompileException("Please check datatable classes.");
+                mEnv.getLog().error(
+                        CompileErrors.DATA_TABLE_NOT_CLASS,
+                        mElement);
+                return;
             }
             dataTableList.add(new DataTableProcessor(element, mEnv).process());
         });
@@ -110,7 +112,11 @@ public class DatabaseProcessor implements Processor<Database> {
         Set<String> nameSet = new HashSet<>();
         dataTableList.forEach(dataTable -> {
             if (nameSet.contains(dataTable.getTableName())) {
-                throw new LightCompileException("Cannot have the same table name!");
+                mEnv.getLog().error(
+                        CompileErrors.duplicatedTableName(dataTable.getTableName()),
+                        dataTable.getElement()
+                );
+                return;
             }
             nameSet.add(dataTable.getTableName());
         });
@@ -171,15 +177,16 @@ public class DatabaseProcessor implements Processor<Database> {
             Dao daoAnno = returnType.getAnnotation(Dao.class);
             if (daoAnno == null) {
                 mEnv.getLog().error(
-                        CompileErrors.DATABASE_ABSTRACT_METHOD_RETURN_TYPE,
-                        method
+                        CompileErrors.DATABASE_ABSTRACT_METHOD_RETURN_TYPE, method
                 );
             }
+            if (method.getParameters().isEmpty()) {
+                mEnv.getLog().error(CompileErrors.DAO_METHOD_NOT_PARAMLESS, method);
+            }
+
             DaoProcessor daoProcessor = new DaoProcessor(returnType, mEnv);
             space.lingu.light.compile.struct.Dao dao = daoProcessor.process();
-            DatabaseDaoMethod daoMethod = new DatabaseDaoMethod()
-                    .setDao(dao)
-                    .setElement(method);
+            DatabaseDaoMethod daoMethod = new DatabaseDaoMethod(method, dao);
             daoMethods.add(daoMethod);
         }
 

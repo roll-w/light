@@ -18,7 +18,6 @@ package space.lingu.light.compile.processor;
 
 import space.lingu.light.Update;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.annotated.binder.DirectAutoDeleteUpdateMethodBinder;
 import space.lingu.light.compile.coder.annotated.translator.AutoDeleteUpdateMethodTranslator;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -57,7 +56,7 @@ public class UpdateMethodProcessor implements Processor<UpdateMethod> {
 
         Update updateAnno = mExecutable.getAnnotation(Update.class);
         if (updateAnno == null) {
-            throw new LightCompileException("A update method must be annotated with @Update.");
+            throw new IllegalStateException("A update method must be annotated with @Update.");
         }
         DaoProcessor.sHandleAnnotations.forEach(anno -> {
             if (anno != Update.class && mExecutable.getAnnotation(anno) != null) {
