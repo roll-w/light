@@ -20,6 +20,7 @@ package space.lingu.light;
 import space.lingu.light.connect.ConnectionPool;
 import space.lingu.light.log.JdkDefaultLogger;
 import space.lingu.light.sql.DialectProvider;
+import space.lingu.light.struct.DatabaseInfo;
 import space.lingu.light.struct.Table;
 
 import java.sql.*;
@@ -82,10 +83,19 @@ public abstract class LightDatabase {
         conf.connectionPool.setDataSourceConfig(mSourceConfig);
         this.mConnectionPool = conf.connectionPool;
 
+        createDatabase(mName);
         createTables();
+        createIndices();
     }
 
     protected void registerAllTables() {
+    }
+
+    protected void createDatabase(String name) {
+        final String sql = mDialectProvider.create(
+                new DatabaseInfo(name, Collections.emptyList()));
+        executeRaw(sql, rawConnection());
+        // TODO
     }
 
     private void createTables() {
@@ -106,11 +116,38 @@ public abstract class LightDatabase {
         }
     }
 
+    private void createIndices() {
+        List<String> statements = mTableStructCache.values()
+                .stream().map(table -> {
+                    if (Objects.equals(table.getName(), LightInfo.sTableName)) {
+                        // not create the [LightInfo] table current until complete verify function.
+                        return null;
+                    }
+                    return table.getIndices().stream().map(index ->
+                                    mDialectProvider.create(index))
+                            .collect(Collectors.toList());
+                })
+                .collect(ArrayList::new, ArrayList::addAll, ArrayList::addAll);
+        for (String statement : statements) {
+            if (mLogger != null) {
+                mLogger.debug("execute create index statement, statement: " + statement);
+            }
+            executeRawSqlWithNoReturn(statement);
+        }
+    }
+
     public void executeRawSqlWithNoReturn(String sql) {
         if (sql == null) {
             return;
         }
         Connection conn = requireConnection();
+        executeRaw(sql, conn);
+    }
+
+    public void executeRaw(String sql, Connection conn) {
+        if (sql == null) {
+            return;
+        }
         PreparedStatement stmt = resolveStatement(sql, conn, false);
         try {
             stmt.execute();
@@ -122,9 +159,13 @@ public abstract class LightDatabase {
         }
     }
 
-    public Connection requireConnection() {
+    private Connection rawConnection() {
         checkConnectionPool();
-        Connection connection = mConnectionPool.requireConnection();
+        return mConnectionPool.requireConnection();
+    }
+
+    public Connection requireConnection() {
+        Connection connection = rawConnection();
         if (mName == null) {
             return connection;
         }
