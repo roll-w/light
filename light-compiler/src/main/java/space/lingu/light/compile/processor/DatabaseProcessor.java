@@ -180,7 +180,7 @@ public class DatabaseProcessor implements Processor<Database> {
                         CompileErrors.DATABASE_ABSTRACT_METHOD_RETURN_TYPE, method
                 );
             }
-            if (method.getParameters().isEmpty()) {
+            if (!method.getParameters().isEmpty()) {
                 mEnv.getLog().error(CompileErrors.DAO_METHOD_NOT_PARAMLESS, method);
             }
 
