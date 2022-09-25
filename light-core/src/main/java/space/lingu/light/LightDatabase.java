@@ -121,7 +121,7 @@ public abstract class LightDatabase {
                 .stream().map(table -> {
                     if (Objects.equals(table.getName(), LightInfo.sTableName)) {
                         // not create the [LightInfo] table current until complete verify function.
-                        return null;
+                        return new ArrayList<String>();
                     }
                     return table.getIndices().stream().map(index ->
                                     mDialectProvider.create(index))
