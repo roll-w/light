@@ -96,6 +96,7 @@ public class Field implements Configurable {
     public List<String> getterNameCandidate() {
         final List<String> getterNames = new ArrayList<>();
         getPossibleCandidateName().forEach(s -> {
+            getterNames.add(s);
             getterNames.add("get" + StringUtil.firstUpperCase(s));
             TypeName typeName = ClassName.get(typeMirror);
             if (typeMirror.getKind() == TypeKind.BOOLEAN ||
