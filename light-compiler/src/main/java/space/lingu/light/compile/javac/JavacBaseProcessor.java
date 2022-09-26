@@ -24,7 +24,6 @@ import javax.lang.model.util.Types;
 /**
  * @author RollW
  */
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public abstract class JavacBaseProcessor extends AbstractProcessor {
     protected Messager messager;
     protected Elements elementUtils;
@@ -46,4 +45,8 @@ public abstract class JavacBaseProcessor extends AbstractProcessor {
         return env;
     }
 
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latest();
+    }
 }
