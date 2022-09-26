@@ -60,7 +60,7 @@ public class GenerateCodeBlock {
         }
         int idx = tempVars.getOrDefault(prefix, 0);
         String res = generateTmpVarName(prefix, idx);
-        tempVars.put(res, idx + 1);
+        tempVars.put(prefix, idx + 1);
         return res;
     }
 
@@ -68,13 +68,13 @@ public class GenerateCodeBlock {
         return builder.build();
     }
 
-    public GenerateCodeBlock copy() {
+    public GenerateCodeBlock fork() {
         GenerateCodeBlock block = new GenerateCodeBlock(writer);
         block.tempVars.putAll(tempVars);
         return block;
     }
 
-    public static String generateTmpVarName(String prefix, int idx) {
+    private static String generateTmpVarName(String prefix, int idx) {
         if (idx == 0) return prefix;
         return prefix + "_" + idx;
     }
