@@ -173,11 +173,15 @@ public class PojoProcessor implements Processor<Pojo> {
             return;
         }
         List<String> candidates = field.getterNameCandidate();
-        List<ExecutableElement> filteredElements = elements.stream().filter(executableElement -> executableElement.getParameters().isEmpty() &&
-                candidates.contains(executableElement.getSimpleName().toString())).collect(Collectors.toList());
+        List<ExecutableElement> filteredElements = elements
+                .stream()
+                .filter(executableElement ->
+                        executableElement.getParameters().isEmpty() &&
+                                candidates.contains(executableElement.getSimpleName().toString()))
+                .collect(Collectors.toList());
         if (filteredElements.isEmpty()) {
             mEnv.getLog().error(
-                    CompileErrors.cannotFoundSetter(candidates),
+                    CompileErrors.cannotFoundGetter(candidates),
                     field.getElement()
             );
         }
@@ -218,7 +222,7 @@ public class PojoProcessor implements Processor<Pojo> {
                 .collect(Collectors.toList());
         if (filteredElements.isEmpty()) {
             mEnv.getLog().error(
-                    CompileErrors.cannotFoundGetter(candidates),
+                    CompileErrors.cannotFoundSetter(candidates),
                     field.getElement()
             );
         }

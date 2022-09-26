@@ -17,14 +17,11 @@
 package space.lingu.light.compile;
 
 /**
- * Light编译时错误
+ * Light Compile Exception
  *
  * @author RollW
  */
 public class LightCompileException extends RuntimeException {
-    public LightCompileException() {
-        super();
-    }
 
     public LightCompileException(String message) {
         super(message);
@@ -36,9 +33,5 @@ public class LightCompileException extends RuntimeException {
 
     public LightCompileException(Throwable cause) {
         this(CompileErrors.bugReportWithMessage(cause.getMessage()), cause);
-    }
-
-    protected LightCompileException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

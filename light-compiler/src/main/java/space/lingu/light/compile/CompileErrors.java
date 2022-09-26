@@ -73,14 +73,15 @@ public final class CompileErrors {
     public static final String CANNOT_FOUND_CONSTRUCTOR =
             "Cannot find a constructor for it.";
 
-    public static final String CANNOT_FOUND_SETTER =
+    private static final String CANNOT_FOUND_SETTER =
+            "Cannot find a setter method for field, please check if its name follow rules" +
+                    " or is a private method. Candidates: ";
+
+    private static final String CANNOT_FOUND_GETTER =
             "The getter method of the field cannot be found. " +
                     "Please check whether its name conforms to the rules, " +
                     "or it is a private method, or the return type is different from the field. Candidates: ";
 
-    public static final String CANNOT_FOUND_GETTER =
-            "Cannot find a setter method for field, please check if its name follow rules" +
-                    " or is a private method. Candidates: ";
 
     public static String cannotFoundGetter(List<String> candidates) {
         return CANNOT_FOUND_GETTER + candidates;
