@@ -168,7 +168,7 @@ public class RuntimeStructWriter {
 
         block.builder()
                 .addStatement("$T $L = {$L}", orderArrayType,
-                        tableIndexVarName, orders.toString())
+                        indexOrderArrayVarName, orders.toString())
                 .addStatement("$T $L = {$L}", stringArrayType,
                         indexColumnsArrayVarName, columnsJoiner.toString())
                 .addStatement("$T $L = new $T($S, $S, $L, $L, $L, $L)",
