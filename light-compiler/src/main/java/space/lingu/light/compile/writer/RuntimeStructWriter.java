@@ -176,7 +176,7 @@ public class RuntimeStructWriter {
                         mTable.getTableName(),
                         index.getName(), index.isUnique(),
                         indexOrderArrayVarName,
-                        null, indexConfVarName
+                        indexColumnsArrayVarName, indexConfVarName
                 )
                 .addStatement("$L.add($L)", indexListVarName, tableIndexVarName);
     }
