@@ -37,7 +37,7 @@ public class SingleColumnRowConverter extends RowConverter {
 
     @Override
     public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
-        reader.readFromResultSet(outVarName, resultSetName, "0", block);
+        reader.readFromResultSet(outVarName, resultSetName, "1", block);
     }
 
     @Override

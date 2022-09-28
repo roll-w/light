@@ -17,6 +17,7 @@
 package space.lingu.light.util;
 
 import space.lingu.light.LightRuntimeException;
+import space.lingu.light.sql.SQLEscaper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -49,9 +50,32 @@ public final class ResultSetUtil {
         return index;
     }
 
+    public static int getColumnIndex(ResultSet set, String name,
+                                     SQLEscaper escaper) throws SQLException {
+        int index = set.findColumn(name);
+        if (index >= 0) {
+            return index;
+        }
+        index = set.findColumn(escaper.escapeParam(name));
+        return index;
+    }
+
     public static int getColumnIndexSwallow(ResultSet set, String name) {
         try {
             int index = getColumnIndex(set, name);
+            if (index >= 0) {
+                return index;
+            }
+        } catch (SQLException ignored) {
+            // swallow exception
+        }
+        return -1;
+    }
+
+    public static int getColumnIndexSwallow(ResultSet set, String name,
+                                            SQLEscaper escaper) {
+        try {
+            int index = getColumnIndex(set, name, escaper);
             if (index >= 0) {
                 return index;
             }

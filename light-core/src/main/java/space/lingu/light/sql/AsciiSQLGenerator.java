@@ -19,6 +19,7 @@ package space.lingu.light.sql;
 import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.util.StringUtil;
 
+import java.util.Arrays;
 import java.util.StringJoiner;
 
 /**
@@ -83,16 +84,22 @@ public class AsciiSQLGenerator implements SQLGenerator {
         }
         StringBuilder builder = new StringBuilder("DELETE FROM ")
                 .append(escapeParam(tableName)).append(" ");
-        if (conditions.length == 0) {
-            return builder.toString();
-        }
-        builder.append("WHERE ");
-        StringJoiner conditionJoiner = new StringJoiner("AND ");
-        for (String condition : conditions) {
-            conditionJoiner.add(escapeParam(condition) + "=? ");
-        }
+        return builder.append(wheres(conditions)).toString();
+    }
 
-        return builder.toString();
+    private String wheres(String[] wheres) {
+        StringBuilder whereBuilder = new StringBuilder();
+        if (wheres.length == 0) {
+            return whereBuilder.toString();
+        }
+        System.out.println("WHERES " + Arrays.toString(wheres));
+        whereBuilder.append(" WHERE ");
+        StringJoiner whereJoiner = new StringJoiner(" AND ");
+        for (String where : wheres) {
+            whereJoiner.add(escapeParam(where) + "=? ");
+        }
+        whereBuilder.append(whereJoiner);
+        return whereBuilder.toString();
     }
 
     @Override
@@ -106,30 +113,20 @@ public class AsciiSQLGenerator implements SQLGenerator {
     }
 
     protected String buildUpdateWithStart(String tableName, String start, String[] whereConditions, String[] valueArgs) {
-        if (StringUtil.isEmpty(tableName) || whereConditions == null) {
+        if (StringUtil.isEmpty(tableName) || whereConditions == null
+                || valueArgs == null) {
             return null;
         }
         StringBuilder builder = new StringBuilder(start)
                 .append(" ")
                 .append(escapeParam(tableName))
                 .append(" ");
-        if (valueArgs.length == 0) {
-            return builder.toString();
-        }
         builder.append("SET ");
         StringJoiner valueJoiner = new StringJoiner(", ");
         for (String valueArg : valueArgs) {
             valueJoiner.add(escapeParam(valueArg) + "=?");
         }
         builder.append(valueJoiner);
-        if (whereConditions.length == 0) {
-            return builder.toString();
-        }
-        builder.append("WHERE ");
-        StringJoiner whereJoiner = new StringJoiner("AND ");
-        for (String whereCondition : whereConditions) {
-            whereJoiner.add(whereCondition + "=? ");
-        }
-        return builder.toString();
+        return builder.append(wheres(whereConditions)).toString();
     }
 }

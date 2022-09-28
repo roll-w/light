@@ -62,12 +62,12 @@ public class UpdateHandlerWriter {
                 ArrayTypeName.of(JavaPoetClass.LangNames.STRING);
 
         queryBlock.builder()
-                .addStatement("final $T $L = new $T{$L}",
+                .addStatement("final $T $L = {$L}",
                         stringArray, primaryKeysVar,
-                        stringArray, keys.toString())
-                .addStatement("final $T $L = new $T{$L}",
+                        keys.toString())
+                .addStatement("final $T $L = {$L}",
                         stringArray, paramsVar,
-                        stringArray, params.toString())
+                        params.toString())
                 .addStatement("return $N.getDialectProvider().getGenerator().update($S, $T.$L, $L, $L)",
                         DaoWriter.sDatabaseField, mTableName,
                         JavaPoetClass.ON_CONFLICT_STRATEGY,

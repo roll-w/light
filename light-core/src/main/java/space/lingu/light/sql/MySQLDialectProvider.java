@@ -80,14 +80,14 @@ public class MySQLDialectProvider extends AsciiSQLGenerator
 
     @Override
     public String create(TableIndex index) {
-        StringBuilder builder = new StringBuilder("CREATE ");
+        // OR catching
+        StringBuilder builder = new StringBuilder("ALTER TABLE ")
+                .append(escapeParam(index.getTableName()))
+                .append(" ADD ");
         if (index.isUnique()) {
             builder.append(" UNIQUE ");
         }
         builder.append(" INDEX ")
-                .append(escapeParam(index.getName()))
-                .append(" ON ")
-                .append(escapeParam(index.getTableName()))
                 .append("(");
         StringJoiner indexColumns = new StringJoiner(", ");
         String[] columns = index.getColumns();
