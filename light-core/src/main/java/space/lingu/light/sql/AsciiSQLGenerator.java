@@ -19,7 +19,6 @@ package space.lingu.light.sql;
 import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.util.StringUtil;
 
-import java.util.Arrays;
 import java.util.StringJoiner;
 
 /**
@@ -92,7 +91,6 @@ public class AsciiSQLGenerator implements SQLGenerator {
         if (wheres.length == 0) {
             return whereBuilder.toString();
         }
-        System.out.println("WHERES " + Arrays.toString(wheres));
         whereBuilder.append(" WHERE ");
         StringJoiner whereJoiner = new StringJoiner(" AND ");
         for (String where : wheres) {
