@@ -19,7 +19,6 @@ package space.lingu.light.compile.writer;
 import com.squareup.javapoet.*;
 import space.lingu.light.Configurations;
 import space.lingu.light.DaoConnectionGetter;
-import space.lingu.light.LightConfiguration;
 import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.JavaPoetClass;
@@ -231,15 +230,7 @@ public class DaoWriter extends ClassWriter {
     }
 
     private boolean isH2Mode(Configurations configurations) {
-        if (configurations == null) {
-            return false;
-        }
-        Configurations.Configuration configuration =
-                configurations.findConfiguration(LightConfiguration.KEY_H2_DATABASE);
-        if (configuration == null) {
-            return false;
-        }
-        return configuration.toBoolean();
+        return false;
     }
 
     private String processSqlIfH2Mode(String sql, boolean h2Mode) {
