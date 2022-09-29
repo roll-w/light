@@ -19,7 +19,8 @@ package space.lingu.light;
 import java.util.Objects;
 
 /**
- * 数据库连接配置
+ * Database connection configuration.
+ *
  * @author RollW
  */
 public class DatasourceConfig {

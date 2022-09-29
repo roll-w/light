@@ -14,24 +14,31 @@
  * limitations under the License.
  */
 
-package space.lingu.light.handler;
+package space.lingu.light.sql;
 
-import space.lingu.light.LightDatabase;
-import space.lingu.light.SharedSQLStatement;
-
-import java.sql.PreparedStatement;
+import space.lingu.light.struct.DatabaseInfo;
 
 /**
- * SQL handler.
+ * Temporary solution to support H2 database.
+ * <p>
+ * Set to MySQL mode by {@code SET MODE MYSQL} to
+ * temporarily circumvent SQL syntax errors.
  *
  * @author RollW
  */
-public abstract class Handler<T> extends SharedSQLStatement {
-    public Handler(LightDatabase database) {
-        super(database);
+public class H2DialectProvider extends MySQLDialectProvider {
+    @Override
+    public String create(DatabaseInfo info) {
+        return null;
     }
 
-    protected abstract void bind(PreparedStatement statement, T entity);
+    @Override
+    public String useDatabase(String databaseName) {
+        return "SET MODE MYSQL";
+    }
 
-    protected abstract String createQuery();
+    @Override
+    public String use(DatabaseInfo databaseInfo) {
+        return useDatabase(databaseInfo.getName());
+    }
 }

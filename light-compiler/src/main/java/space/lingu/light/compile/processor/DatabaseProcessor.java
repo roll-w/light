@@ -83,7 +83,7 @@ public class DatabaseProcessor implements Processor<Database> {
                 .setSuperClassElement(mElement)
                 .setImplName(implName)
                 .setConfigurations(configurations)
-                .setDatabaseDaoMethods(getAllDaoMethods())
+                .setDatabaseDaoMethods(getAllDaoMethods(configurations))
                 .setImplClassName(
                         ClassName.get(packageName, implName));
     }
@@ -164,7 +164,7 @@ public class DatabaseProcessor implements Processor<Database> {
         return dataConverterList;
     }
 
-    private List<DatabaseDaoMethod> getAllDaoMethods() {
+    private List<DatabaseDaoMethod> getAllDaoMethods(Configurations configurations) {
         List<DatabaseDaoMethod> daoMethods = new ArrayList<>();
 
         for (Element e : enclosedElements) {
@@ -184,7 +184,8 @@ public class DatabaseProcessor implements Processor<Database> {
                 mEnv.getLog().error(CompileErrors.DAO_METHOD_NOT_PARAMLESS, method);
             }
 
-            DaoProcessor daoProcessor = new DaoProcessor(returnType, mEnv);
+            DaoProcessor daoProcessor = new DaoProcessor(
+                    returnType, mEnv, configurations);
             space.lingu.light.compile.struct.Dao dao = daoProcessor.process();
             DatabaseDaoMethod daoMethod = new DatabaseDaoMethod(method, dao);
             daoMethods.add(daoMethod);

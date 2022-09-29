@@ -17,6 +17,7 @@
 package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.ClassName;
+import space.lingu.light.Configurations;
 
 import javax.lang.model.element.TypeElement;
 import java.util.Collections;
@@ -27,7 +28,7 @@ import java.util.List;
  *
  * @author RollW
  */
-public class Dao {
+public class Dao implements Configurable {
     private final TypeElement element;
     private ClassName className;
     private final String simpleName;
@@ -41,6 +42,8 @@ public class Dao {
     private final ClassName implClassName;
     private final String implName;
 
+    private final Configurations configurations;
+
     public Dao(TypeElement element,
                String simpleName,
                ClassName implClassName,
@@ -49,7 +52,7 @@ public class Dao {
                List<UpdateMethod> updateMethods,
                List<DeleteMethod> deleteMethods,
                List<QueryMethod> queryMethods,
-               List<TransactionMethod> transactionMethods) {
+               List<TransactionMethod> transactionMethods, Configurations configurations) {
         this.element = element;
         this.simpleName = simpleName;
         this.implClassName = implClassName;
@@ -59,6 +62,7 @@ public class Dao {
         this.deleteMethods = Collections.unmodifiableList(deleteMethods);
         this.queryMethods = Collections.unmodifiableList(queryMethods);
         this.transactionMethods = Collections.unmodifiableList(transactionMethods);
+        this.configurations = configurations;
     }
 
     public ClassName getClassName() {
@@ -102,5 +106,10 @@ public class Dao {
 
     public String getImplName() {
         return implName;
+    }
+
+    @Override
+    public Configurations getConfigurations() {
+        return configurations;
     }
 }

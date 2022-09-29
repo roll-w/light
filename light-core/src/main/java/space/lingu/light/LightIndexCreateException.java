@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package space.lingu.light.handler;
-
-import space.lingu.light.LightDatabase;
-import space.lingu.light.SharedSQLStatement;
-
-import java.sql.PreparedStatement;
+package space.lingu.light;
 
 /**
- * SQL handler.
- *
  * @author RollW
  */
-public abstract class Handler<T> extends SharedSQLStatement {
-    public Handler(LightDatabase database) {
-        super(database);
+public class LightIndexCreateException extends LightRuntimeException {
+    public LightIndexCreateException(String message) {
+        super(message);
     }
 
-    protected abstract void bind(PreparedStatement statement, T entity);
+    public LightIndexCreateException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-    protected abstract String createQuery();
+    public LightIndexCreateException(Throwable cause) {
+        super(cause);
+    }
 }

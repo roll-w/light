@@ -54,11 +54,12 @@ public class DatabaseWriter extends ClassWriter {
 
     private MethodSpec createRegisterTablesMethod() {
         return MethodSpec.methodBuilder(MethodNames.sRegisterAllTables)
+                .addComment("here creates all runtime structures")
                 .addCode(createRegisterRuntimeStructCode())
                 .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                 .addAnnotation(Override.class)
                 .returns(TypeName.VOID)
-                .addComment("here creates all runtime structures")
+
                 .build();
     }
 
@@ -66,10 +67,13 @@ public class DatabaseWriter extends ClassWriter {
         GenerateCodeBlock block = new GenerateCodeBlock(this);
         String dbConfVarName = writeDatabaseConf(block);
         mDatabase.getDataTableList().forEach(dataTable -> {
+            String qualifiedName = dataTable.getElement().getQualifiedName().toString();
+            block.builder().add("\n// start create " + qualifiedName + " structure. \n");
             RuntimeStructWriter writer = new RuntimeStructWriter(dataTable);
             final String tableVar = writer.writeDataTable(block, dbConfVarName);
             block.builder().addStatement("this.$L($L)",
-                    MethodNames.sRegisterTable, tableVar);
+                    MethodNames.sRegisterTable, tableVar)
+                    .add("// end create " + qualifiedName + " structure.\n");
         });
         return block.builder().build();
     }

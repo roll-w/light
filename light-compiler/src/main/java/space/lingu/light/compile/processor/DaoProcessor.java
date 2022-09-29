@@ -41,13 +41,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DaoProcessor implements Processor<Dao> {
     private final TypeElement mDaoElement;
     private final ProcessEnv mEnv;
+    private final Configurations mConfigurations;
 
     public static final List<Class<? extends Annotation>> sHandleAnnotations =
             Arrays.asList(Insert.class, Query.class, Delete.class, Update.class);
 
-    public DaoProcessor(TypeElement daoElement, ProcessEnv env) {
+    public DaoProcessor(TypeElement daoElement,
+                        ProcessEnv env,
+                        Configurations configurations) {
         mDaoElement = daoElement;
         mEnv = env;
+        mConfigurations = configurations;
     }
 
     @Override
@@ -66,8 +70,8 @@ public class DaoProcessor implements Processor<Dao> {
                 methods.updateMethods,
                 methods.deleteMethods,
                 methods.queryMethods,
-                methods.transactionMethods
-        );
+                methods.transactionMethods,
+                mConfigurations);
     }
 
     private Methods dispatchProcessMethod() {

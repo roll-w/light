@@ -21,6 +21,7 @@ import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -82,6 +83,25 @@ public class SQLExpressionParser {
                 .replaceAll(Pattern.quote("}}"), "}");
     }
 
+    public String toUppercase() {
+        String unescaped = this.unescapedSql.toUpperCase(Locale.US);
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < details.size(); i++) {
+            SQLExpressionParser.Detail detail = details.get(i);
+            if (i == 0) {
+                builder.append(unescaped, 0, detail.start);
+            }
+            builder.append("{").append(detail.expression).append("}");
+            if (i != 0) {
+                builder.append(unescaped, details.get(i - 1).end, detail.start);
+            }
+            if (i == details.size() - 1) {
+                builder.append(unescaped, detail.end, unescaped.length());
+            }
+        }
+        return builder.toString();
+    }
+
     /**
      * Returns parsed details.
      * <p>
@@ -97,14 +117,12 @@ public class SQLExpressionParser {
     private List<Detail> parse(String sql) {
         List<Detail> details = new ArrayList<>();
         CharacterIterator iterator = new StringCharacterIterator(sql);
-        char next;
+        char next = iterator.current();
         StringBuilder builder = new StringBuilder();
         boolean start = false, end = false;
         int startPos = INITIAL, endPos = INITIAL;
         int idx = 0;
-
-        while ((next = iterator.next()) != INVALID) {
-            idx++;
+        do {
             if (next == START) {
                 start = true;
                 startPos = idx;
@@ -123,7 +141,6 @@ public class SQLExpressionParser {
                 end = false;
                 endPos = INITIAL;
             }
-
             if (start && end) {
                 String expression = builder.toString()
                         .replaceFirst(Pattern.quote("{"), "");
@@ -133,7 +150,10 @@ public class SQLExpressionParser {
                 startPos = endPos = INITIAL;
                 builder = new StringBuilder();
             }
-        }
+            idx++;
+
+        } while ((next = iterator.next()) != INVALID);
+
         if (start) {
             throw new IllegalArgumentException("Can't reach the end, can't find the right expression.");
         }

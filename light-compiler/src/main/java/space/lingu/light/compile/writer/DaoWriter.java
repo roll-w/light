@@ -17,7 +17,9 @@
 package space.lingu.light.compile.writer;
 
 import com.squareup.javapoet.*;
+import space.lingu.light.Configurations;
 import space.lingu.light.DaoConnectionGetter;
+import space.lingu.light.LightConfiguration;
 import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.JavaPoetClass;
@@ -26,6 +28,7 @@ import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.struct.*;
+import space.lingu.light.handler.SQLExpressionParser;
 import space.lingu.light.util.Pair;
 import space.lingu.light.util.StringUtil;
 
@@ -78,19 +81,22 @@ public class DaoWriter extends ClassWriter {
         mDao.getTransactionMethods().forEach(method ->
                 builder.addMethod(createTransactionMethodBody(method)));
 
+        Configurations configurations = mDao.getConfigurations();
 
         if (ElementUtil.isInterface(mDao.getElement())) {
             builder.addSuperinterface(ClassName.get(mDao.getElement()))
                     .addMethod(createConstructor(dbParam,
                             autoMethodPairs,
                             sqlMethodPairs,
-                            new ConstructorConf(false, false)));
+                            new ConstructorConf(false, false),
+                            configurations));
         } else {
             builder.superclass(ClassName.get(mDao.getElement()))
                     .addMethod(createConstructor(dbParam,
                             autoMethodPairs,
                             sqlMethodPairs,
-                            checkConstructorCallSuper()));
+                            checkConstructorCallSuper(),
+                            configurations));
         }
 
         if (checkConnectionGetterInterface(mDao)) {
@@ -180,7 +186,8 @@ public class DaoWriter extends ClassWriter {
     private MethodSpec createConstructor(ParameterSpec param,
                                          List<AutoMethodPair> autoMethodPairs,
                                          List<SQLMethodPair> sqlMethodPairs,
-                                         ConstructorConf conf) {
+                                         ConstructorConf conf,
+                                         Configurations configurations) {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(param);
@@ -193,6 +200,8 @@ public class DaoWriter extends ClassWriter {
         }
         builder.addStatement("this.$N = $N", sDatabaseField, param);
         Set<Pair<FieldSpec, TypeSpec>> set = new HashSet<>();
+        boolean h2Mode = isH2Mode(configurations);
+
         autoMethodPairs.stream()
                 .filter(autoMethodPair -> !autoMethodPair.fields.isEmpty())
                 .forEach(autoMethodPair -> {
@@ -207,15 +216,37 @@ public class DaoWriter extends ClassWriter {
                 });
         set.forEach(pair -> builder.addStatement("this.$N = $L",
                 pair.first, pair.second));
+
         sqlMethodPairs.forEach(pair -> {
+            String sql = processSqlIfH2Mode(
+                    pair.sqlCustomMethod.getSql(), h2Mode);
             builder.addStatement("this.$N = new $T($L, $S)",
                     pair.fieldSpec,
                     JavaPoetClass.SQL_HANDLER,
                     sDatabaseField.name,
-                    pair.sqlCustomMethod.getSql()
+                    sql
             );
         });
         return builder.build();
+    }
+
+    private boolean isH2Mode(Configurations configurations) {
+        if (configurations == null) {
+            return false;
+        }
+        Configurations.Configuration configuration =
+                configurations.findConfiguration(LightConfiguration.KEY_H2_DATABASE);
+        if (configuration == null) {
+            return false;
+        }
+        return configuration.toBoolean();
+    }
+
+    private String processSqlIfH2Mode(String sql, boolean h2Mode) {
+        if (h2Mode) {
+            return new SQLExpressionParser(sql).toUppercase();
+        }
+        return sql;
     }
 
     private List<AutoMethodPair> createAutoDeleteMethods() {

@@ -71,6 +71,8 @@ public abstract class LightDatabase {
     public LightDatabase() {
     }
 
+    private DatabaseInfo mDatabaseInfo;
+
     protected void init(DatabaseConfiguration conf) {
         registerAllTables();
 
@@ -82,8 +84,9 @@ public abstract class LightDatabase {
         this.mDialectProvider = conf.dialectProvider;
         conf.connectionPool.setDataSourceConfig(mSourceConfig);
         this.mConnectionPool = conf.connectionPool;
+        mDatabaseInfo = new DatabaseInfo(mName, Collections.emptyList());
 
-        createDatabase(mName);
+        createDatabase(mDatabaseInfo);
         createTables();
         createIndices();
     }
@@ -91,9 +94,8 @@ public abstract class LightDatabase {
     protected void registerAllTables() {
     }
 
-    protected void createDatabase(String name) {
-        final String sql = mDialectProvider.create(
-                new DatabaseInfo(name, Collections.emptyList()));
+    protected void createDatabase(DatabaseInfo info) {
+        final String sql = mDialectProvider.create(info);
         executeRaw(sql, rawConnection());
         // TODO
     }
@@ -112,11 +114,12 @@ public abstract class LightDatabase {
             if (mLogger != null) {
                 mLogger.debug("execute create table statement, statement: " + statement);
             }
+
             executeRawSqlWithNoReturn(statement);
         }
     }
 
-    private void createIndices() {
+    private void createIndices() throws LightIndexCreateException {
         List<String> statements = mTableStructCache.values()
                 .stream().map(table -> {
                     if (Objects.equals(table.getName(), LightInfo.sTableName)) {
@@ -132,7 +135,11 @@ public abstract class LightDatabase {
             if (mLogger != null) {
                 mLogger.debug("execute create index statement, statement: " + statement);
             }
-            executeRawSqlWithNoReturn(statement);
+            try {
+                executeRawSqlWithNoReturn(statement);
+            } catch (LightRuntimeException e) {
+                throw new LightIndexCreateException(e);
+            }
         }
     }
 
@@ -169,16 +176,17 @@ public abstract class LightDatabase {
         if (mName == null) {
             return connection;
         }
+        String stmt = getDialectProvider().useDatabase(mName);
+        if (stmt == null) {
+            return connection;
+        }
         try {
-            PreparedStatement useStmt = connection.prepareStatement(
-                    getDialectProvider().useDatabase(mName)
-            );
+            PreparedStatement useStmt = connection.prepareStatement(stmt);
             useStmt.execute();
             useStmt.close();
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
-
         return connection;
     }
 

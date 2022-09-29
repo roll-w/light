@@ -148,6 +148,14 @@ public final class Configurations {
             return Objects.equals(key, that.key) && Objects.equals(value, that.value);
         }
 
+        public int toInt() {
+            return Integer.parseInt(value);
+        }
+
+        public boolean toBoolean() {
+            return Boolean.parseBoolean(value);
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(key, value);

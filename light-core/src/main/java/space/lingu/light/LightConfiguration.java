@@ -75,4 +75,20 @@ public @interface LightConfiguration {
      * fine-grained control.
      */
     String KEY_COLUMN_TYPE = "Light.Key.ColumnType";
+
+    /**
+     * Set whether it is an H2 database Set whether it is an H2 database.
+     * The configuration is valid for both runtime and compilation.
+     * <p>
+     * Setting to {@code true} will do something special for the given SQL:
+     * for example, convert it all to uppercase.
+     * This can be used when you are using H2 data for testing, but other databases for production.
+     * You can complete the test without changing the SQL statement.
+     * <p>
+     * However, for custom SQL expressions, you may need to
+     * manually add double quotes to escape identifiers.
+     * <p>
+     * The Value type must be Boolean.
+     */
+    String KEY_H2_DATABASE = "Light.Key.Database.H2";
 }
