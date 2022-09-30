@@ -19,6 +19,7 @@ package space.lingu.light.connect.simple;
 import space.lingu.light.DatasourceConfig;
 import space.lingu.light.LightLogger;
 import space.lingu.light.LightRuntimeException;
+import space.lingu.light.connect.BaseConnectionPool;
 import space.lingu.light.connect.ConnectionPool;
 import space.lingu.light.util.StringUtil;
 
@@ -33,8 +34,7 @@ import java.sql.SQLException;
  *
  * @author RollW
  */
-public class DisposableConnectionPool implements ConnectionPool {
-    private LightLogger logger = null;
+public class DisposableConnectionPool extends BaseConnectionPool implements ConnectionPool {
     private DatasourceConfig mDatasourceConfig;
 
     public DisposableConnectionPool(DatasourceConfig config) {
@@ -95,15 +95,5 @@ public class DisposableConnectionPool implements ConnectionPool {
 
     @Override
     public void close() {
-    }
-
-    @Override
-    public void setLogger(LightLogger logger) {
-        this.logger = logger;
-    }
-
-    @Override
-    public LightLogger getLogger() {
-        return logger;
     }
 }

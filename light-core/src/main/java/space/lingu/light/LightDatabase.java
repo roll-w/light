@@ -138,7 +138,15 @@ public abstract class LightDatabase {
             try {
                 executeRawSqlWithNoReturn(statement);
             } catch (LightRuntimeException e) {
-                throw new LightIndexCreateException(e);
+                int errorCode = ((SQLException) e.getCause()).getErrorCode();
+                if (errorCode == 1061) {
+                    // 1061 - MySQL Error Name: ER_DUP_KEYNAME
+                    //
+                    // since MySQL not support "IF NOT EXIST" in creating an index,
+                    // do special treatment for MySQL.
+                    return;
+                }
+                throw new LightIndexCreateException(e.getCause());
             }
         }
     }
