@@ -115,7 +115,7 @@ public class MySQLDialectProvider extends AsciiSQLGenerator
                 .append(" ");
         final String nonNull = column.isNullable()
                 ? " "
-                : " NON NULL ";
+                : " NOT NULL ";
         builder.append(getDefaultTypeDeclaration(column.getDataType(),
                         column.getConfigurations()))
                 .append(" ")
