@@ -33,7 +33,7 @@ import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
 /**
- * 处理{@link space.lingu.light.Database}注解
+ * Process {@link space.lingu.light.Database} annotation.
  *
  * @author RollW
  */
