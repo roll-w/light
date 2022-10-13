@@ -19,17 +19,19 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
+ *
+ *
  * @author RollW
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.TYPE})
-@LightExperimentalApi
 public @interface DataConverters {
     /**
-     * 类型转换器类列表。转换器方法应当为静态方法。
+     * List of data converter classes.
+     * Converter methods should be static methods.
      *
-     * @return 类型转换器类列表
+     * @return data converter classes
      */
     Class<?>[] value();
 }

@@ -19,6 +19,8 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
+ * Marks a method as a data converter method.
+ *
  * @author RollW
  */
 @Documented

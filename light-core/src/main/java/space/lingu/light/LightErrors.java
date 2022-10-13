@@ -17,6 +17,8 @@
 package space.lingu.light;
 
 /**
+ * Define error messages.
+ *
  * @author RollW
  */
 public final class LightErrors {

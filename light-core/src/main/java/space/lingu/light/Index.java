@@ -19,7 +19,7 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * Index
+ * Index.
  *
  * @author RollW
  */

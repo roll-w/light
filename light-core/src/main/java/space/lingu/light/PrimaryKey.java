@@ -19,7 +19,7 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * Primary key.
+ * Marks column(s) as Primary key(s).
  *
  * @author RollW
  */

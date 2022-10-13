@@ -17,6 +17,8 @@
 package space.lingu.light;
 
 /**
+ * Index create exception.
+ *
  * @author RollW
  */
 public class LightIndexCreateException extends LightRuntimeException {

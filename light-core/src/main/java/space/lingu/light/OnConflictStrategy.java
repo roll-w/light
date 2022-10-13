@@ -17,7 +17,8 @@
 package space.lingu.light;
 
 /**
- * 冲突处理
+ * On conflict strategy.
+ *
  * @author RollW
  */
 public enum OnConflictStrategy {

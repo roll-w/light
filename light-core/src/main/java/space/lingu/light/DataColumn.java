@@ -19,28 +19,69 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标记数据表中的列
+ * Marks as a column in the data table.
+ *
  * @author RollW
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.FIELD})
 public @interface DataColumn {
+    /**
+     * The column name in the table, puts it empty to apply the field name.
+     *
+     * @return the column name
+     */
     String name() default "";
 
+    /**
+     * The comment/description of the column.
+     * <p>
+     * Add comment to the database is not yet supported.
+     *
+     * @return comment/description
+     */
     String description() default "";
 
+    /**
+     * Whether to set an index on this column.
+     *
+     * @return {@code true} if sets an index
+     */
     boolean index() default false;
 
+    /**
+     * Whether this column is nullable.
+     *
+     * @return {@code true} if nullable
+     */
     boolean nullable() default true;
 
+    /**
+     * Sets configurations of the column.
+     *
+     * @return configurations of the column
+     */
     LightConfiguration[] configuration() default {};
 
     /**
-     * Has default value
+     * Default value of the column.
+     * <ul>
+     *      <li>{@link #NO_DEFAULT_VALUE} means no default value.</li>
+     *      <li>{@link #DEFAULT_VALUE_NULL} means defaults null.</li>
+     *      <li>Otherwise the really default value.</li>
+     * </ul>
+     *
+     * @return default value of the column
      */
     String defaultValue() default NO_DEFAULT_VALUE;
 
+    /**
+     * Set the data type of the column.
+     * Set to {@link SQLDataType#UNDEFINED} to let the program infer
+     *
+     * @return data type of the column
+     */
     SQLDataType dataType() default SQLDataType.UNDEFINED;
 
     /**

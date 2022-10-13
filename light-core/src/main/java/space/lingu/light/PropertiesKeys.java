@@ -17,7 +17,7 @@
 package space.lingu.light;
 
 /**
- * 配置Key
+ * Keys in properties file.
  *
  * @author RollW
  */

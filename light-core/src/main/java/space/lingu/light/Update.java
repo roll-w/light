@@ -27,5 +27,10 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Update {
+    /**
+     * Sets the strategy for updating conflicts.
+     *
+     * @return {@link OnConflictStrategy on conflict strategy}
+     */
     OnConflictStrategy onConflict() default OnConflictStrategy.ABORT;
 }

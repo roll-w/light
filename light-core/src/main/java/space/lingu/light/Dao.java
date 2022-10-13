@@ -19,7 +19,10 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * 标记一个类作为DAO。
+ * Marks a class as a DAO class.
+ * <p>
+ * A DAO class must be an interface or an abstract class.
+ *
  * @author RollW
  */
 @Target(ElementType.TYPE)

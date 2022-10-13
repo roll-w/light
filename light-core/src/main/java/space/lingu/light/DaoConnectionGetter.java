@@ -29,6 +29,7 @@ package space.lingu.light;
 public interface DaoConnectionGetter {
     /**
      * Get a {@link SharedConnection} in dao.
+     *
      * @return new {@link SharedConnection}
      */
     default SharedConnection getConnection() {

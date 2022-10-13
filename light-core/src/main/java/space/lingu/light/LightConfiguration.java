@@ -16,10 +16,7 @@
 
 package space.lingu.light;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Pass configuration information.
@@ -30,7 +27,8 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({})
+@Target({ElementType.TYPE, ElementType.FIELD})
+@Repeatable(LightConfigurations.class)
 public @interface LightConfiguration {
     String key();
 

@@ -19,13 +19,14 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * Foreign key
+ * Foreign key. Not available yet.
  *
  * @author RollW
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.FIELD})
+@LightExperimentalApi
 public @interface ForeignKey {
     Class<?> entity();
 
