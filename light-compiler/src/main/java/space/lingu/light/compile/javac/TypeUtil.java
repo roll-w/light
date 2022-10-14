@@ -78,6 +78,9 @@ public class TypeUtil {
         return mirror.getKind() == TypeKind.LONG;
     }
 
+    /**
+     * Only used in simple type.
+     */
     @Deprecated
     public static boolean equalTypeMirror(TypeMirror m1, TypeMirror m2) {
         if (isPrimitive(m1) && isPrimitive(m2)) {
@@ -91,7 +94,7 @@ public class TypeUtil {
 
                 return equalTypeMirror(m1A.getComponentType(), m2A.getComponentType());
             }
-            // 当前只考虑类的情况
+            // TODO list type
             return ElementUtil.equalTypeElement(ElementUtil.asTypeElement(m1), ElementUtil.asTypeElement(m2));
         }
         return false;
