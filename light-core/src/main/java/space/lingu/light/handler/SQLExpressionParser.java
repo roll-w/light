@@ -142,14 +142,16 @@ public class SQLExpressionParser {
                 endPos = INITIAL;
             }
             if (start && end) {
-                String expression = builder.toString()
-                        .replaceFirst(Pattern.quote("{"), "");
+                String expression = builder
+                        .substring(1)
+                        .substring(0, builder.length() - 1);
                 Detail detail = new Detail(expression, startPos, endPos);
                 details.add(detail);
                 start = end = false;
                 startPos = endPos = INITIAL;
                 builder = new StringBuilder();
             }
+
             idx++;
 
         } while ((next = iterator.next()) != INVALID);

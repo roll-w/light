@@ -61,15 +61,17 @@ public class SQLHandler extends SharedConnection {
             if (i == 0) {
                 builder.append(unescaped, 0, detail.start);
             }
-            builder.append(" (").append(placeholders[i]).append(") ");
-            if (i != 0) {
-                builder.append(unescaped, details.get(i - 1).end, detail.start);
-            }
-            if (i == details.size() - 1) {
-                builder.append(unescaped, detail.end, unescaped.length());
-            }
+            builder.append("(").append(placeholders[i]).append(")")
+                    .append(unescaped, detail.end, nextStart(i, unescaped, details));
         }
         return builder.toString();
+    }
+
+    private int nextStart(int index, String unescaped, List<SQLExpressionParser.Detail> details) {
+        if (index + 1 >= details.size()) {
+            return unescaped.length();
+        }
+        return details.get(index + 1).start;
     }
 
     protected LightDatabase getDatabase() {
