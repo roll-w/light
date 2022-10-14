@@ -25,7 +25,11 @@ import java.util.List;
  *
  * @author RollW
  */
-@DataTable(tableName = "__light_info_table")
+@DataTable(tableName = "__light_info_table", configuration = {
+        @LightConfiguration(
+                key = LightConfiguration.KEY_VARCHAR_LENGTH,
+                value = "100")
+})
 @LightExperimentalApi
 public class LightInfo {
     public static final String sTableName = "__light_info_table";
@@ -33,11 +37,7 @@ public class LightInfo {
     public static final String KEY_VERSION = "version";
 
     @PrimaryKey
-    @DataColumn(configuration = {
-            @LightConfiguration(
-                    key = LightConfiguration.KEY_VARCHAR_LENGTH,
-                    value = "100")
-    })
+    @DataColumn
     public final String k;
 
     @DataColumn

@@ -17,6 +17,7 @@
 package space.lingu.light.compile;
 
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import java.util.List;
 
 /**
@@ -118,7 +119,11 @@ public final class CompileErrors {
     }
 
     public static final String UNKNOWN_TYPE =
-            "Unknown data type, cannot be processed.";
+            "Unknown column data type of '%s', cannot be processed.";
+
+    public static String unknownType(TypeMirror typeMirror) {
+        return String.format(UNKNOWN_TYPE, typeMirror.toString());
+    }
 
     public static final String DAO_TOO_MUCH_CONSTRUCTORS =
             "Only can have one constructor that is parameterless or have a Database parameter.";

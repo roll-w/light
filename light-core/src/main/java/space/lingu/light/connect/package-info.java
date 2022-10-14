@@ -15,7 +15,8 @@
  */
 
 /**
- * 数据库连接配置相关<br>
+ * Database connection and configuration.
+ *
  * @author RollW
  */
 package space.lingu.light.connect;

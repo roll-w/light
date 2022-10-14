@@ -93,7 +93,7 @@ public class FieldProcessor implements Processor<Field> {
         // todo
         if (binder == null || reader == null) {
             mEnv.getLog().error(
-                    CompileErrors.UNKNOWN_TYPE,
+                    CompileErrors.unknownType(mElement.asType()),
                     mElement
             );
         }

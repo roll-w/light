@@ -314,7 +314,7 @@ public class TypeBinders {
 
     private List<ColumnTypeBinder> getAllColumnBinders(TypeMirror element) {
         return mColumnTypeBinders.stream().filter(binder ->
-                        Objects.equals(binder.type, element))
+                        TypeUtil.equalTypeMirror(binder.type, element))
                 .collect(Collectors.toList());
     }
 

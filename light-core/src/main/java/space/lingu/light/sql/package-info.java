@@ -15,7 +15,8 @@
  */
 
 /**
- * SQL语句生成相关
+ * SQL statement generate.
+ *
  * @author RollW
  */
 package space.lingu.light.sql;

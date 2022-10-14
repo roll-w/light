@@ -24,6 +24,7 @@ import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.struct.*;
 
 import javax.lang.model.element.*;
@@ -215,7 +216,7 @@ public class PojoProcessor implements Processor<Pojo> {
                         executableElement -> candidates.contains(
                                 executableElement.getSimpleName().toString()) &&
                                 executableElement.getParameters().size() == 1 &&
-                                Objects.equals(
+                                TypeUtil.equalTypeMirror(
                                         executableElement.getParameters().get(0).asType(),
                                         field.getTypeMirror()))
                 .collect(Collectors.toList());

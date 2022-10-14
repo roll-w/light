@@ -15,7 +15,9 @@
  */
 
 /**
- * Light核心部分。包含注解及运行时所需类。
+ * The core module of Light.
+ * Includes annotations and runtime module.
+ *
  * @author RollW
  */
 package space.lingu.light;
