@@ -19,10 +19,7 @@ package space.lingu.light.compile.coder;
 import com.google.auto.common.MoreTypes;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.custom.binder.*;
-import space.lingu.light.compile.coder.custom.result.ArrayQueryResultConverter;
-import space.lingu.light.compile.coder.custom.result.ListQueryResultConverter;
-import space.lingu.light.compile.coder.custom.result.QueryResultConverter;
-import space.lingu.light.compile.coder.custom.result.SingleEntityQueryResultConverter;
+import space.lingu.light.compile.coder.custom.result.*;
 import space.lingu.light.compile.coder.custom.row.PojoRowConverter;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
 import space.lingu.light.compile.coder.custom.row.SingleColumnRowConverter;
@@ -252,7 +249,9 @@ public class TypeBinders {
         if (typeMirror == null) {
             throw new IllegalArgumentException("TypeMirror cannot be null");
         }
-
+        if (RawQueryResultConverter.isRaw(typeMirror, mEnv)) {
+            return RawQueryResultConverter.create(mEnv);
+        }
         if (TypeUtil.isArray(typeMirror) && TypeUtil.getArrayElementType(typeMirror).getKind() != TypeKind.BYTE) {
             RowConverter converter = findRowConverter(TypeUtil.getArrayElementType(typeMirror));
             if (converter != null) {
@@ -315,7 +314,7 @@ public class TypeBinders {
 
     private List<ColumnTypeBinder> getAllColumnBinders(TypeMirror element) {
         return mColumnTypeBinders.stream().filter(binder ->
-                        TypeUtil.equalTypeMirror(binder.type, element))
+                        Objects.equals(binder.type, element))
                 .collect(Collectors.toList());
     }
 

@@ -78,6 +78,7 @@ public class TypeUtil {
         return mirror.getKind() == TypeKind.LONG;
     }
 
+    @Deprecated
     public static boolean equalTypeMirror(TypeMirror m1, TypeMirror m2) {
         if (isPrimitive(m1) && isPrimitive(m2)) {
             return m1.getKind() == m2.getKind();

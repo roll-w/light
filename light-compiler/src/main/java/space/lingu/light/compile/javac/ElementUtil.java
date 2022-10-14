@@ -143,7 +143,7 @@ public class ElementUtil {
     }
 
     public static List<TypeElement> getGenericElements(TypeMirror mirror) {
-        // TypeElement会丢失信息
+        // TypeElement will lose infos
         List<TypeElement> typeElementList = new ArrayList<>();
         List<? extends TypeMirror> typeMirrors = MoreTypes.asDeclared(mirror).getTypeArguments();
         typeMirrors.forEach(typeMirror ->
@@ -155,7 +155,7 @@ public class ElementUtil {
         return MoreTypes.asDeclared(mirror).getTypeArguments();
     }
 
+
     private ElementUtil() {
     }
-
 }
