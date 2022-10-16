@@ -84,7 +84,7 @@ public abstract class LightDatabase {
         this.mDialectProvider = conf.dialectProvider;
         conf.connectionPool.setDataSourceConfig(mSourceConfig);
         this.mConnectionPool = conf.connectionPool;
-        mDatabaseInfo = new DatabaseInfo(mName, Collections.emptyList());
+        mDatabaseInfo = new DatabaseInfo(mName);
 
         createDatabase(mDatabaseInfo);
         createTables();
@@ -140,7 +140,7 @@ public abstract class LightDatabase {
             } catch (LightRuntimeException e) {
                 int errorCode = ((SQLException) e.getCause()).getErrorCode();
                 if (errorCode == 1061) {
-                    // 1061 - MySQL Error Name: ER_DUP_KEYNAME
+                    // 1061 - MySQL Error: ER_DUP_KEYNAME
                     //
                     // since MySQL not support "IF NOT EXIST" in creating an index,
                     // do special treatment for MySQL.
@@ -205,7 +205,7 @@ public abstract class LightDatabase {
 
     private void checkConnectionPool() {
         if (mConnectionPool == null) {
-            throw new NullPointerException("ConnectionPool cannot be null!");
+            throw new NullPointerException("ConnectionPool cannot be null.");
         }
     }
 
@@ -216,7 +216,7 @@ public abstract class LightDatabase {
     public PreparedStatement resolveStatement(String sql, Connection connection, boolean returnsGeneratedKey) {
         PreparedStatement stmt;
         if (connection == null) {
-            throw new IllegalStateException("Connection is null!");
+            throw new IllegalStateException("Connection is null.");
         }
         try {
             if (returnsGeneratedKey) {
@@ -416,9 +416,14 @@ public abstract class LightDatabase {
             return this;
         }
 
+
+        @LightExperimentalApi
+        public Builder<T> addMigration(Migration migration) {
+            mMigrationContainer.addMigration(migration);
+            return this;
+        }
+
         /**
-         * 设置冲突时重建数据表
-         *
          * @return this
          */
         @LightExperimentalApi
@@ -427,8 +432,6 @@ public abstract class LightDatabase {
         }
 
         /**
-         * 设置冲突时是否重建数据表
-         *
          * @param enable enable
          * @return this
          */

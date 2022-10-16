@@ -25,20 +25,15 @@ import java.util.List;
  */
 public class DatabaseInfo {
     private final String name;
-    private final List<Table> tables;
+    private List<Table> tables;
     private Configurations configurations;
 
-    public DatabaseInfo(String name, List<Table> tables) {
+    public DatabaseInfo(String name) {
         this.name = name;
-        this.tables = tables;
     }
 
     public String getName() {
         return name;
-    }
-
-    public List<Table> getTables() {
-        return tables;
     }
 
 }
