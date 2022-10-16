@@ -96,8 +96,10 @@ public abstract class LightDatabase {
 
     protected void createDatabase(DatabaseInfo info) {
         final String sql = mDialectProvider.create(info);
+        if (sql == null) {
+            return;
+        }
         executeRaw(sql, rawConnection());
-        // TODO
     }
 
     private void createTables() {
@@ -105,6 +107,7 @@ public abstract class LightDatabase {
                 .stream().map(table -> {
                     if (Objects.equals(table.getName(), LightInfo.sTableName)) {
                         // not create the [LightInfo] table current until complete verify function.
+                        // TODO: remove this while complete.
                         return null;
                     }
                     return mDialectProvider.create(table);
@@ -161,6 +164,7 @@ public abstract class LightDatabase {
 
     public void executeRaw(String sql, Connection conn) {
         if (sql == null) {
+            releaseConnection(conn);
             return;
         }
         PreparedStatement stmt = resolveStatement(sql, conn, false);

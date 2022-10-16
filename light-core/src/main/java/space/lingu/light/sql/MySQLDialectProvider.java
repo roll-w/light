@@ -23,6 +23,9 @@ import space.lingu.light.util.StringUtil;
 import java.util.StringJoiner;
 
 /**
+ * MySQL dialect provider.
+ * <p>
+ *
  * @author RollW
  */
 public class MySQLDialectProvider extends AsciiSQLGenerator
