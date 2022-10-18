@@ -241,7 +241,10 @@ public class TypeBinders {
     }
 
     public QueryResultBinder findQueryResultBinder(TypeMirror typeMirror) {
-        // TODO
+        QueryResultConverter resultConverter = findQueryResultConverter(typeMirror);
+        if (resultConverter == null) {
+            return null;
+        }
         return new InstantQueryResultBinder(findQueryResultConverter(typeMirror));
     }
 

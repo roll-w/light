@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.coder;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.SQLDataType;
 
@@ -38,7 +37,7 @@ public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueRe
         this.dataType = dataType;
         typeName = type == null
                 ? null
-                : ClassName.get(type);
+                : TypeName.get(type);
     }
 
     @Override

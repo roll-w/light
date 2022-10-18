@@ -179,7 +179,7 @@ public class InsertMethodTranslator {
         /**return Long[]*/
         ID_ARRAY_BOXED("insertAndReturnIdsArrayBox",
                 ArrayTypeName.of(TypeName.LONG.box())),
-        /**return List&lt;Long&gt;*/
+        /**return {@code List<Long>}*/
         ID_LIST("insertAndReturnIdsList",
                 ParameterizedTypeName.get(ClassName.get(List.class), TypeName.LONG.box()));
         public final String methodName;

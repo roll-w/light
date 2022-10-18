@@ -16,7 +16,7 @@
 
 package space.lingu.light.compile.coder.custom.result;
 
-import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
 
@@ -39,7 +39,7 @@ public class SingleEntityQueryResultConverter extends QueryResultConverter {
     @Override
     public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
         mConverter.onResultSetReady(resultSetName, block);
-        block.builder().addStatement("final $T $L", ClassName.get(mConverter.getOutType()), outVarName)
+        block.builder().addStatement("final $T $L", TypeName.get(mConverter.getOutType()), outVarName)
                 .beginControlFlow("if ($L.first())", resultSetName);
         mConverter.convert(outVarName, resultSetName, block);
         block.builder().nextControlFlow("else")
