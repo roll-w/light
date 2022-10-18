@@ -42,21 +42,21 @@ public @interface LightConfiguration {
      *
      * @see space.lingu.light.sql.MySQLDialectProvider#DEFAULT_VARCHAR_LENGTH
      */
-    String KEY_VARCHAR_LENGTH = "Light.Key.VarcharLength";
+    String KEY_VARCHAR_LENGTH = "Key.Light.VarcharLength";
 
     /**
      * charset configuration
      *
      * @see space.lingu.light.sql.MySQLDialectProvider#DEFAULT_CHARSET
      */
-    String KEY_CHARSET = "Light.Key.Charset";
+    String KEY_CHARSET = "Key.Light.Charset";
 
     /**
      * Engine configuration
      *
      * @see space.lingu.light.sql.MySQLDialectProvider#DEFAULT_ENGINE
      */
-    String KEY_ENGINE = "Light.Key.Engine";
+    String KEY_ENGINE = "Key.Light.Engine";
 
     /**
      * Custom column type.
@@ -72,6 +72,6 @@ public @interface LightConfiguration {
      * Compare to {@link #KEY_VARCHAR_LENGTH}, this configuration contains more
      * fine-grained control.
      */
-    String KEY_COLUMN_TYPE = "Light.Key.ColumnType";
+    String KEY_COLUMN_TYPE = "Key.Light.ColumnType";
 
 }

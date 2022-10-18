@@ -30,7 +30,10 @@ public @interface PrimaryKey {
     /**
      * Whether to automatically generate the primary key.
      * <p>
-     * If you are define composite primary key, this will not work.
+     * If you are defining a composite primary key,
+     * this will not work and will simply be ignored
+     * (whether to ignore or throw an Exception is related to the different
+     * {@link space.lingu.light.sql.DialectProvider}'s strategy).
      *
      * @return If automatically generate or not.
      */
