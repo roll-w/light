@@ -18,13 +18,14 @@ package space.lingu.light.struct;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author RollW
  */
 public class TablePrimaryKey {
-    public final List<TableColumn> columns;
-    public final boolean autoGenerate;
+    private final List<TableColumn> columns;
+    private final boolean autoGenerate;
 
     public TablePrimaryKey(List<TableColumn> columns, boolean autoGenerate) {
         this.columns = columns == null
@@ -33,6 +34,28 @@ public class TablePrimaryKey {
         this.autoGenerate = autoGenerate;
     }
 
+    public boolean containsColumn(TableColumn column) {
+        for (TableColumn tableColumn : columns) {
+            if (Objects.equals(tableColumn.getName(), column.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    public List<TableColumn> getColumns() {
+        return columns;
+    }
+
+    public boolean isAutoGenerate() {
+        return autoGenerate;
+    }
+
+    public boolean isComposePrimary() {
+        if (columns.isEmpty()) {
+            return false;
+        }
+        return columns.size() != 1;
+    }
 }
 

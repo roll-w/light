@@ -57,14 +57,14 @@ public class MySQLDialectProvider extends GeneralDialectProvider
 
         String autoIncrementStart = null;
         StringJoiner primaryKeyJoiner = new StringJoiner(", ");
-        for (TableColumn column : table.getPrimaryKey().columns) {
+        for (TableColumn column : table.getPrimaryKey().getColumns()) {
             if (column.isHasDefaultValue()) {
                 autoIncrementStart = column.getDefaultValue();
             }
             primaryKeyJoiner.add(escapeParam(column.getName()));
         }
         builder.append(columnJoiner);
-        if (!table.getPrimaryKey().columns.isEmpty()) {
+        if (!table.getPrimaryKey().getColumns().isEmpty()) {
             builder.append(", PRIMARY KEY (")
                     .append(primaryKeyJoiner)
                     .append(") ");

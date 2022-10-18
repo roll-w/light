@@ -48,15 +48,17 @@ public class SQLiteDialectProvider extends GeneralDialectProvider
                 .append(escapeParam(table.getName()))
                 .append(" (");
         StringJoiner columnJoiner = new StringJoiner(", ");
+        boolean composePrimaryKey = table.getPrimaryKey().isComposePrimary();
         table.getColumns().forEach(column ->
-                columnJoiner.add(createColumn(column)));
-
-        StringJoiner primaryKeyJoiner = new StringJoiner(", ");
-        for (TableColumn column : table.getPrimaryKey().columns) {
-            primaryKeyJoiner.add(escapeParam(column.getName()));
-        }
+                columnJoiner.add(createColumn(column,
+                        !composePrimaryKey && table.getPrimaryKey().containsColumn(column))));
         builder.append(columnJoiner);
-        if (!table.getPrimaryKey().columns.isEmpty()) {
+
+        if (composePrimaryKey) {
+            StringJoiner primaryKeyJoiner = new StringJoiner(", ");
+            for (TableColumn column : table.getPrimaryKey().getColumns()) {
+                primaryKeyJoiner.add(escapeParam(column.getName()));
+            }
             builder.append(", PRIMARY KEY (")
                     .append(primaryKeyJoiner)
                     .append(") ");
@@ -71,7 +73,6 @@ public class SQLiteDialectProvider extends GeneralDialectProvider
 
         return builder.toString();
     }
-
 
     @Override
     protected String notNullDeclare() {

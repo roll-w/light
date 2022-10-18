@@ -26,7 +26,7 @@ import space.lingu.light.struct.TableColumn;
 public abstract class GeneralDialectProvider extends AsciiSQLGenerator
         implements DialectProvider, SQLGenerator {
 
-    protected String createColumn(TableColumn column) {
+    protected String createColumn(TableColumn column, boolean isPrimaryKey) {
         StringBuilder builder = new StringBuilder(escapeParam(column.getName()))
                 .append(" ");
         final String nonNull = column.isNullable()
@@ -35,6 +35,9 @@ public abstract class GeneralDialectProvider extends AsciiSQLGenerator
         builder.append(getDefaultTypeDeclaration(column.getDataType(),
                         column.getConfigurations()))
                 .append(nonNull);
+        if (isPrimaryKey) {
+            builder.append(" ").append(primaryKeyDeclare());
+        }
         if (column.isAutoGenerate()) {
             builder.append(" ").append(autoIncrementDeclare());
         }
@@ -49,6 +52,14 @@ public abstract class GeneralDialectProvider extends AsciiSQLGenerator
         }
 
         return builder.toString();
+    }
+
+    protected String createColumn(TableColumn column) {
+        return createColumn(column, false);
+    }
+
+    protected String primaryKeyDeclare() {
+        return "PRIMARY KEY";
     }
 
     protected abstract String notNullDeclare();
