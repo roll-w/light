@@ -25,10 +25,11 @@ import java.util.StringJoiner;
 /**
  * MySQL dialect provider.
  * <p>
+ * Based on MySQL version 8.0.
  *
  * @author RollW
  */
-public class MySQLDialectProvider extends AsciiSQLGenerator
+public class MySQLDialectProvider extends GeneralDialectProvider
         implements DialectProvider, SQLGenerator {
     public static final String DEFAULT_VARCHAR_LENGTH = "16383";
     public static final String CHARSET_UTF8 = "utf8";
@@ -93,9 +94,15 @@ public class MySQLDialectProvider extends AsciiSQLGenerator
                 .append(escapeParam(index.getTableName()))
                 .append("(");
         StringJoiner indexColumns = new StringJoiner(", ");
+        boolean ordersEmpty = index.getOrders().length == 0;
         String[] columns = index.getColumns();
         for (int i = 0; i < columns.length; i++) {
-            indexColumns.add(escapeParam(columns[i]) + " " + getOrderOrDefault(i, index.getOrders()));
+            indexColumns.add(escapeParam(columns[i]) + " " +
+                    (ordersEmpty
+                            ? ""
+                            : getOrderOrDefault(i, index.getOrders())
+                    )
+            );
         }
         builder.append(indexColumns).append(") ");
         return builder.toString();
@@ -113,32 +120,18 @@ public class MySQLDialectProvider extends AsciiSQLGenerator
         return "";
     }
 
-    private String createColumn(TableColumn column) {
-        StringBuilder builder = new StringBuilder(escapeParam(column.getName()))
-                .append(" ");
-        final String nonNull = column.isNullable()
-                ? " "
-                : " NOT NULL ";
-        builder.append(getDefaultTypeDeclaration(column.getDataType(),
-                        column.getConfigurations()))
-                .append(" ")
-                .append(nonNull);
-        if (column.isAutoGenerate()) {
-            builder.append(" AUTO_INCREMENT ");
-        }
-        if (column.isHasDefaultValue()) {
-            builder.append(" DEFAULT ");
-            if (column.isDefaultValueNull()) {
-                builder.append(" NULL ");
-            } else {
-                builder.append(column.getDefaultValueWithProcess());
-            }
-        }
-
-        return builder.toString();
+    @Override
+    protected String notNullDeclare() {
+        return "NOT NULL";
     }
 
-    private String getDefaultTypeDeclaration(SQLDataType dataType,
+    @Override
+    protected String autoIncrementDeclare() {
+        return "AUTO_INCREMENT";
+    }
+
+    @Override
+    protected String getDefaultTypeDeclaration(SQLDataType dataType,
                                              Configurations configurations) {
         if (dataType == null || dataType == SQLDataType.UNDEFINED) {
             throw new IllegalArgumentException("SQLDataType is null or undefined. " +
