@@ -226,7 +226,7 @@ public abstract class LightDatabase {
             if (returnsGeneratedKey) {
                 stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             } else {
-                stmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                stmt = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             }
         } catch (SQLException e) {
             mLogger.error("An error occurred while require a PreparedStatement.", e);
