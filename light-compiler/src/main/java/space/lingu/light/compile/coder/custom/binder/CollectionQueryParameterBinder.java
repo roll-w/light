@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.coder.custom.binder;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
@@ -36,7 +35,7 @@ public class CollectionQueryParameterBinder extends QueryParameterBinder {
     public void bindToStatement(String stmtVarName, String indexVarName, String valueVarName, GenerateCodeBlock block) {
         final String iterVar = block.getTempVar("_item");
         block.builder().beginControlFlow("for ($T $L : $L)",
-                ClassName.get(binder.type()), iterVar, valueVarName);
+                TypeName.get(binder.type()), iterVar, valueVarName);
         binder.bindToStatement(stmtVarName, indexVarName, iterVar, block);
         block.builder().addStatement("$L++", indexVarName)
                 .endControlFlow();

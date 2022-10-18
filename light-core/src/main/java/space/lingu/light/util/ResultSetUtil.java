@@ -85,18 +85,6 @@ public final class ResultSetUtil {
         return -1;
     }
 
-    public static int getResultSetSize(ResultSet set) {
-        try {
-            set.last();
-            set.getFetchSize();
-            int size = set.getRow();
-            set.beforeFirst();
-            return size;
-        } catch (SQLException e) {
-            throw new LightRuntimeException(e);
-        }
-    }
-
     private ResultSetUtil() {
     }
 

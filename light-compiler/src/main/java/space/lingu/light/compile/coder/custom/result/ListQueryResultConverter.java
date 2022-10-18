@@ -46,14 +46,14 @@ public class ListQueryResultConverter extends QueryResultConverter {
     public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
         mConverter.onResultSetReady(resultSetName, block);
         TypeName listType = ParameterizedTypeName
-                .get(ClassName.get(List.class), ClassName.get(mType));
+                .get(ClassName.get(List.class), TypeName.get(mType));
         TypeName arrayListType = ParameterizedTypeName
-                .get(ClassName.get(ArrayList.class), ClassName.get(mType));
+                .get(ClassName.get(ArrayList.class), TypeName.get(mType));
         final String tempVar = block.getTempVar("_item");
         block.builder().addStatement("final $T $L = new $T()", listType, outVarName, arrayListType)
                 .beginControlFlow("try")
                 .beginControlFlow("while ($L.next())", resultSetName)
-                .addStatement("final $T $L", ClassName.get(mType), tempVar);
+                .addStatement("final $T $L", TypeName.get(mType), tempVar);
 
         mConverter.convert(tempVar, resultSetName, block);
         block.builder().addStatement("$L.add($L)", outVarName, tempVar)

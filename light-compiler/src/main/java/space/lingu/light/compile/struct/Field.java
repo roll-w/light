@@ -98,7 +98,7 @@ public class Field implements Configurable {
         getPossibleCandidateName().forEach(s -> {
             getterNames.add(s);
             getterNames.add("get" + StringUtil.firstUpperCase(s));
-            TypeName typeName = ClassName.get(typeMirror);
+            TypeName typeName = TypeName.get(typeMirror);
             if (typeMirror.getKind() == TypeKind.BOOLEAN ||
                     typeName.equals(TypeName.BOOLEAN.box())) {
                 getterNames.addAll(Arrays.asList(

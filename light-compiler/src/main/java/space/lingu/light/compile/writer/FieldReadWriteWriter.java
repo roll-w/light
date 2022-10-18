@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.writer;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.Constructor;
@@ -62,7 +61,7 @@ public class FieldReadWriteWriter {
                 .collect(Collectors.toList());
         filteredFields.forEach(fieldWithNumber -> constructorField.put(
                 new FieldReadWriteWriter(fieldWithNumber.field, fieldWithNumber.indexNum).readIntoTempVar(resSetVar,
-                        ClassName.get(fieldWithNumber
+                        TypeName.get(fieldWithNumber
                                 .field
                                 .getSetter()
                                 .getElement()
@@ -124,7 +123,7 @@ public class FieldReadWriteWriter {
             }
             case METHOD: {
                 String tempVar = block.getTempVar("_tmp" + StringUtil.firstUpperCase(field.getName()));
-                block.builder().addStatement("final $T $L", ClassName.get(field.getSetter().getElement().asType()), tempVar);
+                block.builder().addStatement("final $T $L", TypeName.get(field.getSetter().getElement().asType()), tempVar);
                 field.getColumnValueReader().readFromResultSet(tempVar, resSetVar, indexVar, block);
                 block.builder().addStatement("$L.$L($L)", owner, field.getSetter().getName(), tempVar);
                 break;

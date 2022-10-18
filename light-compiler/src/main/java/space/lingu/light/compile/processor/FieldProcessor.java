@@ -17,7 +17,6 @@
 package space.lingu.light.compile.processor;
 
 import com.squareup.javapoet.ArrayTypeName;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.Configurations;
 import space.lingu.light.DataColumn;
@@ -105,7 +104,7 @@ public class FieldProcessor implements Processor<Field> {
 
     private SQLDataType recognizeSQLDataType(VariableElement variable) {
         TypeMirror type = variable.asType();
-        TypeName typeName = ClassName.get(type);
+        TypeName typeName = TypeName.get(type);
         if (isEqualBothBox(typeName, TypeName.INT)) {
             return SQLDataType.INT;
         }

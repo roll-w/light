@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.coder.annotated.translator;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -114,12 +113,12 @@ public class AutoDeleteUpdateMethodTranslator {
     }
 
     protected static boolean isReturnNull(TypeMirror returnType) {
-        return ClassName.get(returnType).equals(TypeName.VOID.box());
+        return TypeName.get(returnType).equals(TypeName.VOID.box());
     }
 
     protected static boolean isReturnInt(TypeMirror returnType) {
         return TypeUtil.isInt(returnType) ||
-                ClassName.get(returnType).equals(TypeName.INT.box());
+                TypeName.get(returnType).equals(TypeName.INT.box());
     }
 
 }

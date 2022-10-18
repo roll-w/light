@@ -16,8 +16,8 @@
 
 package space.lingu.light.compile.struct;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.TypeName;
 
 import javax.lang.model.element.VariableElement;
 
@@ -44,7 +44,7 @@ public class FieldGetter {
         }
         if (statement == null) return;
 
-        builder.addStatement(statement, ClassName.get(element.asType()), out, owner, name);
+        builder.addStatement(statement, TypeName.get(element.asType()), out, owner, name);
     }
 
     public FieldGetter(VariableElement element, Field.CallType callType, String name) {
