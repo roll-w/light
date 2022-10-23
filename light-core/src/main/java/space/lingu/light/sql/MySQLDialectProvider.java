@@ -23,7 +23,7 @@ import space.lingu.light.util.StringUtil;
 import java.util.StringJoiner;
 
 /**
- * MySQL dialect provider.
+ * MySQL Dialect Provider.
  * <p>
  * Based on MySQL version 8.0.
  *

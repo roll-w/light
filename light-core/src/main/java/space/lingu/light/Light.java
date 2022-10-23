@@ -19,6 +19,7 @@ package space.lingu.light;
 import space.lingu.light.connect.ConnectionPool;
 import space.lingu.light.sql.DialectProvider;
 
+import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -116,7 +117,7 @@ public final class Light {
     }
 
     public static InputStream loadResource(String path) {
-        return Light.class.getResourceAsStream(path);
+        return Light.class.getResourceAsStream(File.separator + path);
     }
 
     private Light() {

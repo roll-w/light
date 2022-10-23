@@ -18,8 +18,8 @@ package space.lingu.light;
 
 import space.lingu.light.util.StringUtil;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringJoiner;
@@ -30,7 +30,7 @@ import java.util.StringJoiner;
  * @author RollW
  */
 public class DatasourceLoader {
-    public static final String DEFAULT_PATH = "/light.properties";
+    public static final String DEFAULT_PATH = "light.properties";
     private final String mPath;
     private final String mName;
 
@@ -49,7 +49,7 @@ public class DatasourceLoader {
 
     public DatasourceConfig load() {
         Properties properties = new Properties();
-        InputStream propInput = Light.loadResource(mPath);
+        InputStream propInput = tryPathWithCatch();
         if (propInput == null) {
             throw new IllegalPropertiesException(
                     "Load data properties failed. Check whether the Properties file exists. " +
@@ -99,6 +99,43 @@ public class DatasourceLoader {
             return readByName(properties, mName);
         }
         return readByName(properties, PropertiesKeys.DEFAULT_NAME);
+    }
+
+    private InputStream tryPathWithCatch() {
+        try {
+            return tryPaths();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private InputStream tryPaths() throws IOException {
+        // try root path
+        File root = new File(mPath);
+        if (root.exists()) {
+            return Files.newInputStream(root.toPath());
+        }
+
+        // try conf/path
+        File confFile = new File("conf", mPath);
+        if (confFile.exists()) {
+            return Files.newInputStream(confFile.toPath());
+        }
+
+        // try config/path
+        File configFile = new File("config", mPath);
+        if (configFile.exists()) {
+            return Files.newInputStream(configFile.toPath());
+        }
+
+        // try resource/path
+        File resourceFile = new File("resource", mPath);
+        if (resourceFile.exists()) {
+            return Files.newInputStream(configFile.toPath());
+        }
+
+        // last try the resource or the file in jar.
+        return Light.loadResource(mPath);
     }
 
     private String listEmptyPropertiesKeys(String url, String jdbcName) {
