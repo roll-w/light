@@ -22,7 +22,7 @@
     <parent>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-parent</artifactId>
-        <version>0.3.0-SNAPSHOT</version>
+        <version>0.3.0</version>
         <relativePath>../light-parent</relativePath>
     </parent>
 
