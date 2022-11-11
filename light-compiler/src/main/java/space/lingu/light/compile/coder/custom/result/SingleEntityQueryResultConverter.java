@@ -24,7 +24,7 @@ import javax.lang.model.type.TypeMirror;
 import java.util.Collections;
 
 /**
- * Returns an entity
+ * Returns an entity.
  *
  * @author RollW
  */
@@ -39,12 +39,8 @@ public class SingleEntityQueryResultConverter extends QueryResultConverter {
     @Override
     public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
         mConverter.onResultSetReady(resultSetName, block);
-        block.builder().addStatement("final $T $L", TypeName.get(mConverter.getOutType()), outVarName)
-                .beginControlFlow("if ($L.first())", resultSetName);
+        block.builder().addStatement("final $T $L", TypeName.get(mConverter.getOutType()), outVarName);
         mConverter.convert(outVarName, resultSetName, block);
-        block.builder().nextControlFlow("else")
-                .addStatement("$L = $L", outVarName, getDefaultValue(mConverter.getOutType()))
-                .endControlFlow();
         mConverter.onResultSetFinish(block);
     }
 

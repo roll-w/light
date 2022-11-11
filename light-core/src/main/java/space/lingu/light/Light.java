@@ -25,7 +25,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * LightDatabase实用类
+ * Light util class.
+ *
  * @author RollW
  */
 public final class Light {
