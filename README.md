@@ -16,7 +16,7 @@ To add dependencies on Light using Maven, use the following:
     <dependency>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-compiler</artifactId>
-        <version>0.3.0</version>
+        <version>0.3.1</version>
         <scope>provided</scope>
     </dependency>
     
@@ -24,16 +24,16 @@ To add dependencies on Light using Maven, use the following:
     <dependency>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-core</artifactId>
-        <version>0.3.0</version>
+        <version>0.3.1</version>
     </dependency>
 </dependencies>
 ```
 Or using Gradle: 
 ```gradle
 dependencies {
-    compileOnly("space.lingu.light:light-compiler:0.3.0")
+    compileOnly("space.lingu.light:light-compiler:0.3.1")
   
-    implementation("space.lingu.light:light-core:0.3.0")
+    implementation("space.lingu.light:light-core:0.3.1")
 }
 ```
 
