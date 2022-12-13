@@ -84,7 +84,10 @@ public class DatabaseWriter extends ClassWriter {
 
 
     private void writeDaos() {
-        // 生成所有的Dao
+        // write all daos
+
+        // FIXME: duplicate generated if defined methods
+        //  multiple times with the same dao return type
         mDatabase.getDatabaseDaoMethods().forEach(method -> {
             DaoWriter writer = new DaoWriter(method.getDao(),
                     mDatabase.getSuperClassElement(), mEnv);

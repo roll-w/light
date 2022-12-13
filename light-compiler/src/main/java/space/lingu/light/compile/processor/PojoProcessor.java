@@ -104,8 +104,14 @@ public class PojoProcessor implements Processor<Pojo> {
 
     private Constructor chooseConstructor(List<Field> fields) {
         // 从参数数量由少到多寻找
-        List<? extends Element> elements = mElement.getEnclosedElements();
 
+        // TODO: refactor this method
+        List<? extends Element> elements = mElement.getEnclosedElements();
+        for (Element element : elements) {
+            if (element.getAnnotation(space.lingu.light.Constructor.class) != null) {
+                // TODO
+            }
+        }
         List<ExecutableElement> constructorsForChoose = new ArrayList<>();
         elements.forEach(e -> {
             if (e.getKind() == ElementKind.CONSTRUCTOR) {

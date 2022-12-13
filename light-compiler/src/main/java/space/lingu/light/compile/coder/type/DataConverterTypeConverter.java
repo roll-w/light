@@ -40,4 +40,11 @@ public class DataConverterTypeConverter extends SingleStatementTypeConverter {
                 mConverter.getMethodName(),
                 inputVar);
     }
+
+    @Override
+    public String toString() {
+        return "DataConverterTypeConverter{" +
+                "mConverter=" + mConverter +
+                '}';
+    }
 }

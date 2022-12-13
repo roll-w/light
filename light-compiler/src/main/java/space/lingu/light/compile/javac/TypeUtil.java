@@ -22,6 +22,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.*;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
+import java.util.List;
 
 /**
  * @author RollW
@@ -82,21 +83,42 @@ public class TypeUtil {
      * Only used in simple type.
      */
     public static boolean equalTypeMirror(TypeMirror m1, TypeMirror m2) {
+        if (m1.getKind() != m2.getKind()) {
+            return false;
+        }
         if (isPrimitive(m1) && isPrimitive(m2)) {
-            return m1.getKind() == m2.getKind();
+            return true;
         }
 
-        if (m1.getKind() == m2.getKind()) {
-            if (m1.getKind() == TypeKind.ARRAY) {
-                ArrayType m1A = (ArrayType) m1;
-                ArrayType m2A = (ArrayType) m2;
+        if (m1.getKind() == TypeKind.ARRAY) {
+            ArrayType m1A = (ArrayType) m1;
+            ArrayType m2A = (ArrayType) m2;
 
-                return equalTypeMirror(m1A.getComponentType(), m2A.getComponentType());
+            return equalTypeMirror(m1A.getComponentType(), m2A.getComponentType());
+        }
+        try {
+            List<? extends TypeMirror> g1 = getGenericTypes(m1);
+            List<? extends TypeMirror> g2 = getGenericTypes(m2);
+            if (g1.size() != g2.size()) {
+                return false;
             }
-            // TODO list type
-            return ElementUtil.equalTypeElement(ElementUtil.asTypeElement(m1), ElementUtil.asTypeElement(m2));
+            int size = g1.size();
+            for (int i = 0; i < size; i++) {
+                TypeMirror gM1 = g1.get(i);
+                TypeMirror gM2 = g2.get(i);
+                boolean r = equalTypeMirror(gM1, gM2);
+                if (!r) {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return false;
+        return ElementUtil.equalTypeElement(ElementUtil.asTypeElement(m1), ElementUtil.asTypeElement(m2));
+    }
+
+    public static List<? extends TypeMirror> getGenericTypes(TypeMirror mirror) {
+        return MoreTypes.asDeclared(mirror).getTypeArguments();
     }
 
     public static boolean isPrimitive(TypeMirror mirror) {

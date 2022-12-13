@@ -68,4 +68,14 @@ public class DataConverter {
     public String getMethodName() {
         return element.getSimpleName().toString();
     }
+
+    @Override
+    public String toString() {
+        return "DataConverter{" +
+                "enclosingClass=" + enclosingClass +
+                ", element=" + element +
+                ", fromType=" + fromType +
+                ", toType=" + toType +
+                '}';
+    }
 }

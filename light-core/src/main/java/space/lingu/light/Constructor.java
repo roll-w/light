@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.struct;
+package space.lingu.light;
 
-import javax.lang.model.element.ExecutableElement;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A dao getter method defined in database.
+ * Annotated on the constructor that you want light to choose
+ * in data table class.
  *
  * @author RollW
  */
-public class DatabaseDaoMethod {
-    private final ExecutableElement element;
-    private final Dao dao;
-
-    public DatabaseDaoMethod(ExecutableElement element, Dao dao) {
-        this.element = element;
-        this.dao = dao;
-    }
-
-
-    public ExecutableElement getElement() {
-        return element;
-    }
-
-    public Dao getDao() {
-        return dao;
-    }
+@LightExperimentalApi
+@Documented
+@Target({ElementType.CONSTRUCTOR})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Constructor {
 }

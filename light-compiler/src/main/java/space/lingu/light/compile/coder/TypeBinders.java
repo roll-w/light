@@ -198,10 +198,10 @@ public class TypeBinders {
 
 
     private List<TypeConverter> getAllTypeConverters(TypeMirror in, List<TypeMirror> excludes) {
-        return mTypeConverters.stream().filter(typeConverter ->
-                mEnv.getTypeUtils().isAssignable(typeConverter.from, in) &&
-                        excludes.stream().noneMatch(con ->
-                                mEnv.getTypeUtils().isAssignable(con, in))
+        return mTypeConverters.stream()
+                .filter(typeConverter ->
+                        mEnv.getTypeUtils().isAssignable(typeConverter.from, in) &&
+                                excludes.stream().noneMatch(con -> mEnv.getTypeUtils().isAssignable(con, in))
         ).collect(Collectors.toList());
     }
 
@@ -218,7 +218,7 @@ public class TypeBinders {
         }
 
         if (TypeUtil.isCollection(typeMirror)) {
-            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(ElementUtil.getGenericTypes(typeMirror).get(0));
+            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(TypeUtil.getGenericTypes(typeMirror).get(0));
             StatementBinder binder = findStatementBinder(typeArg, null);
             if (binder != null) {
                 return new CollectionQueryParameterBinder(binder);
@@ -261,7 +261,7 @@ public class TypeBinders {
                 return new ArrayQueryResultConverter(converter);
             }
         } else if (ElementUtil.isList(mEnv.getTypeUtils().asElement(typeMirror))) {
-            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(ElementUtil.getGenericTypes(typeMirror).get(0));
+            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(TypeUtil.getGenericTypes(typeMirror).get(0));
             RowConverter converter = findRowConverter(typeArg);
             if (converter != null) {
                 return new ListQueryResultConverter(typeArg, converter);

@@ -151,10 +151,6 @@ public class ElementUtil {
         return typeElementList;
     }
 
-    public static List<? extends TypeMirror> getGenericTypes(TypeMirror mirror) {
-        return MoreTypes.asDeclared(mirror).getTypeArguments();
-    }
-
 
     private ElementUtil() {
     }

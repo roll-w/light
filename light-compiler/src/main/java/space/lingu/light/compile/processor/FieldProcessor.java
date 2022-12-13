@@ -90,9 +90,15 @@ public class FieldProcessor implements Processor<Field> {
                 .findColumnReader(field.getTypeMirror(), field.getDataType());
 
         // todo
-        if (binder == null || reader == null) {
+        if (binder == null) {
             mEnv.getLog().error(
-                    CompileErrors.unknownType(mElement.asType()),
+                    CompileErrors.unknownOutType(mElement.asType()),
+                    mElement
+            );
+        }
+        if (reader == null) {
+            mEnv.getLog().error(
+                    CompileErrors.unknownInType(mElement.asType()),
                     mElement
             );
         }

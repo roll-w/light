@@ -118,11 +118,18 @@ public final class CompileErrors {
         return String.format(TYPE_NOT_ITERATOR, element.getQualifiedName());
     }
 
-    public static final String UNKNOWN_TYPE =
-            "Unknown column data type of '%s', cannot be processed.";
+    public static final String UNKNOWN_IN_TYPE =
+            "Unknown in column data type of '%s', cannot be processed.";
 
-    public static String unknownType(TypeMirror typeMirror) {
-        return String.format(UNKNOWN_TYPE, typeMirror.toString());
+    public static final String UNKNOWN_OUT_TYPE =
+            "Unknown out column data type of '%s', cannot be processed.";
+
+    public static String unknownInType(TypeMirror typeMirror) {
+        return String.format(UNKNOWN_IN_TYPE, typeMirror.toString());
+    }
+
+    public static String unknownOutType(TypeMirror typeMirror) {
+        return String.format(UNKNOWN_OUT_TYPE, typeMirror.toString());
     }
 
     public static final String DAO_TOO_MUCH_CONSTRUCTORS =

@@ -67,6 +67,8 @@ public class DatabaseProcessor implements Processor<Database> {
         ClassName superClass = ClassName.get(mElement);
         String packageName = superClass.packageName();
         String implName = superClass.simpleName() + ClassWriter.CLASS_SUFFIX;
+        List<DataConverter> dataConverterList = getDataConverterMethods();
+        mEnv.getBinders().registerDataConverters(dataConverterList);
 
         List<TypeMirror> tableClassMirror = new ArrayList<>();
         try {
@@ -75,8 +77,6 @@ public class DatabaseProcessor implements Processor<Database> {
             // it will and should be caught
             tableClassMirror.addAll(e.getTypeMirrors());
         }
-        List<DataConverter> dataConverterList = getDataConverterMethods();
-        mEnv.getBinders().registerDataConverters(dataConverterList);
         Configurations configurations = Configurable.createFrom(anno.configuration());
 
         return database.setDataTableList(processDataTables(tableClassMirror))
@@ -166,7 +166,6 @@ public class DatabaseProcessor implements Processor<Database> {
 
     private List<DatabaseDaoMethod> getAllDaoMethods(Configurations configurations) {
         List<DatabaseDaoMethod> daoMethods = new ArrayList<>();
-
         for (Element e : enclosedElements) {
             if (e.getKind() != ElementKind.METHOD || !ElementUtil.isAbstract(e)) {
                 continue;
