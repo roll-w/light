@@ -16,7 +16,12 @@
 
 package space.lingu.light.compile.writer;
 
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
@@ -72,7 +77,7 @@ public class DatabaseWriter extends ClassWriter {
             RuntimeStructWriter writer = new RuntimeStructWriter(dataTable);
             final String tableVar = writer.writeDataTable(block, dbConfVarName);
             block.builder().addStatement("this.$L($L)",
-                    MethodNames.sRegisterTable, tableVar)
+                            MethodNames.sRegisterTable, tableVar)
                     .add("// end create " + qualifiedName + " structure.\n");
         });
         return block.builder().build();
@@ -86,12 +91,13 @@ public class DatabaseWriter extends ClassWriter {
     private void writeDaos() {
         // write all daos
 
-        // FIXME: duplicate generated if defined methods
-        //  multiple times with the same dao return type
         mDatabase.getDatabaseDaoMethods().forEach(method -> {
             DaoWriter writer = new DaoWriter(method.getDao(),
                     mDatabase.getSuperClassElement(), mEnv);
-            writer.write();
+            try {
+                writer.write();
+            } catch (FilterWriteException ignored) {
+            }
         });
     }
 
