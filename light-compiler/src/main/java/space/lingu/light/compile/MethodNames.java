@@ -17,6 +17,7 @@
 package space.lingu.light.compile;
 
 import space.lingu.light.LightDatabase;
+import space.lingu.light.handler.SQLHandler;
 import space.lingu.light.sql.SQLEscaper;
 import space.lingu.light.struct.Table;
 
@@ -54,6 +55,16 @@ public final class MethodNames {
      * {@link space.lingu.light.util.ResultSetUtil#getColumnIndexOrThrow(ResultSet, String)}}
      */
     public static final String sGetColumnIndexOrThrow = "getColumnIndexOrThrow";
+
+    /**
+     * {@link space.lingu.light.DaoConnectionGetter#getConnection()}
+     */
+    public static final String sGetConnection = "getConnection";
+
+    /**
+     * {@link SQLHandler#newConnection()}
+     */
+    public static final String sSQLHandlerNewConnection = "newConnection";
 
     private MethodNames() {
     }

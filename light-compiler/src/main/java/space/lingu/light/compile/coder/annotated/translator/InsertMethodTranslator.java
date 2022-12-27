@@ -127,19 +127,11 @@ public class InsertMethodTranslator {
                 insertType != InsertType.VOID_OBJECT;
         final String returnVarName = needsReturn ? block.getTempVar("_result") : null;
 
-        /* 示例，产生类似如下代码
-            try {
-              __insertHandlerOfItem.beginTransaction();
-              long _result = __insertHandlerOfItem.insertAndReturnId(item);
-              return _result;
-            } finally {
-              __insertHandlerOfItem.endTransaction();
-            }
-        */
         params.forEach(param -> {
             FieldSpec insertHandlerField = insertHandlers.get(param.getName()).first;
-            block.builder().beginControlFlow("try")
-                    .addStatement("$N.beginTransaction()", insertHandlerField);
+
+            // now we don't need to manually open the transaction,
+            // the handler will do it for us.
             if (needsReturn) {
                 block.builder().addStatement("$T $L = $N.$L($L)", insertType.returnType, returnVarName,
                         insertHandlerField, insertType.methodName, param.getName());
@@ -152,10 +144,6 @@ public class InsertMethodTranslator {
             } else if (insertType == InsertType.VOID_OBJECT) {
                 block.builder().addStatement("return null");
             }
-
-            block.builder().nextControlFlow("finally")
-                    .addStatement("$N.endTransaction()", insertHandlerField)
-                    .endControlFlow();
         });
     }
 

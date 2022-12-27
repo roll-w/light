@@ -34,6 +34,7 @@ public abstract class QueryResultBinder {
 
 
     public abstract void writeBlock(String handlerName,
+                                    String connVarName,
                                     String stmtVarName,
                                     boolean canReleaseSet,
                                     boolean isReturn,
@@ -41,6 +42,7 @@ public abstract class QueryResultBinder {
                                     GenerateCodeBlock block);
 
     protected void end(String handlerName,
+                       String connVarName,
                        String stmtVarName,
                        String outVarName,
                        boolean canReleaseSet,
@@ -48,7 +50,7 @@ public abstract class QueryResultBinder {
                        boolean inTransaction,
                        GenerateCodeBlock block) {
         if (inTransaction) {
-            block.builder().addStatement("$N.endTransaction()", handlerName);
+            block.builder().addStatement("$N.commit()", connVarName);
         }
         if (isReturn) {
             block.builder().addStatement("return $L", outVarName);
@@ -60,7 +62,7 @@ public abstract class QueryResultBinder {
         if (canReleaseSet) {
             block.builder()
                     .nextControlFlow("finally")
-                    .addStatement("$N.release($L)", handlerName, stmtVarName);
+                    .addStatement("$N.release($L)", handlerName, connVarName);
         }
         block.builder().endControlFlow();
     }

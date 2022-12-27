@@ -37,7 +37,7 @@ public class JavaPoetClass {
     public static final ClassName LIGHT_DATABASE = ClassName.get(LightDatabase.class);
     public static final ClassName LIGHT = ClassName.get(Light.class);
 
-    public static final ClassName SHARED_CONNECTION = ClassName.get(SharedConnection.class);
+    public static final ClassName MANAGED_CONNECTION = ClassName.get(ManagedConnection.class);
 
     public static final ClassName INSERT_HANDLER = ClassName.get(InsertHandler.class);
     public static final ClassName DELETE_UPDATE_HANDLER = ClassName.get(DeleteUpdateHandler.class);

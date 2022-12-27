@@ -72,12 +72,12 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
                     new QueryParameterProcessor(variableElement, mContaining, mEnv);
             queryParameters.add(parameterProcessor.process());
         });
-
+        boolean transaction = mExecutable.getAnnotation(Transaction.class) != null;
         method.setElement(mExecutable)
                 .setSql(queryAnno.value())
                 .setReturnType(mExecutable.getReturnType())
                 .setParameters(queryParameters)
-                .setTransaction(mExecutable.getAnnotation(Transaction.class) != null);
+                .setTransaction(transaction);
         QueryResultBinder binder =
                 mEnv.getBinders().findQueryResultBinder(method.getReturnType());
         if (binder == null) {
