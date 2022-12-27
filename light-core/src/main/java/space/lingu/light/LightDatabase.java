@@ -202,7 +202,7 @@ public abstract class LightDatabase {
         return connection;
     }
 
-    public void releaseConnection(Connection connection) {
+    public void releaseConnection(Connection connection) throws LightRuntimeException, NullPointerException {
         checkConnectionPool();
         mConnectionPool.release(connection);
     }

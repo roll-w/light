@@ -17,13 +17,16 @@
 package space.lingu.light.connect;
 
 import space.lingu.light.DatasourceConfig;
+import space.lingu.light.LightDatabase;
 import space.lingu.light.LightLogger;
+import space.lingu.light.LightRuntimeException;
 
 import java.io.Closeable;
 import java.sql.Connection;
 
 /**
  * Connection pool for Light.
+ * It should be managed by the {@link LightDatabase}.
  *
  * @author RollW
  */
@@ -46,18 +49,20 @@ public interface ConnectionPool extends Closeable {
      * Release connection.
      *
      * @param connection {@link Connection}
+     * @throws LightRuntimeException if connection release failed.
      */
-    void release(Connection connection);
+    void release(Connection connection) throws LightRuntimeException;
 
     /**
      * Set logger.
      *
-     * @param logger {@link LightLogger}
+     * @param logger a {@link LightLogger}
      */
     void setLogger(LightLogger logger);
 
     /**
-     * Get logger.
+     * Get the {@link LightLogger}.
+     *
      * @return logger (nullable)
      */
     LightLogger getLogger();
