@@ -188,6 +188,13 @@ public class ManagedConnection implements RuntimeCloseable {
     }
 
     /**
+     * Alias for {@link #commit()}.
+     */
+    public void endTransaction() {
+        commit();
+    }
+
+    /**
      * Rollback current transaction if database supports,
      * and close the transaction.
      */
@@ -240,9 +247,7 @@ public class ManagedConnection implements RuntimeCloseable {
     }
 
     /**
-     * Same with {@link #close()}.
-     *
-     * @throws LightRuntimeException if release connection failed.
+     * Alias for {@link #close()}.
      */
     public void release() throws LightRuntimeException {
         close();
