@@ -32,6 +32,7 @@ import java.sql.SQLException;
  * you can simply copy this file to your project.
  * <p>
  * In most cases it will work fine.
+ *
  * @author RollW
  */
 public class HikariConnectionPool extends BaseConnectionPool {

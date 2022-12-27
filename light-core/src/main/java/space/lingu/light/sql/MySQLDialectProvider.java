@@ -31,6 +31,17 @@ import java.util.StringJoiner;
  */
 public class MySQLDialectProvider extends GeneralDialectProvider
         implements DialectProvider, SQLGenerator {
+    /**
+     * MySQL table collate setting key.
+     * <p>
+     * When a MySQL dialect provider constructs a table statement,
+     * it constructs the statement at the end of the statement
+     * as "ENGINE=$ENGINE CHARSET=$CHARSET COLLATE=$COLLATE".
+     * Therefore, you can also set your 'COLLATE' setting in the
+     * {@link LightConfiguration#KEY_CHARSET} configuration.
+     */
+    public static final String KEY_COLLATE = "Key.MySQL.Collate";
+
     public static final String DEFAULT_VARCHAR_LENGTH = "16383";
     public static final String CHARSET_UTF8 = "utf8";
     public static final String CHARSET_UTF8MB4 = "utf8mb4";
@@ -54,7 +65,8 @@ public class MySQLDialectProvider extends GeneralDialectProvider
                 LightConfiguration.KEY_ENGINE, DEFAULT_ENGINE);
         final String charset = table.getConfigurations().findConfigurationValue(
                 LightConfiguration.KEY_CHARSET, DEFAULT_CHARSET);
-
+        final String collate = table.getConfigurations().findConfigurationValue(
+                KEY_COLLATE, "");
         String autoIncrementStart = null;
         StringJoiner primaryKeyJoiner = new StringJoiner(", ");
         for (TableColumn column : table.getPrimaryKey().getColumns()) {
@@ -79,14 +91,19 @@ public class MySQLDialectProvider extends GeneralDialectProvider
                 .append(" ")
                 .append("DEFAULT CHARSET=")
                 .append(charset);
+        if (!StringUtil.isEmpty(collate)) {
+            builder.append(" COLLATE=")
+                    .append(collate);
+        }
+
         return builder.toString();
     }
 
     @Override
     public String create(TableIndex index) {
-        StringBuilder builder = new StringBuilder("CREATE ");
+        StringBuilder builder = new StringBuilder("CREATE");
         if (index.isUnique()) {
-            builder.append(" UNIQUE ");
+            builder.append(" UNIQUE");
         }
         builder.append(" INDEX ")
                 .append(escapeParam(index.getName()))
