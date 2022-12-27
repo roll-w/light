@@ -24,8 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Share {@link PreparedStatement} to reduce memory usage and with thread-safe.
  *
- * @deprecated Deprecated since 0.3.2. Do not use the class anymore.
  * @author RollW
+ * @deprecated Deprecated since 0.3.2. Do not use the class anymore.
  */
 @SuppressWarnings("unused")
 @Deprecated

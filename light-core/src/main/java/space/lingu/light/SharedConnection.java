@@ -24,8 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Further packaging for the {@link Connection}.
  * Implement many useful methods.
  *
- * @deprecated Deprecated since 0.3.2. Do not use the class anymore.
  * @author RollW
+ * @deprecated Deprecated since 0.3.2. Do not use the class anymore.
+ * Using {@link ManagedConnection} instead.
  */
 @SuppressWarnings("unused")
 @Deprecated
