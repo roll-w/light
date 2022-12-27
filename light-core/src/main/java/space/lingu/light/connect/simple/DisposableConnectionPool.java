@@ -17,7 +17,6 @@
 package space.lingu.light.connect.simple;
 
 import space.lingu.light.DatasourceConfig;
-import space.lingu.light.LightLogger;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.connect.BaseConnectionPool;
 import space.lingu.light.connect.ConnectionPool;
@@ -52,7 +51,7 @@ public class DisposableConnectionPool extends BaseConnectionPool implements Conn
     @Override
     public Connection requireConnection() {
         if (mDatasourceConfig == null || mDatasourceConfig.getUrl() == null) {
-            throw new IllegalStateException("DataSourceConfig is null or URL is null.");
+            throw new NullPointerException("DataSourceConfig is null or URL is null.");
         }
         try {
             Class.forName(mDatasourceConfig.getJdbcName());
@@ -60,7 +59,7 @@ public class DisposableConnectionPool extends BaseConnectionPool implements Conn
             throw new LightRuntimeException("Jdbc driver class not found, please check properties.", e);
         }
         if (StringUtil.isEmpty(mDatasourceConfig.getPassword()) ||
-                StringUtil.isEmpty(mDatasourceConfig.getUsername()) ) {
+                StringUtil.isEmpty(mDatasourceConfig.getUsername())) {
             try {
                 return DriverManager.getConnection(mDatasourceConfig.getUrl());
             } catch (SQLException e) {
@@ -68,17 +67,15 @@ public class DisposableConnectionPool extends BaseConnectionPool implements Conn
                     logger.error(e);
                 throw new LightRuntimeException(e);
             }
-        } else {
-            try {
-                return DriverManager.getConnection(mDatasourceConfig.getUrl(),
-                        mDatasourceConfig.getUsername(), mDatasourceConfig.getPassword());
-            } catch (SQLException e) {
-                if (logger != null)
-                    logger.error(e);
-                throw new LightRuntimeException(e);
-            }
         }
-
+        try {
+            return DriverManager.getConnection(mDatasourceConfig.getUrl(),
+                    mDatasourceConfig.getUsername(), mDatasourceConfig.getPassword());
+        } catch (SQLException e) {
+            if (logger != null)
+                logger.error(e);
+            throw new LightRuntimeException(e);
+        }
     }
 
     @Override

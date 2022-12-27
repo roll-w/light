@@ -35,6 +35,7 @@ public class HandlerDeleteResultBinder extends QueryResultBinder {
 
     @Override
     public void writeBlock(String handlerName,
+                           String connVarName,
                            String stmtVarName,
                            boolean canReleaseSet,
                            boolean isReturn,

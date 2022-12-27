@@ -33,20 +33,21 @@ public class DeleteResultBinder extends QueryResultBinder {
 
     @Override
     public void writeBlock(String handlerName,
+                           String connVarName,
                            String stmtVarName,
                            boolean canReleaseSet,
                            boolean isReturn,
                            boolean inTransaction,
                            GenerateCodeBlock block) {
         if (inTransaction) {
-            block.builder().addStatement("$N.beginTransaction()", handlerName);
+            block.builder().addStatement("$N.beginTransaction()", connVarName);
         }
         final String outVar = block.getTempVar("_result");
         block.builder()
                 .beginControlFlow("try")
                 .addStatement("$T $L = $N.executeUpdate()",
                         TypeName.INT, outVar, stmtVarName);
-        end(handlerName, stmtVarName, outVar,
+        end(handlerName, connVarName, stmtVarName, outVar,
                 canReleaseSet, isReturn,
                 inTransaction, block);
     }

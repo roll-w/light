@@ -19,6 +19,7 @@ package space.lingu.light.compile.writer;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.JavaPoetClass;
+import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.ExpressionBind;
 import space.lingu.light.compile.struct.SQLCustomMethod;
@@ -40,13 +41,15 @@ public class SQLCustomMethodWriter {
         mMethod = queryMethod;
     }
 
-    public void prepare(String stmtVar, String handlerName,
+    public void prepare(String stmtVar, String connName,
+                        String handlerName,
                         GenerateCodeBlock block) {
-        List<Pair<ExpressionBind, String>> listVars = createSqlQueryAndArgs(stmtVar, handlerName, block);
+        List<Pair<ExpressionBind, String>> listVars = createSqlQueryAndArgs(stmtVar, connName, handlerName, block);
         bindArgs(stmtVar, listVars, block);
     }
 
     private List<Pair<ExpressionBind, String>> createSqlQueryAndArgs(String outVarName,
+                                                                     String connName,
                                                                      String handlerName,
                                                                      GenerateCodeBlock block) {
         List<Pair<ExpressionBind, String>> pairList = new ArrayList<>();
@@ -72,12 +75,15 @@ public class SQLCustomMethodWriter {
         argsArrayInitBuilder.append(argsArrayInitJoiner).append("}");
 
         block.builder()
+                .addStatement("final $T $L = $L.$L()", JavaPoetClass.MANAGED_CONNECTION,
+                        connName, handlerName,
+                        MethodNames.sSQLHandlerNewConnection)
                 .addStatement("final $T $L = $L",
                         ArrayTypeName.of(TypeName.INT),
                         argCountArray, argsArrayInitBuilder.toString())
-                .addStatement("final $T $L = $L.acquire($L)",
+                .addStatement("final $T $L = $L.acquire($L, $L)",
                         JavaPoetClass.JdbcNames.PREPARED_STMT,
-                        outVarName, handlerName, argCountArray);
+                        outVarName, handlerName, connName, argCountArray);
         return pairList;
     }
 

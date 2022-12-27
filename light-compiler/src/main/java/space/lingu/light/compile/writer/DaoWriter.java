@@ -22,6 +22,7 @@ import space.lingu.light.DaoConnectionGetter;
 import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.JavaPoetClass;
+import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -106,11 +107,11 @@ public class DaoWriter extends ClassWriter {
     }
 
     private MethodSpec createGetConnectionMethod() {
-        return MethodSpec.methodBuilder("getConnection")
+        return MethodSpec.methodBuilder(MethodNames.sGetConnection)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .returns(JavaPoetClass.SHARED_CONNECTION)
+                .returns(JavaPoetClass.MANAGED_CONNECTION)
                 .addAnnotation(Override.class)
-                .addStatement("return new $T($N)", JavaPoetClass.SHARED_CONNECTION, sDatabaseField.name)
+                .addStatement("return $N.requireManagedConnection()", sDatabaseField.name)
                 .build();
     }
 
@@ -199,7 +200,7 @@ public class DaoWriter extends ClassWriter {
         }
         builder.addStatement("this.$N = $N", sDatabaseField, param);
         Set<Pair<FieldSpec, TypeSpec>> set = new HashSet<>();
-        boolean h2Mode = isH2Mode(configurations);
+        boolean h2Mode = isCapsMode(configurations);
 
         autoMethodPairs.stream()
                 .filter(autoMethodPair -> !autoMethodPair.fields.isEmpty())
@@ -217,7 +218,7 @@ public class DaoWriter extends ClassWriter {
                 pair.first, pair.second));
 
         sqlMethodPairs.forEach(pair -> {
-            String sql = processSqlIfH2Mode(
+            String sql = processSqlIfCapsMode(
                     pair.sqlCustomMethod.getSql(), h2Mode);
             builder.addStatement("this.$N = new $T($L, $S)",
                     pair.fieldSpec,
@@ -229,12 +230,12 @@ public class DaoWriter extends ClassWriter {
         return builder.build();
     }
 
-    private boolean isH2Mode(Configurations configurations) {
+    private boolean isCapsMode(Configurations configurations) {
         return false;
     }
 
-    private String processSqlIfH2Mode(String sql, boolean h2Mode) {
-        if (h2Mode) {
+    private String processSqlIfCapsMode(String sql, boolean capsMode) {
+        if (capsMode) {
             return new SQLExpressionParser(sql).toUppercase();
         }
         return sql;
@@ -364,10 +365,11 @@ public class DaoWriter extends ClassWriter {
         SQLCustomMethodWriter writer = new SQLCustomMethodWriter(method);
         GenerateCodeBlock block = new GenerateCodeBlock(this);
         final String stmtVar = block.getTempVar("_stmt");
-        writer.prepare(stmtVar, field.name, block);
+        final String connVar = block.getTempVar("_conn");
+        writer.prepare(stmtVar, connVar, field.name, block);
 
         method.getResultBinder()
-                .writeBlock(field.name, stmtVar, true,
+                .writeBlock(field.name, connVar, stmtVar, true,
                         !TypeUtil.isVoid(method.getReturnType()),
                         method.isTransaction(), block);
         return block.generate();

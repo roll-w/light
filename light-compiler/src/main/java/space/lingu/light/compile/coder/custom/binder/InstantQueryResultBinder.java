@@ -29,22 +29,22 @@ public class InstantQueryResultBinder extends QueryResultBinder {
     }
 
     @Override
-    public void writeBlock(String handlerName, String stmtVarName,
+    public void writeBlock(String handlerName, String connVarName, String stmtVarName,
                            boolean canReleaseSet, boolean isReturn,
                            boolean inTransaction,
                            GenerateCodeBlock block) {
         if (inTransaction) {
-            block.builder().addStatement("$N.beginTransaction()", handlerName);
+            block.builder().addStatement("$N.beginTransaction()", connVarName);
         }
         final String outVar = block.getTempVar("_result");
         final String setVar = block.getTempVar("_resultSet");
 
         block.builder().beginControlFlow("try ($T $L = $N.executeQuery())",
-                        JavaPoetClass.JdbcNames.RESULT_SET, setVar, stmtVarName);
+                JavaPoetClass.JdbcNames.RESULT_SET, setVar, stmtVarName);
         if (isReturn) {
             mConverter.convert(outVar, setVar, block);
         }
-        end(handlerName, stmtVarName, outVar,
+        end(handlerName, connVarName, stmtVarName, outVar,
                 canReleaseSet, isReturn,
                 inTransaction, block);
     }

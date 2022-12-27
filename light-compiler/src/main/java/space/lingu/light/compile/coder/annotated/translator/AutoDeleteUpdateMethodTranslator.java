@@ -61,9 +61,6 @@ public class AutoDeleteUpdateMethodTranslator {
 
         params.forEach(param -> {
             FieldSpec handlerField = handlers.get(param.getName()).first;
-            block.builder()
-                    .addStatement("$N.beginTransaction()", handlerField)
-                    .beginControlFlow("try");
 
             String increaseVar;
             if (returnVarName == null) {
@@ -73,10 +70,7 @@ public class AutoDeleteUpdateMethodTranslator {
             }
 
             block.builder().addStatement("$L$N.$L($L)",
-                            increaseVar, handlerField, methodName, param.getName())
-                    .nextControlFlow("finally")
-                    .addStatement("$N.endTransaction()", handlerField)
-                    .endControlFlow();
+                            increaseVar, handlerField, methodName, param.getName());
         });
 
         if (returnVarName != null) {

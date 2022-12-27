@@ -18,8 +18,8 @@ package space.lingu.light.connect.simple;
 
 import space.lingu.light.DatasourceConfig;
 import space.lingu.light.LightExperimentalApi;
-import space.lingu.light.LightLogger;
 import space.lingu.light.LightRuntimeException;
+import space.lingu.light.connect.BaseConnectionPool;
 import space.lingu.light.connect.ConnectionPool;
 import space.lingu.light.util.StringUtil;
 
@@ -33,10 +33,9 @@ import java.sql.SQLException;
  * @author RollW
  */
 @LightExperimentalApi
-public class JdbcDataSourceConnectionPool implements ConnectionPool {
+public class JdbcDataSourceConnectionPool extends BaseConnectionPool implements ConnectionPool {
     private final ConnectionPoolDataSource mPoolDataSource;
     private PooledConnection mConnection;
-    private LightLogger logger = null;
 
     // todo
     public JdbcDataSourceConnectionPool(ConnectionPoolDataSource poolDataSource) {
@@ -66,7 +65,7 @@ public class JdbcDataSourceConnectionPool implements ConnectionPool {
     @Override
     public Connection requireConnection() {
         if (mConnection == null) {
-            throw new LightRuntimeException("Not set yet.");
+            throw new LightRuntimeException("Not set PooledConnection yet.");
         }
         try {
             return mConnection.getConnection();
@@ -85,16 +84,6 @@ public class JdbcDataSourceConnectionPool implements ConnectionPool {
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
-    }
-
-    @Override
-    public void setLogger(LightLogger logger) {
-        this.logger = logger;
-    }
-
-    @Override
-    public LightLogger getLogger() {
-        return logger;
     }
 
     @Override
