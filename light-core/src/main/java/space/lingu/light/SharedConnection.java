@@ -24,9 +24,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Further packaging for the {@link Connection}.
  * Implement many useful methods.
  *
+ * @deprecated Deprecated since 0.3.2. Do not use the class anymore.
  * @author RollW
  */
 @SuppressWarnings("unused")
+@Deprecated
 public class SharedConnection {
     private final AtomicBoolean mLock = new AtomicBoolean(false);
     private volatile Connection mConnection;

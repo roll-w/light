@@ -18,6 +18,7 @@ package space.lingu.light.handler;
 
 import space.lingu.light.LightDatabase;
 import space.lingu.light.LightRuntimeException;
+import space.lingu.light.ManagedConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -37,15 +38,18 @@ public abstract class InsertHandler<T> extends Handler<T> {
     }
 
     public final void insert(T entity) {
-        final PreparedStatement stmt = acquire();
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquire(conn);
         try {
             bind(stmt, entity);
+            conn.beginTransaction();
             stmt.execute();
         } catch (SQLException e) {
             printError(e);
             throw new LightRuntimeException(e);
         } finally {
-            release(stmt);
+            conn.commit();
+            conn.close();
         }
     }
 
@@ -55,9 +59,10 @@ public abstract class InsertHandler<T> extends Handler<T> {
     }
 
     public final void insert(Iterable<? extends T> entities) {
-        final PreparedStatement stmt = acquire();
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquire(conn);
         try {
-            if (mSharedConnection.getMetadata().supportsBatch) {
+            if (conn.getMetadata().supportsBatch) {
                 for (T entity : entities) {
                     stmt.clearParameters();
                     bind(stmt, entity);
@@ -68,7 +73,10 @@ public abstract class InsertHandler<T> extends Handler<T> {
                 for (T entity : entities) {
                     stmt.clearParameters();
                     bind(stmt, entity);
+
+                    conn.beginTransaction();
                     stmt.execute();
+                    conn.commit();
                 }
             }
 
@@ -76,15 +84,20 @@ public abstract class InsertHandler<T> extends Handler<T> {
             printError(e);
             throw new LightRuntimeException(e);
         } finally {
-            release(stmt);
+            conn.commit();
+            conn.close();
         }
     }
 
     public final long insertAndReturnId(T entity) {
-        final PreparedStatement stmt = acquire();
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquire(conn);
         try {
             bind(stmt, entity);
+            conn.beginTransaction();
             stmt.execute();
+            conn.commit();
+
             ResultSet set = stmt.getGeneratedKeys();
             if (set.next()) {
                 return set.getLong(1);
@@ -94,19 +107,23 @@ public abstract class InsertHandler<T> extends Handler<T> {
             printError(e);
             throw new LightRuntimeException(e);
         } finally {
-            release(stmt);
+            conn.close();
         }
         return -1;
     }
 
     public final long[] insertAndReturnIdsArray(Collection<? extends T> entities) {
-        final PreparedStatement stmt = acquire();
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquire(conn);
         try {
             final long[] result = new long[entities.size()];
             int index = 0;
             for (T entity : entities) {
                 bind(stmt, entity);
+                conn.beginTransaction();
                 stmt.execute();
+                conn.commit();
+
                 ResultSet set = stmt.getGeneratedKeys();
                 if (set.next()) {
                     result[index] = set.getLong(1);
@@ -119,7 +136,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             printError(e);
             throw new LightRuntimeException(e);
         } finally {
-            release(stmt);
+            conn.close();
         }
     }
 
@@ -128,13 +145,17 @@ public abstract class InsertHandler<T> extends Handler<T> {
     }
 
     public final Long[] insertAndReturnIdsArrayBox(Collection<? extends T> entities) {
-        final PreparedStatement stmt = acquire();
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquire(conn);
         try {
             final Long[] result = new Long[entities.size()];
             int index = 0;
             for (T entity : entities) {
                 bind(stmt, entity);
+                conn.beginTransaction();
                 stmt.execute();
+                conn.commit();
+
                 ResultSet set = stmt.getGeneratedKeys();
                 if (set.next()) {
                     result[index] = set.getLong(1);
@@ -147,7 +168,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             printError(e);
             throw new LightRuntimeException(e);
         } finally {
-            release(stmt);
+            conn.close();
         }
     }
 
@@ -164,7 +185,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
     }
 
     private void printError(Throwable throwable) {
-        mDatabase.getLogger().error("An error occurred while insert to database.", throwable);
+        database.getLogger().error("An error occurred while insert to database.", throwable);
     }
 
 }

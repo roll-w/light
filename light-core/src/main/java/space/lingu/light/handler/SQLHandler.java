@@ -17,12 +17,9 @@
 package space.lingu.light.handler;
 
 import space.lingu.light.LightDatabase;
-import space.lingu.light.LightRuntimeException;
-import space.lingu.light.SharedConnection;
+import space.lingu.light.ManagedConnection;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -30,15 +27,13 @@ import java.util.List;
  *
  * @author RollW
  */
-public class SQLHandler extends SharedConnection {
+public class SQLHandler {
     public final String sql;
     protected final LightDatabase mDatabase;
-    private volatile Connection mConnection;
 
     public SQLHandler(LightDatabase database, String sql) {
-        super(database);
         this.sql = sql;
-        mDatabase = database;
+        this.mDatabase = database;
     }
 
     protected String replaceWithPlaceholders(int[] args) {
@@ -78,23 +73,15 @@ public class SQLHandler extends SharedConnection {
         return mDatabase;
     }
 
-    public void endTransaction() {
-        this.commit();
+    public ManagedConnection newConnection() {
+        return mDatabase.requireManagedConnection();
     }
 
-    public PreparedStatement acquire(int[] args) {
-        mConnection = acquire();
-        return mDatabase.resolveStatement(replaceWithPlaceholders(args),
-                mConnection, false);
+    public PreparedStatement acquire(ManagedConnection connection, int[] args) {
+        return connection.acquire(replaceWithPlaceholders(args), false);
     }
 
-    public void release(PreparedStatement stmt) {
-        try {
-            stmt.close();
-        } catch (SQLException e) {
-            throw new LightRuntimeException(e);
-        } finally {
-            release(mConnection);
-        }
+    public void release(ManagedConnection connection) {
+        connection.close();
     }
 }

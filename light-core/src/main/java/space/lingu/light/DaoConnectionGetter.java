@@ -19,7 +19,7 @@ package space.lingu.light;
 /**
  * Use in a {@link Dao} class/interface.
  * <p>
- * If you want get {@link SharedConnection} in the DAO, please implement this interface.
+ * If you want get {@link ManagedConnection} in the DAO, please implement this interface.
  * Light will generate method to allow you get connection.
  * <p>
  * This only works in Dao.
@@ -28,11 +28,11 @@ package space.lingu.light;
  */
 public interface DaoConnectionGetter {
     /**
-     * Get a {@link SharedConnection} in dao.
+     * Get a {@link ManagedConnection} in dao.
      *
-     * @return new {@link SharedConnection}
+     * @return new {@link ManagedConnection}
      */
-    default SharedConnection getConnection() {
+    default ManagedConnection getConnection() {
         throw new LightRuntimeException("Unimplemented method.");
     }
 }

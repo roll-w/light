@@ -35,5 +35,5 @@ public abstract class Migration {
         this.endVersion = endVersion;
     }
 
-    public abstract void migrate(SharedConnection connection);
+    public abstract void migrate(ManagedConnection connection);
 }
