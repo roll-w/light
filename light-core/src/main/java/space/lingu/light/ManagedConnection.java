@@ -225,8 +225,7 @@ public class ManagedConnection implements RuntimeCloseable {
         for (PreparedStatement preparedStatement : statements.keySet()) {
             try {
                 preparedStatement.close();
-            } catch (SQLException e) {
-                throw new LightRuntimeException(e);
+            } catch (SQLException ignored) {
             }
         }
         database.releaseConnection(connection);
