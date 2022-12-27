@@ -183,7 +183,7 @@ public abstract class LightDatabase {
         return mConnectionPool.requireConnection();
     }
 
-    public Connection requireConnection() {
+    public Connection requireConnection() throws LightRuntimeException {
         Connection connection = rawConnection();
         if (mName == null) {
             return connection;
@@ -200,6 +200,10 @@ public abstract class LightDatabase {
             throw new LightRuntimeException(e);
         }
         return connection;
+    }
+
+    public ManagedConnection requireManagedConnection() throws LightRuntimeException {
+        return new ManagedConnection(this);
     }
 
     public void releaseConnection(Connection connection) throws LightRuntimeException, NullPointerException {

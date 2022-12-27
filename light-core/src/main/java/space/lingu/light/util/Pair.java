@@ -21,11 +21,9 @@ import java.util.Objects;
 /**
  * Pair
  *
- * @deprecated use a more meaningful class instead of creating a pair.
  * @author RollW
  */
-@Deprecated
-public class Pair<F, S> {
+public final class Pair<F, S> {
     public final F first;
     public final S second;
 

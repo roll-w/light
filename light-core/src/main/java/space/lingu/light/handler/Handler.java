@@ -17,7 +17,7 @@
 package space.lingu.light.handler;
 
 import space.lingu.light.LightDatabase;
-import space.lingu.light.SharedSQLStatement;
+import space.lingu.light.ManagedConnection;
 
 import java.sql.PreparedStatement;
 
@@ -26,12 +26,30 @@ import java.sql.PreparedStatement;
  *
  * @author RollW
  */
-public abstract class Handler<T> extends SharedSQLStatement {
+public abstract class Handler<T> {
+    protected final LightDatabase database;
+
     public Handler(LightDatabase database) {
-        super(database);
+        this.database = database;
     }
 
+    protected ManagedConnection newConnection() {
+        return database.requireManagedConnection();
+    }
+
+    /**
+     * Bind entity's parameters to statement.
+     */
     protected abstract void bind(PreparedStatement statement, T entity);
 
+    /**
+     * The sql will be executed.
+     *
+     * @return the sql will be executed
+     */
     protected abstract String createQuery();
+
+    protected PreparedStatement acquire(ManagedConnection connection) {
+        return connection.acquire(createQuery());
+    }
 }

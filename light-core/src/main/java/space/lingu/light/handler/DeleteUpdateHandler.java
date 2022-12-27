@@ -18,13 +18,15 @@ package space.lingu.light.handler;
 
 import space.lingu.light.LightDatabase;
 import space.lingu.light.LightRuntimeException;
+import space.lingu.light.ManagedConnection;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
- * 处理删除或更新操作
+ * Handler for delete or update.
+ *
  * @author RollW
  */
 @SuppressWarnings({"unused"})
@@ -34,24 +36,22 @@ public abstract class DeleteUpdateHandler<T> extends Handler<T> {
         super(database);
     }
 
-    /**
-     * 创建用于删除或更新的SQL语句
-     *
-     * @return SQL语句
-     */
     @Override
     protected abstract String createQuery();
 
     public final int handle(T entity) {
-        final PreparedStatement stmt = acquire();
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquire(conn);
         try {
             bind(stmt, entity);
+            conn.beginTransaction();
             return stmt.executeUpdate();
         } catch (SQLException e) {
             printError(e);
             throw new LightRuntimeException(e);
         } finally {
-            release(stmt);
+            conn.commit();
+            conn.close();
         }
     }
 
@@ -60,27 +60,30 @@ public abstract class DeleteUpdateHandler<T> extends Handler<T> {
     }
 
     public final int handleMultiple(Iterable<? extends T> entities) {
-        final PreparedStatement stmt = acquire();
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquire(conn);
         try {
             int count = 0;
             for (T entity : entities) {
                 bind(stmt, entity);
+                conn.beginTransaction();
                 count += stmt.executeUpdate();
+                conn.commit();
             }
             return count;
         } catch (SQLException e) {
             printError(e);
             throw new LightRuntimeException(e);
         } finally {
-            release(stmt);
+            conn.close();
         }
     }
 
     private void printError(Throwable throwable) {
-        if (mDatabase.getLogger() == null) {
+        if (database.getLogger() == null) {
             return;
         }
-        mDatabase.getLogger().error("An error occurred while delete or update.", throwable);
+        database.getLogger().error("An error occurred while execute delete or update.", throwable);
     }
 
 }
