@@ -24,7 +24,11 @@ import space.lingu.light.LightInfo;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.struct.*;
+import space.lingu.light.compile.struct.Configurable;
+import space.lingu.light.compile.struct.DataConverter;
+import space.lingu.light.compile.struct.DataTable;
+import space.lingu.light.compile.struct.Database;
+import space.lingu.light.compile.struct.DatabaseDaoMethod;
 import space.lingu.light.compile.writer.ClassWriter;
 
 import javax.lang.model.element.Element;
@@ -33,7 +37,12 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.MirroredTypesException;
 import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -161,7 +170,39 @@ public class DatabaseProcessor implements Processor<Database> {
             });
         });
 
+        checkRepeatConverters(dataConverterList);
         return dataConverterList;
+    }
+
+    private void checkRepeatConverters(List<DataConverter> dataConverters) {
+        checkRepeatedInternal(dataConverters, DataConverter::getFromType);
+        checkRepeatedInternal(dataConverters, DataConverter::getToType);
+    }
+
+    private void checkRepeatedInternal(List<DataConverter> dataConverters, Function<DataConverter, TypeMirror> classifier) {
+        dataConverters
+                .stream()
+                .collect(Collectors.groupingBy(classifier,
+                        Collectors.toList()))
+                .forEach((type, converters) -> {
+                    if (converters.size() <= 1) {
+                        return;
+                    }
+                    converters.forEach(dataConverter -> {
+                        List<DataConverter> conflicts = converters.stream()
+                                .filter(converter -> converter != dataConverter &&
+                                        mEnv.getTypeUtils().isSameType(converter.getFromType(), dataConverter.getFromType()) &&
+                                        mEnv.getTypeUtils().isSameType(converter.getToType(), dataConverter.getToType()))
+                                .collect(Collectors.toList());
+                        if (conflicts.isEmpty()) {
+                            return;
+                        }
+                        mEnv.getLog().error(
+                                CompileErrors.repeatedDataConverters(conflicts),
+                                dataConverter.getElement()
+                        );
+                    });
+                });
     }
 
     private List<DatabaseDaoMethod> getAllDaoMethods(Configurations configurations) {
