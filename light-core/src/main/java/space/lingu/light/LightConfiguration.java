@@ -38,21 +38,21 @@ public @interface LightConfiguration {
 
     /**
      * Type {@link SQLDataType#VARCHAR} length configuration. Also, could be used on
-     * {@link SQLDataType#CHARS}
+     * {@link SQLDataType#CHARS}.
      *
      * @see space.lingu.light.sql.MySQLDialectProvider#DEFAULT_VARCHAR_LENGTH
      */
     String KEY_VARCHAR_LENGTH = "Key.Light.VarcharLength";
 
     /**
-     * charset configuration
+     * Charset configuration.
      *
      * @see space.lingu.light.sql.MySQLDialectProvider#DEFAULT_CHARSET
      */
     String KEY_CHARSET = "Key.Light.Charset";
 
     /**
-     * Engine configuration
+     * Engine configuration.
      *
      * @see space.lingu.light.sql.MySQLDialectProvider#DEFAULT_ENGINE
      */
