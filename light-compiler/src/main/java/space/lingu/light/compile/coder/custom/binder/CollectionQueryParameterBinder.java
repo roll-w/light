@@ -17,6 +17,7 @@
 package space.lingu.light.compile.coder.custom.binder;
 
 import com.squareup.javapoet.TypeName;
+import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 
@@ -39,6 +40,11 @@ public class CollectionQueryParameterBinder extends QueryParameterBinder {
         binder.bindToStatement(stmtVarName, indexVarName, iterVar, block);
         block.builder().addStatement("$L++", indexVarName)
                 .endControlFlow();
+    }
+
+    @Override
+    public SQLDataType getDataType() {
+        return binder.getDataType();
     }
 
     @Override

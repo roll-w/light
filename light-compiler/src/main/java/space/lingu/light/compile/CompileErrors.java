@@ -16,27 +16,32 @@
 
 package space.lingu.light.compile;
 
+import space.lingu.light.SQLDataType;
+import space.lingu.light.compile.struct.DataConverter;
+
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
+import java.util.StringJoiner;
 
 /**
  * @author RollW
  */
 public final class CompileErrors {
     public static final String BUG_REPORT =
-            "If you see this message, means you have found a bug. Please report it to us.";
+            "If you see this message, it may be a bug. Please report it to us.";
+
 
     public static String bugReportWithMessage(String message) {
         return BUG_REPORT + "\nError Message: " + message;
     }
 
     public static String buildSuccess() {
-        return "Light: Light module build success.";
+        return "Light module build success.";
     }
 
     public static String buildFailed() {
-        return "Light: Light module build failed.";
+        return "Light module build failed.";
     }
 
     public static final String DATABASE_NOT_CLASS =
@@ -119,17 +124,44 @@ public final class CompileErrors {
     }
 
     public static final String UNKNOWN_IN_TYPE =
-            "Unknown in column data type of '%s', cannot be processed.";
+            "Unknown column type: '%s' cannot be processed to read type, specify a @DataConverter method to convert it. " +
+                    "Parsed data type: %s.";
 
     public static final String UNKNOWN_OUT_TYPE =
-            "Unknown out column data type of '%s', cannot be processed.";
+            "Unknown column type: '%s', cannot be processed to out type, specify a @DataConverter method to convert it. " +
+                    "Parsed data type: %s.";
 
-    public static String unknownInType(TypeMirror typeMirror) {
-        return String.format(UNKNOWN_IN_TYPE, typeMirror.toString());
+    private static final String TYPE_MISS_MATCH =
+            "In/out types miss match, expected: %s, actual: %s.";
+
+    public static String unknownInType(TypeMirror typeMirror, SQLDataType type) {
+        if (type == null) {
+            return String.format(UNKNOWN_OUT_TYPE, typeMirror.toString(), "null");
+        }
+        return String.format(UNKNOWN_IN_TYPE, typeMirror.toString(), type.name());
     }
 
-    public static String unknownOutType(TypeMirror typeMirror) {
-        return String.format(UNKNOWN_OUT_TYPE, typeMirror.toString());
+    public static String unknownOutType(TypeMirror typeMirror, SQLDataType type) {
+        if (type == null) {
+            return String.format(UNKNOWN_OUT_TYPE, typeMirror.toString(), "null");
+        }
+        return String.format(UNKNOWN_OUT_TYPE, typeMirror.toString(), type.name());
+    }
+
+    public static String typeMismatch(SQLDataType finalType, SQLDataType dataType) {
+        String finalTypeName = finalType == null ? "null" : finalType.name();
+        String dataTypeName = dataType == null ? "null" : dataType.name();
+        return String.format(TYPE_MISS_MATCH, finalTypeName, dataTypeName);
+    }
+    public static final String REPEATED_DATA_CONVERTER =
+            "Repeatedly define multiple methods of the same DataConverter type. Conflicts with these:\n %s";
+
+    public static String repeatedDataConverters(List<DataConverter> conflicts) {
+        StringJoiner joiner = new StringJoiner(",\n");
+        for (DataConverter conflict : conflicts) {
+            joiner.add(conflict.toString());
+        }
+        return String.format(REPEATED_DATA_CONVERTER, joiner);
     }
 
     public static final String DAO_TOO_MUCH_CONSTRUCTORS =
@@ -212,4 +244,6 @@ public final class CompileErrors {
 
     private CompileErrors() {
     }
+
+
 }

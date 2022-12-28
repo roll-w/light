@@ -16,6 +16,7 @@
 
 package space.lingu.light.compile.coder.custom.binder;
 
+import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 
@@ -35,6 +36,11 @@ public class BasicQueryParameterBinder extends QueryParameterBinder {
     @Override
     public TypeMirror type() {
         return binder.type();
+    }
+
+    @Override
+    public SQLDataType getDataType() {
+        return binder.getDataType();
     }
 
     @Override

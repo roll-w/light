@@ -71,11 +71,8 @@ public class DataConverter {
 
     @Override
     public String toString() {
-        return "DataConverter{" +
-                "enclosingClass=" + enclosingClass +
-                ", element=" + element +
-                ", fromType=" + fromType +
-                ", toType=" + toType +
-                '}';
+        return "DataConverter: " +
+                "Defined in [" + enclosingClass + "#" + getMethodName() +
+                "], from " + fromType + " to " + toType;
     }
 }

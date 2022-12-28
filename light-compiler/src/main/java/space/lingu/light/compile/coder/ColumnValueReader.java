@@ -27,7 +27,9 @@ import javax.lang.model.type.TypeMirror;
  */
 public interface ColumnValueReader {
     SQLDataType getDataType();
+
     void readFromResultSet(String outVarName, String resultSetName,
                          String indexName, GenerateCodeBlock block);
+
     TypeMirror type();
 }

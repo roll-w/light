@@ -77,21 +77,21 @@ public class TypeBinders {
         if (binder != null) {
             return binder;
         }
-        TypeConverter converter = findConverterInto(type, getTypes(dataType));
+        boolean findsAll = dataType == null || dataType == SQLDataType.UNDEFINED;
+        TypeConverter converter = findConverterInto(type, findTypesFor(dataType, findsAll));
         if (converter == null) {
-            return null;
+            return findEnumColumnTypeBinder(type);
         }
         List<ColumnTypeBinder> binders = getAllColumnBinders(converter.to);
         ColumnTypeBinder converterBinder = binders
                 .stream()
                 .findFirst()
                 .orElse(null);
-        if (converterBinder == null) {
-            return null;
+        if (converterBinder != null) {
+            return new CompositeTypeBinder(type, converterBinder,
+                    converter, null);
         }
-
-        return new CompositeTypeBinder(type, converterBinder,
-                converter, null);
+        return null;
     }
 
     public ColumnValueReader findColumnReader(TypeMirror type, SQLDataType dataType) {
@@ -102,9 +102,10 @@ public class TypeBinders {
         if (binder != null) {
             return binder;
         }
-        TypeConverter converter = findConverterRead(getTypes(dataType), type);
+        boolean findsAll = dataType == null || dataType == SQLDataType.UNDEFINED;
+        TypeConverter converter = findConverterRead(findTypesFor(dataType, findsAll), type);
         if (converter == null) {
-            return null;
+            return findEnumColumnTypeBinder(type);
         }
         ColumnTypeBinder converterBinder = getAllColumnBinders(converter.from)
                 .stream()
@@ -202,13 +203,12 @@ public class TypeBinders {
                 .filter(typeConverter ->
                         mEnv.getTypeUtils().isAssignable(typeConverter.from, in) &&
                                 excludes.stream().noneMatch(con -> mEnv.getTypeUtils().isAssignable(con, in))
-        ).collect(Collectors.toList());
+                ).collect(Collectors.toList());
     }
 
     public void registerDataConverters(List<DataConverter> dataConverterList) {
         dataConverterList.forEach(dataConverter -> {
             mTypeConverters.add(new DataConverterTypeConverter(dataConverter));
-            mHandleableTypes.add(dataConverter.getToType());
         });
     }
 
@@ -292,28 +292,42 @@ public class TypeBinders {
     }
 
 
-    public ColumnTypeBinder findColumnTypeBinder(TypeMirror type, SQLDataType dataType) {
+    private ColumnTypeBinder findColumnTypeBinder(TypeMirror type, SQLDataType dataType) {
         if (type.getKind() == TypeKind.ERROR) {
             return null;
         }
         if (type.getKind() == TypeKind.VOID) {
             return mVoidColumnTypeBinder;
         }
-        TypeElement asElement = ElementUtil.asTypeElement(type);
-        if (!TypeUtil.isPrimitive(type) &&
-                asElement != null && asElement.getKind() == ElementKind.ENUM) {
-            return new EnumColumnTypeBinder(type);
-        }
-
+        //  no more attempts to enum type here, put it last
         for (ColumnTypeBinder binder : getAllColumnBinders(type)) {
             if (dataType == null || binder.dataType == dataType) {
                 return binder;
             }
         }
-
         return null;
     }
 
+    private ColumnTypeBinder findDefaultTypeBinder(TypeMirror type) {
+        // here provides fallback builtin type binder, if any.
+        // now here are just enum type.
+        return findEnumColumnTypeBinder(type);
+    }
+
+    private EnumColumnTypeBinder findEnumColumnTypeBinder(TypeMirror type) {
+        if (!checkIfEnumType(type)) {
+            return null;
+        }
+        return new EnumColumnTypeBinder(type);
+    }
+
+    private boolean checkIfEnumType(TypeMirror type) {
+        if (TypeUtil.isPrimitive(type)) {
+            return false;
+        }
+        TypeElement asElement = ElementUtil.asTypeElement(type);
+        return asElement != null && asElement.getKind() == ElementKind.ENUM;
+    }
 
     private List<ColumnTypeBinder> getAllColumnBinders(TypeMirror element) {
         return mColumnTypeBinders.stream().filter(binder ->
@@ -334,9 +348,16 @@ public class TypeBinders {
         mHandleableTypes.addAll(getTypes(SQLDataType.VARCHAR));
     }
 
-    public List<TypeMirror> getTypes(SQLDataType dataType) {
-        List<TypeMirror> typeMirrors = new LinkedList<>();
-        if (dataType == null) {
+    private List<TypeMirror> findTypesFor(SQLDataType dataType, boolean findsAll) {
+        if (findsAll || dataType == null || dataType == SQLDataType.UNDEFINED) {
+            return mHandleableTypes;
+        }
+        return getTypes(dataType);
+    }
+
+    private List<TypeMirror> getTypes(SQLDataType dataType) {
+        List<TypeMirror> typeMirrors = new ArrayList<>();
+        if (dataType == null || dataType == SQLDataType.UNDEFINED) {
             return mHandleableTypes;
         }
         switch (dataType) {

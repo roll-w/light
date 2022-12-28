@@ -100,13 +100,18 @@ public class SQLCustomMethodWriter {
 
                 block.builder().addStatement("$L = $L$L", argIndex, cons, vars.toString());
             }
+
+            // save to a temp variable
+            String tempVar = block.getTempVar("_tmpArg");
+            block.builder().addStatement("$T $L = $L",
+                    param.first.type,
+                    tempVar, param.first.expression);
+
             param.first.binder.bindToStatement(outName, argIndex,
-                    param.first.expression, block);
-            List<Pair<ExpressionBind, String>> pairList =
-                    listSizeVars.stream().filter(
-                                    pair ->
-                                            pair.first.expression.equals(param.first.expression))
-                            .collect(Collectors.toList());
+                    tempVar, block);
+            List<Pair<ExpressionBind, String>> pairList = listSizeVars.stream()
+                    .filter(pair -> pair.first.expression.equals(param.first.expression))
+                    .collect(Collectors.toList());
             if (pairList.isEmpty()) {
                 constInputs.getAndIncrement();
             } else {

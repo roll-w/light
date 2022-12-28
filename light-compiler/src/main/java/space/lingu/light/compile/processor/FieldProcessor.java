@@ -57,8 +57,6 @@ public class FieldProcessor implements Processor<Field> {
         } else {
             field.setColumnName(dataColumn.name());
         }
-        field.setDataType(dataColumn.dataType());
-
         if (field.getColumnName() == null || field.getColumnName().isEmpty()) {
             // should not happen
             throw new IllegalArgumentException("Field cannot have an empty column name.");
@@ -75,40 +73,49 @@ public class FieldProcessor implements Processor<Field> {
 
         TypeElement typeElement = (TypeElement) mElement.getEnclosingElement();
         Configurations configurations = Configurable.createFrom(dataColumn.configuration());
-
+        SQLDataType preprocessType = recognizeSQLDataType(dataColumn.dataType(), mElement);
         field.setType(typeElement)
-                .setDataType(recognizeSQLDataType(mElement))
                 .setTypeMirror(mElement.asType())
                 .setNullability(nullability)
                 .setHasDefault(hasDefault)
                 .setConfigurations(configurations)
                 .setDefaultValue(defaultValue)
                 .setIndexed(dataColumn.index());
-        StatementBinder binder = mEnv.getBinders()
-                .findStatementBinder(field.getTypeMirror(), field.getDataType());
-        ColumnValueReader reader = mEnv.getBinders()
-                .findColumnReader(field.getTypeMirror(), field.getDataType());
 
-        // todo
-        if (binder == null) {
+        ColumnValueReader reader = mEnv.getBinders()
+                .findColumnReader(field.getTypeMirror(), preprocessType);
+        if (reader == null) {
             mEnv.getLog().error(
-                    CompileErrors.unknownOutType(mElement.asType()),
+                    CompileErrors.unknownInType(mElement.asType(), preprocessType),
                     mElement
             );
         }
-        if (reader == null) {
+        SQLDataType finalType = reader.getDataType();
+        StatementBinder binder = mEnv.getBinders()
+                .findStatementBinder(field.getTypeMirror(), finalType);
+        if (binder == null) {
             mEnv.getLog().error(
-                    CompileErrors.unknownInType(mElement.asType()),
+                    CompileErrors.unknownOutType(mElement.asType(), finalType),
+                    mElement
+            );
+        }
+        if (finalType != binder.getDataType()) {
+            mEnv.getLog().error(
+                    CompileErrors.typeMismatch(finalType, binder.getDataType()),
                     mElement
             );
         }
         return field
+                .setDataType(finalType)
                 .setColumnValueReader(reader)
                 .setStatementBinder(binder);
         // TODO 嵌套类 等处理。
     }
 
-    private SQLDataType recognizeSQLDataType(VariableElement variable) {
+    private SQLDataType recognizeSQLDataType(SQLDataType sqlDataType, VariableElement variable) {
+        if (sqlDataType != null && sqlDataType != SQLDataType.UNDEFINED) {
+            return sqlDataType;
+        }
         TypeMirror type = variable.asType();
         TypeName typeName = TypeName.get(type);
         if (isEqualBothBox(typeName, TypeName.INT)) {
@@ -138,8 +145,13 @@ public class FieldProcessor implements Processor<Field> {
         if (isEqualArray(typeName, TypeName.BYTE)) {
             return SQLDataType.BINARY;
         }
-        return SQLDataType.VARCHAR;
+        if (STRING.equals(typeName)) {
+            return SQLDataType.VARCHAR;
+        }
+        return SQLDataType.UNDEFINED;
     }
+
+    private static final TypeName STRING = TypeName.get(String.class);
 
     private static boolean isEqualBothBox(TypeName value, TypeName type) {
         return value.equals(type) || value.equals(type.box());

@@ -16,6 +16,8 @@
 
 package space.lingu.light.compile.coder;
 
+import space.lingu.light.SQLDataType;
+
 import javax.lang.model.type.TypeMirror;
 
 /**
@@ -24,6 +26,8 @@ import javax.lang.model.type.TypeMirror;
  * @author RollW
  */
 public interface StatementBinder {
+    SQLDataType getDataType();
+
     void bindToStatement(String stmtVarName, String indexVarName,
                          String valueVarName, GenerateCodeBlock block);
 

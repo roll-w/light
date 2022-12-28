@@ -36,23 +36,23 @@ public class Log {
     }
 
     public void log(Diagnostic.Kind kind, CharSequence charSequence) {
-        mMessager.printMessage(kind, charSequence);
+        mMessager.printMessage(kind, "Light: " + charSequence);
     }
 
     public void log(Diagnostic.Kind kind, CharSequence charSequence,
                     Element element) {
-        mMessager.printMessage(kind, charSequence, element);
+        mMessager.printMessage(kind, "Light: " + charSequence, element);
     }
 
     public void log(Diagnostic.Kind kind, CharSequence msg,
                     Element e, AnnotationMirror a) {
-        mMessager.printMessage(kind, msg, e, a);
+        mMessager.printMessage(kind, "Light: " + msg, e, a);
     }
 
     public void log(Diagnostic.Kind kind, CharSequence msg,
                     Element e, AnnotationMirror a,
                     AnnotationValue v) {
-        mMessager.printMessage(kind, msg, e, a, v);
+        mMessager.printMessage(kind, "Light: " + msg, e, a, v);
     }
 
     public void error(CharSequence s) {
