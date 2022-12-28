@@ -63,9 +63,12 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
                 );
             }
         });
+        boolean transaction = mExecutable.getAnnotation(Transaction.class) != null;
         Delete anno = mExecutable.getAnnotation(Delete.class);
         method.setElement(mExecutable)
+                .setTransaction(transaction)
                 .setReturnType(mExecutable.getReturnType());
+
         boolean isAutoGenerate = anno.value().equals(Delete.AUTO_GENERATION);
         if (!isAutoGenerate) {
             if (anno.value().isEmpty()) {
@@ -103,16 +106,14 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
             AnnotatedMethodBinder methodBinder = new DirectAutoDeleteUpdateMethodBinder(translator);
             return method
                     .setBinder(methodBinder)
-                    .setTransaction(mExecutable.getAnnotation(Transaction.class) != null)
                     .setResultBinder(
                             new HandlerDeleteResultBinder(method, methodBinder));
-        } else {
-            Processor<List<ExpressionBind>>
-                    processor = new SQLBindProcessor(mExecutable, method.getSql(), mEnv);
-            return method
-                    .setExpressionBinds(processor.process())
-                    .setResultBinder(DeleteResultBinder.getInstance());
         }
+        Processor<List<ExpressionBind>>
+                processor = new SQLBindProcessor(mExecutable, method.getSql(), mEnv);
+        return method
+                .setExpressionBinds(processor.process())
+                .setResultBinder(DeleteResultBinder.getInstance());
     }
 
     private List<Parameter> toParameters(List<SQLCustomParameter> sqlCustomParameters) {
