@@ -21,6 +21,7 @@ import space.lingu.light.compile.struct.DataConverter;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -89,11 +90,11 @@ public final class CompileErrors {
                     "or it is a private method, or the return type is different from the field. Candidates: ";
 
 
-    public static String cannotFoundGetter(List<String> candidates) {
+    public static String cannotFoundGetter(Collection<String> candidates) {
         return CANNOT_FOUND_GETTER + candidates;
     }
 
-    public static String cannotFoundSetter(List<String> candidates) {
+    public static String cannotFoundSetter(Collection<String> candidates) {
         return CANNOT_FOUND_SETTER + candidates;
     }
 
@@ -113,6 +114,12 @@ public final class CompileErrors {
     public static String duplicatedTableColumnName(String columnName) {
         return String.format(TABLE_COLUMN_NAME_DUPLICATED, columnName);
     }
+
+    public static String MULTIPLE_CONSTRUCTOR_ANNOTATED =
+            "Multiple constructors are annotated with @Constructor.";
+
+    public static String CANNOT_MATCH_CONSTRUCTOR =
+            "Cannot match constructor parameters with data column fields.";
 
     public static final String MULTIPLE_PRIMARY_KEY_FOUND =
             "More than one defined primary key was found.";
