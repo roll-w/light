@@ -14,7 +14,7 @@ To add dependencies on `light-core-logger-slf4j` using Maven, use the following:
     <dependency>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-core-logger-slf4j</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.0</version>
     </dependency>
 </dependencies>
 ```
