@@ -56,18 +56,22 @@ public class UpdateHandlerWriter {
                 params.add("\"" + field.getColumnName() + "\""));
 
         GenerateCodeBlock queryBlock = new GenerateCodeBlock(writer);
-        String primaryKeysVar = queryBlock.getTempVar("_pKeys");
-        String paramsVar = queryBlock.getTempVar("_values");
         ArrayTypeName stringArray =
                 ArrayTypeName.of(JavaPoetClass.LangNames.STRING);
+        String primaryKeysVar = queryBlock.getTempVar("_pKeys");
+        String paramsVar = queryBlock.getTempVar("_values");
+
+        FieldSpec primaryKeysField = FieldSpec.builder(stringArray,
+                        primaryKeysVar, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer("new String[]{$L}", keys.toString())
+                .build();
+        FieldSpec paramsField = FieldSpec.builder(stringArray,
+                        paramsVar, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .addModifiers()
+                .initializer("new String[]{$L}", params.toString())
+                .build();
 
         queryBlock.builder()
-                .addStatement("final $T $L = {$L}",
-                        stringArray, primaryKeysVar,
-                        keys.toString())
-                .addStatement("final $T $L = {$L}",
-                        stringArray, paramsVar,
-                        params.toString())
                 .addStatement("return $N.getDialectProvider().getGenerator().update($S, $T.$L, $L, $L)",
                         DaoWriter.sDatabaseField, mTableName,
                         JavaPoetClass.ON_CONFLICT_STRATEGY,
@@ -76,6 +80,8 @@ public class UpdateHandlerWriter {
 
         TypeSpec.Builder builder = TypeSpec.anonymousClassBuilder("$L", dbParam)
                 .superclass(ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER, mPojo.getTypeName()))
+                .addField(primaryKeysField)
+                .addField(paramsField)
                 .addMethod(
                         MethodSpec.methodBuilder("createQuery")
                                 .addModifiers(Modifier.PUBLIC)
