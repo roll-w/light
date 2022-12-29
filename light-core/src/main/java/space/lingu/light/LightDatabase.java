@@ -29,6 +29,8 @@ import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
+ * The base class of the database. Provides basic database management.
+ *
  * @author RollW
  */
 public abstract class LightDatabase {

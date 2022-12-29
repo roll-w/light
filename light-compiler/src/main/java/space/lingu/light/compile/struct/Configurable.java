@@ -18,9 +18,11 @@ package space.lingu.light.compile.struct;
 
 import space.lingu.light.Configurations;
 import space.lingu.light.LightConfiguration;
+import space.lingu.light.LightConfigurations;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 
+import javax.lang.model.element.Element;
 import java.util.StringJoiner;
 
 /**
@@ -29,6 +31,16 @@ import java.util.StringJoiner;
 public interface Configurable {
     default Configurations getConfigurations() {
         return Configurations.empty();
+    }
+
+    static Configurations createFrom(LightConfiguration[] initial, Element element) {
+        Configurations configurations = Configurable.createFrom(initial);
+        LightConfigurations lightConfigurationsAnno = element.getAnnotation(LightConfigurations.class);
+        if (lightConfigurationsAnno != null) {
+            Configurations fromRepeatableAnno = Configurable.createFrom(lightConfigurationsAnno.value());
+            return configurations.plus(fromRepeatableAnno);
+        }
+        return configurations;
     }
 
     static Configurations createFrom(LightConfiguration[] lightConfigurations) {

@@ -72,8 +72,10 @@ public class FieldProcessor implements Processor<Field> {
                 : Nullability.NONNULL;
 
         TypeElement typeElement = (TypeElement) mElement.getEnclosingElement();
-        Configurations configurations = Configurable.createFrom(dataColumn.configuration());
         SQLDataType preprocessType = recognizeSQLDataType(dataColumn.dataType(), mElement);
+
+        Configurations configurations = Configurable.createFrom(dataColumn.configuration(), mElement);
+
         field.setType(typeElement)
                 .setTypeMirror(mElement.asType())
                 .setNullability(nullability)

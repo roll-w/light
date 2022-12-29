@@ -22,11 +22,22 @@ import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.struct.*;
+import space.lingu.light.compile.struct.Configurable;
+import space.lingu.light.compile.struct.DataTable;
+import space.lingu.light.compile.struct.Field;
+import space.lingu.light.compile.struct.Index;
+import space.lingu.light.compile.struct.Pojo;
+import space.lingu.light.compile.struct.PrimaryKey;
 import space.lingu.light.util.StringUtil;
 
 import javax.lang.model.element.TypeElement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -70,7 +81,8 @@ public class DataTableProcessor implements Processor<DataTable> {
                 mElement.getAnnotation(LightIgnore.class) == null) {
             mEnv.getLog().warn(Warnings.PRIMARY_KEY_NOT_FOUND, mElement);
         }
-        Configurations configurations = Configurable.createFrom(anno.configuration());
+        Configurations configurations = Configurable.createFrom(anno.configuration(), mElement);
+
         return dataTable
                 .setConfigurations(configurations)
                 .setPrimaryKey(primaryKey)

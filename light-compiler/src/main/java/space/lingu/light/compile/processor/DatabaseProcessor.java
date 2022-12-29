@@ -86,7 +86,7 @@ public class DatabaseProcessor implements Processor<Database> {
             // it will and should be caught
             tableClassMirror.addAll(e.getTypeMirrors());
         }
-        Configurations configurations = Configurable.createFrom(anno.configuration());
+        Configurations configurations = Configurable.createFrom(anno.configuration(), mElement);
 
         return database.setDataTableList(processDataTables(tableClassMirror))
                 .setSuperClassElement(mElement)
