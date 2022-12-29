@@ -107,7 +107,7 @@ public final class Configurations {
         return empty();
     }
 
-    public static Configurations createFrom(LightConfiguration[] configurations) {
+    public static Configurations createFrom(LightConfiguration... configurations) {
         if (configurations == null || configurations.length == 0) {
             return empty();
         }

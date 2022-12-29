@@ -35,6 +35,12 @@ public interface Configurable {
 
     static Configurations createFrom(LightConfiguration[] initial, Element element) {
         Configurations configurations = Configurable.createFrom(initial);
+        LightConfiguration lightConfigurationAnno = element.getAnnotation(LightConfiguration.class);
+        if (lightConfigurationAnno != null) {
+            configurations = configurations.plus(
+                    Configurations.createFrom(lightConfigurationAnno)
+            );
+        }
         LightConfigurations lightConfigurationsAnno = element.getAnnotation(LightConfigurations.class);
         if (lightConfigurationsAnno != null) {
             Configurations fromRepeatableAnno = Configurable.createFrom(lightConfigurationsAnno.value());
