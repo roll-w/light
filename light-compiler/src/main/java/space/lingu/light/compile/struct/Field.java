@@ -64,8 +64,8 @@ public class Field implements Configurable {
         columnName = name;
     }
 
-    public List<String> getPossibleCandidateName() {
-        List<String> result = new ArrayList<>(Collections.singletonList(name));
+    public Set<String> getPossibleCandidateName() {
+        Set<String> result = new HashSet<>(Collections.singletonList(name));
         if (name.length() > 1) {
             if (name.startsWith("_")) {
                 result.add(name.substring(1));
@@ -86,15 +86,15 @@ public class Field implements Configurable {
         return result;
     }
 
-    public List<String> setterNameCandidate() {
-        final List<String> setterNames = new ArrayList<>();
+    public Set<String> setterNameCandidate() {
+        final Set<String> setterNames = new HashSet<>();
         getPossibleCandidateName().forEach(s ->
                 setterNames.add("set" + StringUtil.firstUpperCase(s)));
         return setterNames;
     }
 
-    public List<String> getterNameCandidate() {
-        final List<String> getterNames = new ArrayList<>();
+    public Set<String> getterNameCandidate() {
+        final Set<String> getterNames = new HashSet<>();
         getPossibleCandidateName().forEach(s -> {
             getterNames.add(s);
             getterNames.add("get" + StringUtil.firstUpperCase(s));

@@ -103,37 +103,59 @@ public class PojoProcessor implements Processor<Pojo> {
 
 
     private Constructor chooseConstructor(List<Field> fields) {
-        // 从参数数量由少到多寻找
-
-        // TODO: refactor this method
         List<? extends Element> elements = mElement.getEnclosedElements();
+        List<ExecutableElement> candidates = new ArrayList<>();
         for (Element element : elements) {
-            if (element.getAnnotation(space.lingu.light.Constructor.class) != null) {
-                // TODO
+            if (element.getKind() != ElementKind.CONSTRUCTOR) {
+                continue;
             }
+            candidates.add((ExecutableElement) element);
         }
-        List<ExecutableElement> constructorsForChoose = new ArrayList<>();
-        elements.forEach(e -> {
-            if (e.getKind() == ElementKind.CONSTRUCTOR) {
-                constructorsForChoose.add((ExecutableElement) e);
-            }
-        });
+        Constructor annotatedConstructor = checkAnnotatedConstructor(candidates, fields);
+        if (annotatedConstructor != null) {
+            return annotatedConstructor;
+        }
 
-        constructorsForChoose.sort(Comparator.comparingInt(o ->
-                o.getParameters().size()));
-
-        if (constructorsForChoose.isEmpty()) {
+        // find from most to least by the number of its parameters
+        candidates.sort(Comparator.comparingInt(e -> e.getParameters().size()));
+        Collections.reverse(candidates);
+        if (candidates.isEmpty()) {
             mEnv.getLog().error(CompileErrors.CANNOT_FOUND_CONSTRUCTOR, mElement);
         }
+        Constructor constructor = chooseCandidatesConstructors(candidates, fields);
+        if (constructor != null) {
+            return constructor;
+        }
+        mEnv.getLog().error(CompileErrors.CANNOT_FOUND_CONSTRUCTOR, mElement);
+        return null;
+    }
 
-        for (ExecutableElement element : constructorsForChoose) {
-            Constructor constructor = checkConstructorParams(element, fields);
+    private Constructor checkAnnotatedConstructor(List<ExecutableElement> candidates, List<Field> fields) {
+        List<ExecutableElement> annotated = candidates
+                .stream()
+                .filter(e -> e.getAnnotation(space.lingu.light.Constructor.class) != null)
+                .collect(Collectors.toList());
+        if (annotated.isEmpty()) {
+            return null;
+        }
+        if (annotated.size() > 1) {
+            mEnv.getLog().error(CompileErrors.MULTIPLE_CONSTRUCTOR_ANNOTATED, mElement);
+        }
+        Constructor chosen = chooseCandidatesConstructors(annotated, fields);
+        if (chosen != null) {
+            return chosen;
+        }
+        mEnv.getLog().error(CompileErrors.CANNOT_MATCH_CONSTRUCTOR, mElement);
+        return null;
+    }
+
+    private Constructor chooseCandidatesConstructors(List<ExecutableElement> candidates, List<Field> fields) {
+        for (ExecutableElement candidate : candidates) {
+            Constructor constructor = checkConstructorParams(candidate, fields);
             if (constructor != null) {
                 return constructor;
             }
         }
-
-        mEnv.getLog().error(CompileErrors.CANNOT_FOUND_CONSTRUCTOR, mElement);
         return null;
     }
 
@@ -178,7 +200,7 @@ public class PojoProcessor implements Processor<Pojo> {
             field.setGetter(getter);
             return;
         }
-        List<String> candidates = field.getterNameCandidate();
+        Set<String> candidates = field.getterNameCandidate();
         List<ExecutableElement> filteredElements = elements
                 .stream()
                 .filter(executableElement ->
@@ -215,7 +237,7 @@ public class PojoProcessor implements Processor<Pojo> {
             field.setSetter(setter);
             return;
         }
-        List<String> candidates = field.setterNameCandidate();
+        Set<String> candidates = field.setterNameCandidate();
         List<ExecutableElement> filteredElements = elements
                 .stream()
                 .filter(
