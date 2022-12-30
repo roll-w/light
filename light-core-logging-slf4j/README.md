@@ -14,7 +14,14 @@ To add dependencies on `light-core-logger-slf4j` using Maven, use the following:
     <dependency>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-core-logger-slf4j</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </dependency>
 </dependencies>
+```
+
+Or Gradle:
+```groovy
+dependencies {
+    implementation("space.lingu.light:light-core-logger-slf4j:0.4.1")
+}
 ```
