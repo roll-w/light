@@ -203,7 +203,7 @@ public final class CompileErrors {
 
     public static final String INSERT_RETURN_TYPE =
             "An insertion method return type must be one of list:" +
-                    " void, long, long[], Long, Long[], List<Long>.";
+                    " void, long, long[], Long, Long[], List<Long>, Collection<Long>, Iterable<Long>.";
     public static final String INSERT_RETURN_TYPE_NOT_MATCHED =
             "Not matched return type with parameter.";
 

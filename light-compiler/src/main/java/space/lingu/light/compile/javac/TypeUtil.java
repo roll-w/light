@@ -148,6 +148,16 @@ public class TypeUtil {
         return typeMirror.getKind() == TypeKind.INT;
     }
 
+    public static boolean isIterable(ProcessEnv env, TypeMirror typeMirror) {
+        TypeMirror erasure = env.getTypeUtils().erasure(typeMirror);
+        return TypeUtil.isAssignedFrom(
+                env.getTypeUtils(),
+                erasure,
+                env.getElementUtils().getTypeElement("java.lang.Iterable").asType()
+        );
+    }
+
+
     private TypeUtil() {
     }
 

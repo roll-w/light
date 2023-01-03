@@ -118,17 +118,11 @@ public class ElementUtil {
         if (element == null) {
             return false;
         }
-        if (!(element instanceof TypeElement)) {
-            return false;
-        }
         return isTypeOf(Collection.class, element);
     }
 
     public static boolean isIterable(Element element) {
         if (element == null) {
-            return false;
-        }
-        if (!(element instanceof TypeElement)) {
             return false;
         }
         return isTypeOf(Iterable.class, element);

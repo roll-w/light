@@ -22,6 +22,7 @@ import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.processor.ReturnTypes;
 import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
 
@@ -44,7 +45,11 @@ public class InsertMethodTranslator {
                                                 ProcessEnv env,
                                                 List<Parameter> params) {
         TypeMirror returnType = methodElement.getReturnType();
-        InsertType insertType = getInsertType((TypeElement) env.getTypeUtils().asElement(returnType), returnType);
+        InsertType insertType = getInsertType(
+                env,
+                (TypeElement) env.getTypeUtils().asElement(returnType),
+                returnType
+        );
         if (insertType == null) {
             env.getLog().error(
                     CompileErrors.INSERT_RETURN_TYPE,
@@ -86,7 +91,8 @@ public class InsertMethodTranslator {
         sMultipleList.add(InsertType.ID_LIST);
     }
 
-    private static InsertType getInsertType(TypeElement typeElement,
+    private static InsertType getInsertType(ProcessEnv env,
+                                            TypeElement typeElement,
                                             TypeMirror typeMirror) {
         if (typeElement == null) {
             if (typeMirror.getKind() == TypeKind.LONG) {
@@ -111,7 +117,7 @@ public class InsertMethodTranslator {
             return InsertType.SINGLE_ID;
         }
 
-        if (ElementUtil.isIterable(typeElement)) {
+        if (ReturnTypes.isLegalCollectionReturnType(typeElement)) {
             if (ElementUtil.isLong(ElementUtil.getGenericElements(typeMirror).get(0))) {
                 return InsertType.ID_LIST;
             }

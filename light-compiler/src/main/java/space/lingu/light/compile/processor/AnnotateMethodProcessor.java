@@ -17,10 +17,13 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
-import space.lingu.light.compile.struct.*;
+import space.lingu.light.compile.struct.AnnotateParameter;
+import space.lingu.light.compile.struct.DataTable;
+import space.lingu.light.compile.struct.ParamEntity;
+import space.lingu.light.compile.struct.Parameter;
+import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.Element;
@@ -99,11 +102,7 @@ public class AnnotateMethodProcessor {
     }
 
     public static void checkUnbound(TypeMirror typeMirror, ProcessEnv env, Element element) {
-        TypeElement type = ElementUtil.asTypeElement(typeMirror);
-        if (type == null) {
-            return;
-        }
-        if (!ElementUtil.isIterable(type)) {
+        if (!TypeUtil.isIterable(env, typeMirror)) {
             return;
         }
         List<? extends TypeMirror> genericTypes = TypeUtil.getGenericTypes(typeMirror);

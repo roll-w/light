@@ -20,35 +20,17 @@ import com.google.auto.common.MoreTypes;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
-import space.lingu.light.compile.coder.custom.binder.ArrayQueryParameterBinder;
-import space.lingu.light.compile.coder.custom.binder.BasicQueryParameterBinder;
-import space.lingu.light.compile.coder.custom.binder.CollectionQueryParameterBinder;
-import space.lingu.light.compile.coder.custom.binder.InstantQueryResultBinder;
-import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
-import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
-import space.lingu.light.compile.coder.custom.result.ArrayQueryResultConverter;
-import space.lingu.light.compile.coder.custom.result.ListQueryResultConverter;
-import space.lingu.light.compile.coder.custom.result.QueryResultConverter;
-import space.lingu.light.compile.coder.custom.result.RawQueryResultConverter;
-import space.lingu.light.compile.coder.custom.result.SingleEntityQueryResultConverter;
+import space.lingu.light.compile.coder.custom.binder.*;
+import space.lingu.light.compile.coder.custom.result.*;
 import space.lingu.light.compile.coder.custom.row.PojoRowConverter;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
 import space.lingu.light.compile.coder.custom.row.SingleColumnRowConverter;
-import space.lingu.light.compile.coder.type.BoxedPrimitiveColumnTypeBinder;
-import space.lingu.light.compile.coder.type.ByteArrayColumnTypeBinder;
-import space.lingu.light.compile.coder.type.CombinedTypeConverter;
-import space.lingu.light.compile.coder.type.CompositeTypeBinder;
-import space.lingu.light.compile.coder.type.DataConverterTypeConverter;
-import space.lingu.light.compile.coder.type.EnumColumnTypeBinder;
-import space.lingu.light.compile.coder.type.NoOpTypeConverter;
-import space.lingu.light.compile.coder.type.PrimitiveColumnTypeBinder;
-import space.lingu.light.compile.coder.type.StringColumnTypeBinder;
-import space.lingu.light.compile.coder.type.TypeConverter;
-import space.lingu.light.compile.coder.type.VoidColumnTypeBinder;
+import space.lingu.light.compile.coder.type.*;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.processor.PojoProcessor;
+import space.lingu.light.compile.processor.ReturnTypes;
 import space.lingu.light.compile.struct.DataConverter;
 import space.lingu.light.compile.struct.Pojo;
 
@@ -56,12 +38,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -287,11 +264,14 @@ public class TypeBinders {
                 return new ArrayQueryResultConverter(converter);
             }
         }
+        boolean isIterable = TypeUtil.isIterable(mEnv, typeMirror);
         TypeElement element = ElementUtil.asTypeElement(typeMirror);
-        boolean isIterable = ElementUtil.isIterable(element);
         if (isIterable) {
+            if (!ReturnTypes.isLegalCollectionReturnType(element)) {
+                throw new LightCompileException(CompileErrors.QUERY_UNKNOWN_RETURN_TYPE);
+            }
             List<? extends TypeMirror> genericTypes = TypeUtil.getGenericTypes(typeMirror);
-            if (genericTypes.isEmpty()) {
+            if (genericTypes == null || genericTypes.isEmpty()) {
                 throw new LightCompileException(CompileErrors.NOT_BOUND_GENERIC_TYPES);
             }
             TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(
@@ -302,7 +282,6 @@ public class TypeBinders {
                 return new ListQueryResultConverter(typeArg, converter);
             }
         }
-
         RowConverter converter = findRowConverter(typeMirror);
         if (converter == null) {
             return null;
