@@ -52,4 +52,8 @@ public abstract class Handler<T> {
     protected PreparedStatement acquire(ManagedConnection connection) {
         return connection.acquire(createQuery());
     }
+
+    protected PreparedStatement acquireReturnsGenerateKey(ManagedConnection connection) {
+        return connection.acquire(createQuery(), true);
+    }
 }

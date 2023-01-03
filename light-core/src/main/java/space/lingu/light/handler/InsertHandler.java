@@ -91,7 +91,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
 
     public final long insertAndReturnId(T entity) {
         final ManagedConnection conn = newConnection();
-        final PreparedStatement stmt = acquire(conn);
+        final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
         try {
             bind(stmt, entity);
             conn.beginTransaction();
@@ -114,7 +114,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
 
     public final long[] insertAndReturnIdsArray(Collection<? extends T> entities) {
         final ManagedConnection conn = newConnection();
-        final PreparedStatement stmt = acquire(conn);
+        final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
         try {
             final long[] result = new long[entities.size()];
             int index = 0;
@@ -146,7 +146,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
 
     public final Long[] insertAndReturnIdsArrayBox(Collection<? extends T> entities) {
         final ManagedConnection conn = newConnection();
-        final PreparedStatement stmt = acquire(conn);
+        final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
         try {
             final Long[] result = new Long[entities.size()];
             int index = 0;
