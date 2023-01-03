@@ -16,7 +16,7 @@ To add dependencies on Light using Maven, use the following:
     <dependency>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-compiler</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.2</version>
         <scope>provided</scope>
     </dependency>
     
@@ -24,16 +24,16 @@ To add dependencies on Light using Maven, use the following:
     <dependency>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-core</artifactId>
-        <version>0.4.1</version>
+        <version>0.4.2</version>
     </dependency>
 </dependencies>
 ```
 Or using Gradle: 
 ```groovy
 dependencies {
-    compileOnly("space.lingu.light:light-compiler:0.4.1")
+    compileOnly("space.lingu.light:light-compiler:0.4.2")
   
-    implementation("space.lingu.light:light-core:0.4.1")
+    implementation("space.lingu.light:light-core:0.4.2")
 }
 ```
 
@@ -104,7 +104,10 @@ and the DAO class needs to be an interface or abstract class.
 ### Create a database
 
 ```java
-
+@Database(version = 1, tables = {User.class})
+public abstract class ExampleDatabase extends LightDatabase {
+    public abstract UserDao getUserDao();
+}
 ```
 
 ## License
