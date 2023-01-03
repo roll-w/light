@@ -140,6 +140,20 @@ public abstract class InsertHandler<T> extends Handler<T> {
         }
     }
 
+    public final long[] insertAndReturnIdsArray(Iterable<? extends T> entities) {
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
+        try {
+            List<Long> result = iterableBind(entities, conn, stmt);
+            return convert(result);
+        } catch (SQLException e) {
+            printError(e);
+            throw new LightRuntimeException(e);
+        } finally {
+            conn.close();
+        }
+    }
+
     public final long[] insertAndReturnIdsArray(T[] entities) {
         return insertAndReturnIdsArray(Arrays.asList(entities));
     }
@@ -172,6 +186,38 @@ public abstract class InsertHandler<T> extends Handler<T> {
         }
     }
 
+    public final Long[] insertAndReturnIdsArrayBox(Iterable<? extends T> entities) {
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
+        try {
+            List<Long> result = iterableBind(entities, conn, stmt);
+            return result.toArray(new Long[0]);
+        } catch (SQLException e) {
+            printError(e);
+            throw new LightRuntimeException(e);
+        } finally {
+            conn.close();
+        }
+    }
+
+    private List<Long> iterableBind(Iterable<? extends T> entities, ManagedConnection conn, PreparedStatement stmt) throws SQLException {
+        List<Long> res = new ArrayList<>();
+        int index = 0;
+        for (T entity : entities) {
+            bind(stmt, entity);
+            conn.beginTransaction();
+            stmt.execute();
+            conn.commit();
+            ResultSet set = stmt.getGeneratedKeys();
+            if (set.next()) {
+                res.add(set.getLong(1));
+            }
+            index++;
+            set.close();
+        }
+        return res;
+    }
+
     public final Long[] insertAndReturnIdsArrayBox(T[] entities) {
         return insertAndReturnIdsArrayBox(Arrays.asList(entities));
     }
@@ -184,8 +230,21 @@ public abstract class InsertHandler<T> extends Handler<T> {
         return new ArrayList<>(Arrays.asList(insertAndReturnIdsArrayBox(entities)));
     }
 
+    public final List<Long> insertAndReturnIdsList(Iterable<? extends T> entities) {
+        return new ArrayList<>(Arrays.asList(insertAndReturnIdsArrayBox(entities)));
+    }
+
     private void printError(Throwable throwable) {
         database.getLogger().error("An error occurred while insert to database.", throwable);
+    }
+
+    private static long[] convert(List<Long> longList) {
+        long[] longs = new long[longList.size()];
+        int i = 0;
+        for (Long l : longList) {
+            longs[i++] = l;
+        }
+        return longs;
     }
 
 }
