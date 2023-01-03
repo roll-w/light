@@ -77,8 +77,12 @@ public final class CompileErrors {
         return String.format(DUPLICATED_TABLE_NAME, tableName);
     }
 
-    public static final String CANNOT_FOUND_CONSTRUCTOR =
-            "Cannot find a constructor for it.";
+    private static final String CANNOT_FOUND_CONSTRUCTOR =
+            "Cannot find a constructor for %s.";
+
+    public static String cannotFoundConstructor(String typeName) {
+        return String.format(CANNOT_FOUND_CONSTRUCTOR, typeName);
+    }
 
     private static final String CANNOT_FOUND_SETTER =
             "Cannot find a setter method for field, please check if its name follow rules" +
@@ -160,6 +164,7 @@ public final class CompileErrors {
         String dataTypeName = dataType == null ? "null" : dataType.name();
         return String.format(TYPE_MISS_MATCH, finalTypeName, dataTypeName);
     }
+
     public static final String REPEATED_DATA_CONVERTER =
             "Repeatedly define multiple methods of the same DataConverter type. Conflicts with these:\n %s";
 
@@ -170,6 +175,9 @@ public final class CompileErrors {
         }
         return String.format(REPEATED_DATA_CONVERTER, joiner);
     }
+
+    public static final String NOT_BOUND_GENERIC_TYPES = "Cannot use unbound generics in DAO " +
+            "methods. It needs be bound to a type.";
 
     public static final String DAO_TOO_MUCH_CONSTRUCTORS =
             "Only can have one constructor that is parameterless or have a Database parameter.";

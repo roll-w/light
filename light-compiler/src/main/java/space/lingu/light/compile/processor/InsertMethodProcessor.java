@@ -28,11 +28,12 @@ import space.lingu.light.util.Pair;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 插入方法处理器
+ * Insert method processor.
  *
  * @author RollW
  */
@@ -67,12 +68,15 @@ public class InsertMethodProcessor implements Processor<InsertMethod> {
                 );
             }
         });
+        TypeMirror returnType = mExecutable.getReturnType();
+        checkUnbound(returnType);
+
 
         Pair<Map<String, ParamEntity>, List<Parameter>> pair =
                 delegate.extractParameters(mContaining);
 
         return insertMethod.setElement(mExecutable)
-                .setReturnType(mExecutable.getReturnType())
+                .setReturnType(returnType)
                 .setOnConflict(insertAnno.onConflict())
                 .setEntities(pair.first)
                 .setParameters(pair.second)
@@ -83,5 +87,9 @@ public class InsertMethodProcessor implements Processor<InsertMethod> {
                                         mEnv,
                                         insertMethod.getParameters()))
                 );
+    }
+
+    private void checkUnbound(TypeMirror typeMirror) {
+        AnnotateMethodProcessor.checkUnbound(typeMirror, mEnv, mExecutable);
     }
 }

@@ -111,7 +111,7 @@ public class InsertMethodTranslator {
             return InsertType.SINGLE_ID;
         }
 
-        if (ElementUtil.isList(typeElement)) {
+        if (ElementUtil.isIterable(typeElement)) {
             if (ElementUtil.isLong(ElementUtil.getGenericElements(typeMirror).get(0))) {
                 return InsertType.ID_LIST;
             }

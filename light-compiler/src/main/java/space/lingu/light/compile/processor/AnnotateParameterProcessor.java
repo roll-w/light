@@ -35,7 +35,6 @@ import java.util.List;
 /**
  * @author RollW
  */
-@SuppressWarnings({"deprecation"})
 public class AnnotateParameterProcessor implements Processor<AnnotateParameter> {
     private final VariableElement mElement;
     private final ProcessEnv mEnv;
@@ -53,14 +52,14 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
     @Override
     public AnnotateParameter process() {
         TypeMirror asContaining = mElement.asType();
-
         String name = mElement.getSimpleName().toString();
         if (name.startsWith(ClassWriter.CLASS_MEMBER_PREFIX)) {
             mEnv.getLog().error(CompileErrors.PARAM_NON_COMPLIANCE, mElement);
         }
         Pair<TypeElement, Boolean> pair = extractPojo(asContaining);
 
-        return param.setElement(mElement)
+        return param
+                .setElement(mElement)
                 .setName(name)
                 .setType((TypeElement) mEnv.getTypeUtils().asElement(asContaining))
                 .setTypeMirror(asContaining)

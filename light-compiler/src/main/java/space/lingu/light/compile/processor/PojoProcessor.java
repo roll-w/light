@@ -120,13 +120,19 @@ public class PojoProcessor implements Processor<Pojo> {
         candidates.sort(Comparator.comparingInt(e -> e.getParameters().size()));
         Collections.reverse(candidates);
         if (candidates.isEmpty()) {
-            mEnv.getLog().error(CompileErrors.CANNOT_FOUND_CONSTRUCTOR, mElement);
+            mEnv.getLog().error(
+                    CompileErrors.cannotFoundConstructor(mElement.getQualifiedName().toString()),
+                    mElement
+            );
         }
         Constructor constructor = chooseCandidatesConstructors(candidates, fields);
         if (constructor != null) {
             return constructor;
         }
-        mEnv.getLog().error(CompileErrors.CANNOT_FOUND_CONSTRUCTOR, mElement);
+        mEnv.getLog().error(
+                CompileErrors.cannotFoundConstructor(mElement.getQualifiedName().toString()),
+                mElement
+        );
         return null;
     }
 

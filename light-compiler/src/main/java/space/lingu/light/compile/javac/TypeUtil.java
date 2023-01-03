@@ -64,7 +64,7 @@ public class TypeUtil {
 
     public static boolean isCollection(TypeMirror mirror) {
         TypeElement element = ElementUtil.asTypeElement(mirror);
-        return ElementUtil.isList(element);
+        return ElementUtil.isCollection(element);
     }
 
     public static boolean isArray(TypeMirror mirror) {
@@ -118,7 +118,11 @@ public class TypeUtil {
     }
 
     public static List<? extends TypeMirror> getGenericTypes(TypeMirror mirror) {
-        return MoreTypes.asDeclared(mirror).getTypeArguments();
+        try {
+            return MoreTypes.asDeclared(mirror).getTypeArguments();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static boolean isPrimitive(TypeMirror mirror) {

@@ -20,8 +20,13 @@ import com.google.auto.common.MoreTypes;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
-import javax.lang.model.element.*;
-import javax.lang.model.type.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -110,10 +115,23 @@ public class ElementUtil {
     }
 
     public static boolean isCollection(Element element) {
+        if (element == null) {
+            return false;
+        }
         if (!(element instanceof TypeElement)) {
             return false;
         }
         return isTypeOf(Collection.class, element);
+    }
+
+    public static boolean isIterable(Element element) {
+        if (element == null) {
+            return false;
+        }
+        if (!(element instanceof TypeElement)) {
+            return false;
+        }
+        return isTypeOf(Iterable.class, element);
     }
 
     public static boolean isList(Element element) {

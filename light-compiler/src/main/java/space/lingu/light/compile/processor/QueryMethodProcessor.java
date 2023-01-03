@@ -19,6 +19,7 @@ package space.lingu.light.compile.processor;
 import space.lingu.light.Query;
 import space.lingu.light.Transaction;
 import space.lingu.light.compile.CompileErrors;
+import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.ExpressionBind;
@@ -33,7 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 查询方法处理器
+ * Query method processor.
+ *
  * @author RollW
  */
 public class QueryMethodProcessor implements Processor<QueryMethod> {
@@ -72,14 +74,22 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
                     new QueryParameterProcessor(variableElement, mContaining, mEnv);
             queryParameters.add(parameterProcessor.process());
         });
+
+
         boolean transaction = mExecutable.getAnnotation(Transaction.class) != null;
         method.setElement(mExecutable)
                 .setSql(queryAnno.value())
                 .setReturnType(mExecutable.getReturnType())
                 .setParameters(queryParameters)
                 .setTransaction(transaction);
-        QueryResultBinder binder =
-                mEnv.getBinders().findQueryResultBinder(method.getReturnType());
+        QueryResultBinder binder = null;
+        try {
+            binder = mEnv.getBinders().findQueryResultBinder(method.getReturnType());
+        } catch (LightCompileException e) {
+            // TODO: move unbound check here
+            mEnv.getLog().error(e.getMessage(), mExecutable);
+        }
+
         if (binder == null) {
             mEnv.getLog().error(
                     CompileErrors.QUERY_UNKNOWN_RETURN_TYPE,
@@ -91,5 +101,9 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
         return method
                 .setExpressionBinds(processor.process())
                 .setResultBinder(binder);
+    }
+
+    private void checkUnboundType(List<SQLCustomParameter> parameters) {
+        // TODO: unbound parameters check
     }
 }
