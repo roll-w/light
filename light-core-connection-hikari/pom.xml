@@ -21,7 +21,7 @@
     <parent>
         <artifactId>light-parent</artifactId>
         <groupId>space.lingu.light</groupId>
-        <version>0.4.1</version>
+        <version>0.4.2</version>
         <relativePath>../light-parent/pom.xml</relativePath>
     </parent>
 
