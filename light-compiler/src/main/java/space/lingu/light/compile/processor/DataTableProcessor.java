@@ -93,41 +93,8 @@ public class DataTableProcessor implements Processor<DataTable> {
         List<PrimaryKey> primaryKeys = new ArrayList<>();
 
         primaryKeys.add(getPrimaryKeyFromPrimaryKey(fields));
-        primaryKeys.addAll(getPrimaryKeysFromDataEntity(fields));
 
         return choosePrimaryKey(primaryKeys, mElement);
-    }
-
-    private List<PrimaryKey> getPrimaryKeysFromDataEntity(List<Field> fields) {
-        List<String> keys = Arrays.asList(anno.primaryKeys());
-        if (keys.isEmpty()) {
-            return new ArrayList<>();
-        }
-        mEnv.getLog().warn(
-                Warnings.PRIMARY_KEYS_DEPRECATED,
-                mElement);
-
-        List<PrimaryKey> primaryKeys = new ArrayList<>();
-        List<Field> primaryKeyFields = new ArrayList<>();
-
-        keys.forEach(s -> {
-            Field field = findFieldByColumnName(fields, s);
-            if (field == null) {
-                mEnv.getLog().error(
-                        CompileErrors.cannotFoundPrimaryKeyField(s),
-                        mElement);
-                return;
-            }
-            primaryKeyFields.add(field);
-        });
-        primaryKeys.add(
-                new PrimaryKey(
-                        mElement,
-                        new Field.Fields(primaryKeyFields),
-                        false)
-        );
-
-        return primaryKeys;
     }
 
     private PrimaryKey getPrimaryKeyFromPrimaryKey(List<Field> fields) {

@@ -41,15 +41,6 @@ public @interface DataTable {
      */
     Index[] indices() default {};
 
-    /**
-     * Primary key columns.
-     *
-     * @deprecated use {@link PrimaryKey} annotation instead.
-     * @return primary key columns
-     */
-    @Deprecated
-    String[] primaryKeys() default {};
-
     String description() default "";
 
     /**
