@@ -272,7 +272,7 @@ public class DaoWriter extends ClassWriter {
             method.getEntities().forEach((s, paramEntity) -> {
                 fields.put(s,
                         Pair.createPair(getOrCreateField(
-                                        new DeleteUpdateMethodField("update", paramEntity, null)),
+                                        new DeleteUpdateMethodField("update", paramEntity, method.getOnConflict())),
                                 new UpdateHandlerWriter(paramEntity, method).createAnonymous(this, sDatabaseField.name)));
             });
             MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
@@ -465,7 +465,7 @@ public class DaoWriter extends ClassWriter {
         private final String onConflict;
 
         DeleteUpdateMethodField(String prefix, ParamEntity entity, OnConflictStrategy onConflictStrategy) {
-            super(prefix + "_deleteUpdateHandlerOf" + entityFieldName(entity),
+            super(toName(prefix, entity, onConflictStrategy),
                     ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER,
                             entity.getPojo().getTypeName()));
             this.prefix = prefix;
@@ -485,6 +485,19 @@ public class DaoWriter extends ClassWriter {
         @Override
         void prepare(ClassWriter writer, FieldSpec.Builder builder) {
             builder.addModifiers(Modifier.FINAL, Modifier.PRIVATE);
+        }
+
+        static String toName(String prefix, ParamEntity entity,
+                             OnConflictStrategy onConflictStrategy) {
+            StringBuilder builder = new StringBuilder(prefix)
+                    .append("_deleteUpdateHandlerOf");
+            if (onConflictStrategy != null) {
+                builder.append("_")
+                        .append(onConflictStrategy.name().toLowerCase())
+                        .append("_");
+            }
+            builder.append(entityFieldName(entity));
+            return builder.toString();
         }
     }
 
