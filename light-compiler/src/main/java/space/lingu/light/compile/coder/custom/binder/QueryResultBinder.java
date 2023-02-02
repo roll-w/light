@@ -55,10 +55,11 @@ public abstract class QueryResultBinder {
         if (isReturn) {
             block.builder().addStatement("return $L", outVarName);
         }
-        block.builder()
-                .nextControlFlow("catch ($T e)", SQLException.class)
-                .addStatement("throw new $T(e)", LightRuntimeException.class);
-
+        block.builder().nextControlFlow("catch ($T e)", SQLException.class);
+        if (inTransaction) {
+            block.builder().addStatement("$N.rollback()", connVarName);
+        }
+        block.builder().addStatement("throw new $T(e)", LightRuntimeException.class);
         if (canReleaseSet) {
             block.builder()
                     .nextControlFlow("finally")
