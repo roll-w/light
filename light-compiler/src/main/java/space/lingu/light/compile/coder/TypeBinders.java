@@ -60,6 +60,7 @@ public class TypeBinders {
 
     private void initColumnTypeBinders() {
         mColumnTypeBinders.add(StringColumnTypeBinder.create(mEnv));
+        mColumnTypeBinders.add(BigDecimalColumnTypeBinder.create(mEnv));
         mColumnTypeBinders.add(ByteArrayColumnTypeBinder.create(mEnv));
         List<PrimitiveColumnTypeBinder> primitiveColumnTypeBinders =
                 PrimitiveColumnTypeBinder.create(mEnv);

@@ -17,69 +17,56 @@
 package space.lingu.light.compile.coder.type;
 
 import space.lingu.light.LightRuntimeException;
+import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 
-import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Boxed primitive type binder.
+ * {@link BigDecimal} type binder.
  *
  * @author RollW
  */
-public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
-    private final PrimitiveColumnTypeBinder mBinder;
-
-    public BoxedPrimitiveColumnTypeBinder(TypeMirror type, PrimitiveColumnTypeBinder primitiveBinder) {
-        super(type, primitiveBinder.getDataType());
-        mBinder = primitiveBinder;
-    }
-
-    private static TypeMirror getBoxedFromPrimitive(TypeMirror primitive, ProcessEnv env) {
-        return env.getTypeUtils().boxedClass((PrimitiveType) primitive).asType();
-    }
-
-    public static List<BoxedPrimitiveColumnTypeBinder> create(List<PrimitiveColumnTypeBinder> primitiveBinders, ProcessEnv env) {
-        List<BoxedPrimitiveColumnTypeBinder> binders = new ArrayList<>();
-        primitiveBinders.forEach(binder ->
-                binders.add(
-                        new BoxedPrimitiveColumnTypeBinder(
-                                getBoxedFromPrimitive(binder.type(), env), binder))
-        );
-        return binders;
+public class BigDecimalColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
+    public BigDecimalColumnTypeBinder(TypeMirror type) {
+        super(type, SQLDataType.DECIMAL);
     }
 
     @Override
     public void readFromResultSet(String outVarName, String resultSetName,
                                   String indexName, GenerateCodeBlock block) {
-        block.builder()
-                .beginControlFlow("if ($L < 0)", indexName)
-                .addStatement("$L = null", outVarName)
-                .nextControlFlow("else");
-        mBinder.readFromResultSet(outVarName, resultSetName, indexName, block);
-        block.builder().endControlFlow();
+        readValueWithCheckIndex(outVarName,
+                resultSetName, indexName,
+                "getBigDecimal", "null", block);
     }
 
     @Override
     public void bindToStatement(String stmtVarName, String indexVarName,
                                 String valueVarName, GenerateCodeBlock block) {
         block.builder()
-                .beginControlFlow("if ($L == null)", valueVarName)
                 .beginControlFlow("try")
+                .beginControlFlow("if ($L == null)", valueVarName)
                 .addStatement("$L.setNull($L, $L)", stmtVarName, indexVarName, Types.NULL)
+                .nextControlFlow("else")
+                .addStatement("$L.setBigDecimal($L, $L)", stmtVarName, indexVarName, valueVarName)
+                .endControlFlow()
                 .nextControlFlow("catch ($T e)", SQLException.class)
                 .addStatement("throw new $T(e)", LightRuntimeException.class)
-                .endControlFlow()
-                .nextControlFlow("else");
-        mBinder.bindToStatement(stmtVarName, indexVarName, valueVarName, block);
-        block.builder().endControlFlow();
+                .endControlFlow();
+    }
+
+    public static BigDecimalColumnTypeBinder create(ProcessEnv env) {
+        return new BigDecimalColumnTypeBinder(
+                env.getElementUtils()
+                        .getTypeElement("java.math.BigDecimal")
+                        .asType()
+        );
     }
 }

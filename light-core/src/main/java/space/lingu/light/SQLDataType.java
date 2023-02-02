@@ -38,10 +38,30 @@ public enum SQLDataType {
      * long, or big int.
      */
     LONG,
+    /**
+     * Real. (float)
+     */
     REAL,
+    /**
+     * float.
+     */
     FLOAT,
+    /**
+     * double.
+     */
     DOUBLE,
+    /**
+     * Decimal.
+     */
+    DECIMAL,
+    /**
+     * boolean.
+     */
     BOOLEAN,
+    /**
+     * Date. May not be supported by all databases.
+     */
+    DATE,
     /**
      * Primitive type {@code char}.
      */

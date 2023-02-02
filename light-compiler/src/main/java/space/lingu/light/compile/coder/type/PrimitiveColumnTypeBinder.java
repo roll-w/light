@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 基本数据类型处理
+ * Primitive type binder.
  *
  * @author RollW
  */

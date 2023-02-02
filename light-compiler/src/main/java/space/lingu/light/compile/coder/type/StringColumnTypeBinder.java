@@ -29,7 +29,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 /**
- * {@code String}类型的值绑定器
+ * Column type binder for {@link String}.
+ *
  * @author RollW
  */
 public class StringColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
