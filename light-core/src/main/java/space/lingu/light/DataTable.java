@@ -29,10 +29,21 @@ import java.lang.annotation.*;
 public @interface DataTable {
     /**
      * Table name. If leave it empty, will use class name as table name.
+     * Alias of {@link #name()}.
+     *
+     * @return table name
+     * @deprecated Use {@link #name()} instead. Will no longer take
+     * effect in the future version.
+     */
+    @Deprecated
+    String tableName() default "";
+
+    /**
+     * Table name. If leave it empty, will use class name as table name.
      *
      * @return table name
      */
-    String tableName() default "";
+    String name() default "";
 
     /**
      * Indices of the table.
@@ -41,6 +52,10 @@ public @interface DataTable {
      */
     Index[] indices() default {};
 
+    /**
+     * The description of the table.
+     */
+    @LightExperimentalApi
     String description() default "";
 
     /**

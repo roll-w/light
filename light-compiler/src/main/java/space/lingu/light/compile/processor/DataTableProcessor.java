@@ -50,9 +50,9 @@ public class DataTableProcessor implements Processor<DataTable> {
     private final ProcessEnv mEnv;
 
     public DataTableProcessor(TypeElement element, ProcessEnv env) {
-        mEnv = env;
-        mElement = element;
-        anno = element.getAnnotation(space.lingu.light.DataTable.class);
+        this.mEnv = env;
+        this.mElement = element;
+        this.anno = element.getAnnotation(space.lingu.light.DataTable.class);
         if (anno == null) {
             mEnv.getLog().error(CompileErrors.DATA_TABLE_NOT_ANNOTATED, element);
         }
@@ -61,9 +61,7 @@ public class DataTableProcessor implements Processor<DataTable> {
     @Override
     public DataTable process() {
         PojoProcessor processor = new PojoProcessor(mElement, mEnv);
-        final String tableName = anno.tableName().isEmpty()
-                ? mElement.getSimpleName().toString()
-                : anno.tableName();
+        final String tableName = getTableName(anno);
 
         Pojo pojo = processor.process();
         dataTable.setElement(mElement)
@@ -89,11 +87,23 @@ public class DataTableProcessor implements Processor<DataTable> {
                 .setIndices(processIndices(dataTable.getTableName(), pojo.getFields()));
     }
 
+    @SuppressWarnings({"deprecation"})
+    private String getTableName(space.lingu.light.DataTable annotation) {
+        String name = annotation.name();
+        if (!name.isEmpty()) {
+            return name;
+        }
+        // TODO: Remove this in the future
+        String tableName = annotation.tableName();
+        if (!tableName.isEmpty()) {
+            return tableName;
+        }
+        return mElement.getSimpleName().toString();
+    }
+
     private PrimaryKey findPrimaryKey(List<Field> fields) {
         List<PrimaryKey> primaryKeys = new ArrayList<>();
-
         primaryKeys.add(getPrimaryKeyFromPrimaryKey(fields));
-
         return choosePrimaryKey(primaryKeys, mElement);
     }
 
