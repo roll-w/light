@@ -63,6 +63,14 @@ public enum SQLDataType {
      */
     DATE,
     /**
+     * Time. May not be supported by all databases.
+     */
+    TIME,
+    /**
+     * Timestamp. May not be supported by all databases.
+     */
+    TIMESTAMP,
+    /**
      * Primitive type {@code char}.
      */
     CHAR,
