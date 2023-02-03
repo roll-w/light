@@ -1,0 +1,195 @@
+/*
+ * Copyright (C) 2022 Lingu Light Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package space.lingu.light.compile.coder.type;
+
+import space.lingu.light.LightRuntimeException;
+import space.lingu.light.SQLDataType;
+import space.lingu.light.compile.JavaPoetClass;
+import space.lingu.light.compile.coder.ColumnTypeBinder;
+import space.lingu.light.compile.coder.GenerateCodeBlock;
+
+import javax.lang.model.type.TypeMirror;
+import java.sql.Date;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+/**
+ * @author RollW
+ */
+public class DateTypeBinder extends ColumnTypeBinder {
+    // supports java.sql.Date, java.sql.Time, java.sql.Timestamp
+    // supports java.time.LocalDate, java.time.LocalTime, java.time.LocalDateTime
+    // supports long (millis), Long (millis)
+    // supports java.util.Date
+    // supports java.time.Instant
+
+    // TODO: supports:
+    // java.time.ZonedDateTime
+    // java.time.OffsetDateTime
+    // java.time.OffsetTime
+
+    private final Type type;
+
+    public DateTypeBinder(TypeMirror typeMirror,
+                          SQLDataType dataType,
+                          Type type) {
+        super(typeMirror, dataType);
+        this.type = type;
+        // TODO: parse type
+    }
+
+    @Override
+    public void readFromResultSet(String outVarName,
+                                  String resultSetName,
+                                  String indexName,
+                                  GenerateCodeBlock block) {
+        String readVar = block.getTempVar("_readDateOrTime");
+        block.builder()
+                .addStatement("final $T $L", type.clazzType, readVar)
+                .beginControlFlow("if ($L < 0)", indexName)
+                .addStatement("$L = $L", readVar, null)
+                .nextControlFlow("else")
+                .addStatement("$L = $L.$L($L)",
+                        readVar, resultSetName,
+                        type.convert.readMethodName, indexName)
+                .endControlFlow()
+                .addStatement("$L = $T.$L($L)",
+                        outVarName, JavaPoetClass.UtilNames.DATE_TIME_UTIL,
+                        type.toMethodName, readVar);
+
+    }
+
+    @Override
+    public void bindToStatement(String stmtVarName, String indexVarName,
+                                String valueVarName, GenerateCodeBlock block) {
+        String bindVar = block.getTempVar("_bindDateOrTime");
+        block.builder()
+                .addStatement("$T $L = $T.$L($L)", type.clazzType, bindVar,
+                        JavaPoetClass.UtilNames.DATE_TIME_UTIL, type.fromMethodName,
+                        valueVarName)
+                .beginControlFlow("try")
+                .beginControlFlow("if ($L == null)", bindVar)
+                .addStatement("$L.setNull($L, $L)", stmtVarName, indexVarName, Types.NULL)
+                .nextControlFlow("else")
+                .addStatement("$L.$L($L, $L)", stmtVarName,
+                        type.convert.bindMethodName, indexVarName, bindVar)
+                .endControlFlow()
+                .nextControlFlow("catch ($T e)", SQLException.class)
+                .addStatement("throw new $T(e)", LightRuntimeException.class)
+                .endControlFlow();
+    }
+
+
+    /**
+     * @see space.lingu.light.util.DateTimeUtils
+     */
+    public enum Type {
+        DATE_SQL(Convert.DATE, "raw", Date.class),
+        TIME_SQL(Convert.TIME, "raw", Time.class),
+        TIMESTAMP_SQL(Convert.TIMESTAMP, "raw", Timestamp.class),
+        LONG(Convert.TIMESTAMP, "convertLong", long.class),
+        LONG_OBJ(Convert.TIMESTAMP, "convertLong", "convertLongObject", Long.class),
+        DATE_UTIL(Convert.DATE, "convertDate", java.util.Date.class),
+        INSTANT(Convert.TIMESTAMP, "convertInstant", Instant.class),
+        LOCAL_DATE(Convert.DATE, "convertLocalDate", LocalDate.class),
+        LOCAL_TIME(Convert.TIME, "convertLocalTime", LocalTime.class),
+        LOCAL_DATE_TIME(Convert.TIMESTAMP, "convertLocalDateTime", LocalDateTime.class),
+        ;
+
+        private final Convert convert;
+        /**
+         * Converts from the type to java.sql.Date, java.sql.Time, java.sql.Timestamp
+         */
+        private final String fromMethodName;
+        /**
+         * Converts java.sql.Date, java.sql.Time, java.sql.Timestamp to the type
+         */
+        private final String toMethodName;
+        private final Class<?> clazzType;
+
+        Type(Convert convert, String fromMethodName, String toMethodName, Class<?> clazzType) {
+            this.convert = convert;
+            this.fromMethodName = fromMethodName;
+            this.toMethodName = toMethodName;
+            this.clazzType = clazzType;
+        }
+
+        Type(Convert convert, String methodName, Class<?> clazzType) {
+            this(convert, methodName, methodName, clazzType);
+        }
+
+        public Convert getConvert() {
+            return convert;
+        }
+
+        public String getFromMethodName() {
+            return fromMethodName;
+        }
+
+        public String getToMethodName() {
+            return toMethodName;
+        }
+
+        public Class<?> getClazzType() {
+            return clazzType;
+        }
+    }
+
+    public enum Convert {
+        DATE(SQLDataType.DATE, Date.class,
+                "getDate", "setDate"),
+        TIME(SQLDataType.TIME, Time.class,
+                "getTime", "setTime"),
+        TIMESTAMP(SQLDataType.TIMESTAMP, Timestamp.class,
+                "getTimestamp", "setTimestamp"),
+        ;
+        private final SQLDataType dataType;
+        private final Class<?> clazzType;
+        private final String readMethodName;
+        private final String bindMethodName;
+
+        Convert(SQLDataType dataType, Class<?> clazzType,
+                String readMethodName, String bindMethodName) {
+            this.dataType = dataType;
+            this.clazzType = clazzType;
+            this.readMethodName = readMethodName;
+            this.bindMethodName = bindMethodName;
+        }
+
+        public SQLDataType getDataType() {
+            return dataType;
+        }
+
+        public Class<?> getClazzType() {
+            return clazzType;
+        }
+
+        public String getReadMethodName() {
+            return readMethodName;
+        }
+
+        public String getBindMethodName() {
+            return bindMethodName;
+        }
+    }
+}
