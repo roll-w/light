@@ -56,7 +56,7 @@ public class SQLHandler {
             if (i == 0) {
                 builder.append(unescaped, 0, detail.start);
             }
-            builder.append("(").append(placeholders[i]).append(")")
+            builder.append(placeholders[i])
                     .append(unescaped, detail.end, nextStart(i, unescaped, details));
         }
         return builder.toString();
