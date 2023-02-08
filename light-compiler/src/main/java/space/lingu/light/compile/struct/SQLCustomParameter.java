@@ -16,8 +16,6 @@
 
 package space.lingu.light.compile.struct;
 
-import javax.lang.model.element.TypeElement;
-
 /**
  * @author RollW
  */
@@ -25,9 +23,5 @@ public interface SQLCustomParameter extends Parameter {
     @Override
     default boolean isMultiple() {
         return false;
-    }
-
-    default TypeElement getWrappedType() {
-        return null;
     }
 }

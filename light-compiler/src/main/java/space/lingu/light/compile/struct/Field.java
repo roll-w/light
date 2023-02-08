@@ -16,19 +16,23 @@
 
 package space.lingu.light.compile.struct;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.Configurations;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.StatementBinder;
+import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.util.StringUtil;
 
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Field - DataColumn
@@ -36,54 +40,75 @@ import java.util.*;
  */
 public class Field implements Configurable {
     // TODO: makes all properties final.
-    private final VariableElement element;
+    private final VariableCompileType variableCompileType;
     private final String name;
-    private TypeElement type;
-    private TypeMirror typeMirror;
+    private final String columnName;
+    private final String defaultValue;
+    private final SQLDataType dataType;
 
-    private String columnName;
-    private String defaultValue = null;
-
-    private SQLDataType dataType;
-
-    private boolean indexed = false;
-    private boolean hasDefault;
-    private Nullability nullability;
+    private final boolean indexed;
+    private final boolean hasDefault;
+    private final Nullability nullability;
 
     private FieldGetter getter;
     private FieldSetter setter;
 
-    private StatementBinder statementBinder;
-    private ColumnValueReader columnValueReader;
+    private final StatementBinder statementBinder;
+    private final ColumnValueReader columnValueReader;
 
-    private Configurations configurations;
+    private final Configurations configurations;
 
-    public Field(VariableElement element, String name) {
-        this.element = element;
-        this.name = name;
-        columnName = name;
+    public Field(VariableCompileType variableCompileType,
+                 String columnName,
+                 String defaultValue, SQLDataType dataType,
+                 boolean indexed, boolean hasDefault,
+                 Nullability nullability,
+                 StatementBinder statementBinder,
+                 ColumnValueReader columnValueReader,
+                 Configurations configurations) {
+        this.variableCompileType = variableCompileType;
+        this.name = variableCompileType.getName();
+        this.columnName = columnName;
+        this.defaultValue = defaultValue;
+        this.dataType = dataType;
+        this.indexed = indexed;
+        this.hasDefault = hasDefault;
+        this.nullability = nullability;
+        this.statementBinder = statementBinder;
+        this.columnValueReader = columnValueReader;
+        this.configurations = configurations;
     }
+
 
     public Set<String> getPossibleCandidateName() {
         Set<String> result = new HashSet<>(Collections.singletonList(name));
-        if (name.length() > 1) {
-            if (name.startsWith("_")) {
-                result.add(name.substring(1));
-            }
-            if (name.startsWith("m") || Character.isUpperCase(name.charAt(1))) {
-                result.add(StringUtil.firstLowerCase(name.substring(1)));
-            }
-            TypeName typeName = ClassName.get(type);
-            if (typeMirror.getKind() == TypeKind.BOOLEAN || typeName.equals(TypeName.BOOLEAN.box())) {
-                if (name.length() > 2 && name.startsWith("is") && Character.isUpperCase(name.charAt(2))) {
-                    result.add(StringUtil.firstLowerCase(name.substring(2)));
-                }
-                if (name.length() > 3 && name.startsWith("has") && Character.isUpperCase(name.charAt(3))) {
-                    result.add(StringUtil.firstLowerCase(name.substring(3)));
-                }
+        if (name.length() <= 1) {
+            return result;
+        }
+        if (name.startsWith("_")) {
+            result.add(name.substring(1));
+        }
+        if (name.startsWith("m") || Character.isUpperCase(name.charAt(1))) {
+            result.add(StringUtil.firstLowerCase(name.substring(1)));
+        }
+
+        if (isBooleanType()) {
+            String booleanGetter = tryBooleanGetter(name);
+            if (booleanGetter != null) {
+                result.add(booleanGetter);
             }
         }
         return result;
+    }
+
+    private static String tryBooleanGetter(String name) {
+        if (name.length() > 2 && name.startsWith("is") && Character.isUpperCase(name.charAt(2))) {
+            return StringUtil.firstLowerCase(name.substring(2));
+        }
+        if (name.length() > 3 && name.startsWith("has") && Character.isUpperCase(name.charAt(3))) {
+            return StringUtil.firstLowerCase(name.substring(3));
+        }
+        return null;
     }
 
     public Set<String> setterNameCandidate() {
@@ -98,9 +123,7 @@ public class Field implements Configurable {
         getPossibleCandidateName().forEach(s -> {
             getterNames.add(s);
             getterNames.add("get" + StringUtil.firstUpperCase(s));
-            TypeName typeName = TypeName.get(typeMirror);
-            if (typeMirror.getKind() == TypeKind.BOOLEAN ||
-                    typeName.equals(TypeName.BOOLEAN.box())) {
+            if (isBooleanType()) {
                 getterNames.addAll(Arrays.asList(
                         "is" + StringUtil.firstUpperCase(s),
                         "has" + StringUtil.firstUpperCase(s))
@@ -111,137 +134,77 @@ public class Field implements Configurable {
         return getterNames;
     }
 
-    public TypeMirror getTypeMirror() {
-        return typeMirror;
+    private boolean isBooleanType() {
+        TypeCompileType typeCompileType = variableCompileType.getType();
+        TypeName typeName = variableCompileType.getType().toTypeName();
+
+        return typeCompileType.getTypeMirror().getKind() == TypeKind.BOOLEAN ||
+                typeName.equals(TypeName.BOOLEAN.box());
     }
 
-    public Field setTypeMirror(TypeMirror typeMirror) {
-        this.typeMirror = typeMirror;
-        return this;
-    }
-
-    public StatementBinder getStatementBinder() {
-        return statementBinder;
-    }
-
-    public Field setStatementBinder(StatementBinder statementBinder) {
-        this.statementBinder = statementBinder;
-        return this;
-    }
-
-    public ColumnValueReader getColumnValueReader() {
-        return columnValueReader;
-    }
-
-    public Field setColumnValueReader(ColumnValueReader columnValueReader) {
-        this.columnValueReader = columnValueReader;
-        return this;
-    }
-
-    public SQLDataType getDataType() {
-        return dataType;
-    }
-
-    public Field setDataType(SQLDataType dataType) {
-        this.dataType = dataType;
-        return this;
-    }
-
-    public VariableElement getElement() {
-        return element;
+    public VariableCompileType getVariableCompileType() {
+        return variableCompileType;
     }
 
     public String getName() {
         return name;
     }
 
-    public TypeElement getType() {
-        return type;
-    }
-
-    public Field setType(TypeElement type) {
-        this.type = type;
-        return this;
-    }
-
     public String getColumnName() {
         return columnName;
-    }
-
-    public Field setColumnName(String columnName) {
-        this.columnName = columnName;
-        return this;
     }
 
     public String getDefaultValue() {
         return defaultValue;
     }
 
-    public Field setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
-        return this;
+    public SQLDataType getDataType() {
+        return dataType;
     }
 
     public boolean isIndexed() {
         return indexed;
     }
 
-    public Field setIndexed(boolean indexed) {
-        this.indexed = indexed;
-        return this;
-    }
-
     public boolean isHasDefault() {
         return hasDefault;
-    }
-
-    public Field setHasDefault(boolean hasDefault) {
-        this.hasDefault = hasDefault;
-        return this;
-    }
-
-    public FieldGetter getGetter() {
-        return getter;
-    }
-
-    public Field setGetter(FieldGetter getter) {
-        this.getter = getter;
-        return this;
-    }
-
-    public FieldSetter getSetter() {
-        return setter;
-    }
-
-    public Field setSetter(FieldSetter setter) {
-        this.setter = setter;
-        return this;
     }
 
     public Nullability getNullability() {
         return nullability;
     }
 
-    public Field setNullability(Nullability nullability) {
-        this.nullability = nullability;
-        return this;
+    public FieldGetter getGetter() {
+        return getter;
+    }
+
+    public FieldSetter getSetter() {
+        return setter;
+    }
+
+    public StatementBinder getStatementBinder() {
+        return statementBinder;
+    }
+
+    public ColumnValueReader getColumnValueReader() {
+        return columnValueReader;
+    }
+
+    public void setGetter(FieldGetter getter) {
+        this.getter = getter;
+    }
+
+    public void setSetter(FieldSetter setter) {
+        this.setter = setter;
     }
 
     @Override
     public Configurations getConfigurations() {
-        if (configurations == null) {
-            return Configurations.empty();
-        }
         return configurations;
     }
 
-    public Field setConfigurations(Configurations configurations) {
-        this.configurations = configurations;
-        return this;
-    }
-
     public static class Fields {
-        public final List<Field> fields;
+        private final List<Field> fields;
 
         public Fields() {
             this.fields = Collections.emptyList();
@@ -266,6 +229,21 @@ public class Field implements Configurable {
                 }
             }
             return false;
+        }
+
+        public Field findFieldByColumnName(String columnName) {
+            List<Field> filtered = fields.stream()
+                    .filter(field ->
+                            field.getColumnName().equals(columnName))
+                    .collect(Collectors.toList());
+            if (filtered.isEmpty()) {
+                return null;
+            }
+            return filtered.get(0);
+        }
+
+        public boolean isEmpty() {
+            return fields.isEmpty();
         }
     }
 

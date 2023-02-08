@@ -18,8 +18,8 @@ package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.Configurations;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.element.TypeElement;
 import java.util.List;
 
 /**
@@ -27,69 +27,40 @@ import java.util.List;
  * @author RollW
  */
 public class DataTable extends Pojo implements Configurable {
-    private TypeElement element;
-    private String tableName;
-    private List<Field> fields;
-    private PrimaryKey primaryKey;
-    private List<Index> indices;
-    private List<ForeignKey> foreignKeys;
-    private Configurations configurations;
+    private final String tableName;
+    private final PrimaryKey primaryKey;
+    private final List<Index> indices;
+    private final List<ForeignKey> foreignKeys;
+    private final Configurations configurations;
 
-    public DataTable() {
+    public DataTable(TypeCompileType typeCompileType,
+                     Field.Fields fields, Constructor constructor,
+                     String tableName, PrimaryKey primaryKey,
+                     List<Index> indices, List<ForeignKey> foreignKeys,
+                     Configurations configurations) {
+        super(typeCompileType, fields, constructor);
+        this.tableName = tableName;
+        this.primaryKey = primaryKey;
+        this.indices = indices;
+        this.foreignKeys = foreignKeys;
+        this.configurations = configurations;
     }
 
-    public TypeElement getElement() {
-        return element;
-    }
-
-    public DataTable setElement(TypeElement element) {
-        this.element = element;
-        return this;
-    }
 
     public String getTableName() {
         return tableName;
-    }
-
-    public DataTable setTableName(String tableName) {
-        this.tableName = tableName;
-        return this;
-    }
-
-    public List<Field> getFields() {
-        return fields;
-    }
-
-    public DataTable setFields(List<Field> fields) {
-        this.fields = fields;
-        return this;
     }
 
     public PrimaryKey getPrimaryKey() {
         return primaryKey;
     }
 
-    public DataTable setPrimaryKey(PrimaryKey primaryKey) {
-        this.primaryKey = primaryKey;
-        return this;
-    }
-
     public List<Index> getIndices() {
         return indices;
     }
 
-    public DataTable setIndices(List<Index> indices) {
-        this.indices = indices;
-        return this;
-    }
-
     public List<ForeignKey> getForeignKeys() {
         return foreignKeys;
-    }
-
-    public DataTable setForeignKeys(List<ForeignKey> foreignKeys) {
-        this.foreignKeys = foreignKeys;
-        return this;
     }
 
     @Override
@@ -98,18 +69,8 @@ public class DataTable extends Pojo implements Configurable {
     }
 
     @Override
-    public Pojo setTypeName(TypeName typeName) {
-        return super.setTypeName(typeName);
-    }
-
-    @Override
     public Constructor getConstructor() {
         return super.getConstructor();
-    }
-
-    @Override
-    public Pojo setConstructor(Constructor constructor) {
-        return super.setConstructor(constructor);
     }
 
     @Override
@@ -118,10 +79,5 @@ public class DataTable extends Pojo implements Configurable {
             return Configurations.empty();
         }
         return configurations;
-    }
-
-    public DataTable setConfigurations(Configurations configurations) {
-        this.configurations = configurations;
-        return this;
     }
 }

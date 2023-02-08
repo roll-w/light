@@ -49,10 +49,10 @@ public class UpdateHandlerWriter {
     public TypeSpec createAnonymous(ClassWriter writer, String dbParam) {
         StringJoiner keys = new StringJoiner(", ");
         StringJoiner params = new StringJoiner(", ");
-        mEntity.getPrimaryKey().getFields().fields.forEach(field ->
+        mEntity.getPrimaryKey().getFields().getFields().forEach(field ->
                 keys.add("\"" + field.getColumnName() + "\""));
 
-        mEntity.getPojo().getFields().forEach(field ->
+        mEntity.getPojo().getFields().getFields().forEach(field ->
                 params.add("\"" + field.getColumnName() + "\""));
 
         GenerateCodeBlock queryBlock = new GenerateCodeBlock(writer);
@@ -103,17 +103,17 @@ public class UpdateHandlerWriter {
                 .returns(TypeName.VOID);
 
         List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
-        IntStream.range(0, mPojo.getFields().size()).forEach(value -> {
-            Field field = mPojo.getFields().get(value);
+        IntStream.range(0, mPojo.getFields().getFields().size()).forEach(value -> {
+            Field field = mPojo.getFields().getFields().get(value);
             fieldWithNumberList.add(new FieldReadWriteWriter.FieldWithNumber(
                     field,
                     String.valueOf(value + 1))
             );
         });
 
-        final int primaryKeyStart = mPojo.getFields().size();
-        IntStream.range(0, mEntity.getPrimaryKey().getFields().fields.size()).forEach(value -> {
-            Field field = mEntity.getPrimaryKey().getFields().fields.get(value);
+        final int primaryKeyStart = mPojo.getFields().getFields().size();
+        IntStream.range(0, mEntity.getPrimaryKey().getFields().getFields().size()).forEach(value -> {
+            Field field = mEntity.getPrimaryKey().getFields().getFields().get(value);
             fieldWithNumberList.add(new FieldReadWriteWriter.FieldWithNumber(
                     field,
                     String.valueOf(value + 1 + primaryKeyStart))

@@ -55,7 +55,8 @@ public class Constructor {
         elements.forEach(e -> {
             // compare name and typeMirror
             if (e.getSimpleName().contentEquals(field.getName()) &&
-                    TypeUtil.equalTypeMirror(e.asType(), field.getTypeMirror())) {
+                    TypeUtil.equalTypeMirror(e.asType(),
+                            field.getVariableCompileType().getTypeMirror())) {
                 flag.set(true);
             }
         });

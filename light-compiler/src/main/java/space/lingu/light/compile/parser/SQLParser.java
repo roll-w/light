@@ -17,14 +17,25 @@
 package space.lingu.light.compile.parser;
 
 import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.VariableCompileType;
+import space.lingu.light.compile.javac.types.JavacTypeCompileType;
 import space.lingu.light.handler.SQLExpressionParser;
 import space.lingu.light.util.StringUtil;
 
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author RollW
@@ -32,20 +43,20 @@ import java.util.regex.Pattern;
 public class SQLParser {
     // TODO
     private final String sql;
-    private final ExecutableElement mElement;
+    private final MethodCompileType methodCompileType;
     private final List<String> expressions;
 
-    public SQLParser(String sql, ExecutableElement element) {
+    public SQLParser(String sql, MethodCompileType methodCompileType) {
         this.sql = sql;
-        this.mElement = element;
-        expressions = new SQLExpressionParser(sql).getExpressions();
+        this.methodCompileType = methodCompileType;
+        this.expressions = new SQLExpressionParser(sql).getExpressions();
     }
 
     public List<String> expressions() {
         return expressions;
     }
 
-    private VariableElement findParameter(String expression) {
+    private VariableCompileType findParameter(String expression) {
         if (StringUtil.isEmpty(expression)) {
             return null;
         }
@@ -56,8 +67,8 @@ public class SQLParser {
         return findByName(varName);
     }
 
-    private VariableElement findByName(String name) {
-        for (VariableElement parameter : mElement.getParameters()) {
+    private VariableCompileType findByName(String name) {
+        for (VariableCompileType parameter : methodCompileType.getParameters()) {
             if (parameter.getSimpleName().contentEquals(name)) {
                 return parameter;
             }
@@ -65,18 +76,19 @@ public class SQLParser {
         return null;
     }
 
-    public TypeMirror findType(String expression) {
-        VariableElement parameter = findParameter(expression);
+    public TypeCompileType findType(String expression) {
+        VariableCompileType parameter = findParameter(expression);
+        // TODO: may supports generic types in the future
         if (parameter == null) {
             return null;
         }
         if (!expression.contains(".")) {
-            return parameter.asType();
+            return parameter.getType();
         }
 
         String[] paragraphs = expression.split(Pattern.quote("."));
         List<? extends Element> enclosedElements =
-                getEnclosedElements(parameter);
+                getEnclosedElements(parameter.getElement());
         TypeMirror iter = null;
         for (int i = 1; i < paragraphs.length; i++) {
             // iterate for next expression
@@ -113,7 +125,13 @@ public class SQLParser {
                 enclosedElements = element.getEnclosedElements();
             }
         }
-        return iter;
+        if (iter == null) {
+            return null;
+        }
+        return new JavacTypeCompileType(
+                iter,
+                ElementUtil.asTypeElement(iter)
+        );
     }
 
     private List<? extends Element> getEnclosedElements(VariableElement element) {
@@ -122,9 +140,30 @@ public class SQLParser {
         TypeElement typeElement =
                 ElementUtil.asTypeElement(element.asType());
         if (typeElement != null) {
-            return typeElement.getEnclosedElements();
+            return getAllEnclosedElements(typeElement);
         }
         return Collections.emptyList();
+    }
+
+    private List<? extends Element> getAllEnclosedElements(TypeElement element) {
+        List<Element> elements = new ArrayList<>(element.getEnclosedElements());
+        // may have duplicate elements
+        for (TypeElement typeElement : getInterfacesOrSuperClass(element)) {
+            elements.addAll(getAllEnclosedElements(typeElement));
+        }
+        return elements;
+    }
+
+    private List<TypeElement> getInterfacesOrSuperClass(TypeElement element) {
+        List<TypeMirror> interfaces = new ArrayList<>();
+        TypeMirror superClass = element.getSuperclass();
+        if (superClass.getKind() != TypeKind.NONE) {
+            interfaces.add(superClass);
+        }
+        interfaces.addAll(element.getInterfaces());
+        return interfaces.stream()
+                .map(ElementUtil::asTypeElement)
+                .collect(Collectors.toList());
     }
 
     private VariableElement findFieldSimpleName(List<? extends Element> enclosedElements, String simpleName) {
@@ -149,5 +188,13 @@ public class SQLParser {
             }
         }
         return null;
+    }
+
+    public String getSql() {
+        return sql;
+    }
+
+    public List<String> getExpressions() {
+        return expressions;
     }
 }

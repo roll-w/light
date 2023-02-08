@@ -17,8 +17,12 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.compile.CompileErrors;
+import space.lingu.light.compile.javac.CompileType;
+import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.struct.AnnotateParameter;
 import space.lingu.light.compile.struct.DataTable;
 import space.lingu.light.compile.struct.ParamEntity;
@@ -26,10 +30,6 @@ import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.util.Pair;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,26 +44,31 @@ import java.util.Map;
  * @author RollW
  */
 public class AnnotateMethodProcessor {
-    private final ExecutableElement mElement;
+    private final MethodCompileType methodCompileType;
     private final ProcessEnv mEnv;
 
-    public AnnotateMethodProcessor(ExecutableElement element, ProcessEnv env) {
-        mElement = element;
+    public AnnotateMethodProcessor(MethodCompileType methodCompileType,
+                                   ProcessEnv env) {
+        this.methodCompileType = methodCompileType;
         mEnv = env;
     }
 
-    public Pair<Map<String, ParamEntity>, List<Parameter>> extractParameters(TypeElement element) {
-        List<? extends VariableElement> elements = mElement.getParameters();
+    public List<Parameter> extractRawParameters(TypeCompileType compileType) {
+        List<VariableCompileType> parameterTypes = methodCompileType.getParameters();
         List<Parameter> parameters = new ArrayList<>();
-        elements.forEach(e -> {
-            checkUnbound(e.asType(), mEnv, e);
-
+        parameterTypes.forEach(e -> {
+            checkUnbound(e, mEnv);
             Processor<AnnotateParameter> processor =
-                    new AnnotateParameterProcessor(e, element, mEnv);
+                    new AnnotateParameterProcessor(e, compileType, mEnv);
             parameters.add(processor.process());
         });
+        return parameters;
+    }
 
-        Map<String, ParamEntity> entityMap = new HashMap<>(extractEntities(parameters));
+    public Pair<Map<String, ParamEntity>, List<Parameter>> extractParameters(TypeCompileType typeCompileType) {
+        List<Parameter> parameters = extractRawParameters(typeCompileType);
+        Map<String, ParamEntity> entityMap = new HashMap<>(
+                extractEntities(parameters));
         return Pair.createPair(entityMap, parameters);
     }
 
@@ -74,26 +79,32 @@ public class AnnotateMethodProcessor {
                 return;
             }
 
-            TypeElement entityTypeElement = param.getWrappedType();
-            if (TypeUtil.equalTypeMirror(param.getTypeMirror(), param.getWrappedType().asType())) {
-                entityTypeElement = param.getType();
+            TypeCompileType entityType = param.getWrappedCompileType();
+
+            if (param.getWrappedCompileType() != null && TypeUtil.equalTypeMirror(
+                    param.getCompileType().getType().getTypeMirror(),
+                    param.getWrappedCompileType().getTypeMirror()
+            )) {
+                entityType = param.getCompileType().getType();
             }
 
-            if (entityTypeElement == null) {
+            if (entityType == null) {
                 mEnv.getLog().error(
                         CompileErrors.DAO_INVALID_METHOD_PARAMETER,
-                        mElement
+                        methodCompileType
                 );
                 return;
             }
 
-            // TODO 支持实体类片段
-            Pojo pojo = new PojoProcessor(entityTypeElement, mEnv).process();
-            if (entityTypeElement.getAnnotation(space.lingu.light.DataTable.class) == null) {
-                mEnv.getLog().error(CompileErrors.ACTUAL_PARAM_ANNOTATED_DATATABLE, mElement);
+            // TODO: support fragment type
+            Pojo pojo = new PojoProcessor(entityType, mEnv).process();
+            if (entityType.getAnnotation(space.lingu.light.DataTable.class) == null) {
+                mEnv.getLog().error(CompileErrors.ACTUAL_PARAM_ANNOTATED_DATATABLE, methodCompileType);
                 return;
             }
-            DataTable dataTable = new DataTableProcessor(param.getWrappedType(), mEnv).process();
+            DataTable dataTable = new DataTableProcessor(
+                    param.getWrappedCompileType(),
+                    mEnv).process();
             ParamEntity paramEntity = new ParamEntity(dataTable, null);
             entityMap.put(param.getName(), paramEntity);
         });
@@ -101,7 +112,8 @@ public class AnnotateMethodProcessor {
         return entityMap;
     }
 
-    public static void checkUnbound(TypeMirror typeMirror, ProcessEnv env, Element element) {
+    public static void checkUnbound(CompileType compileType, ProcessEnv env) {
+        TypeMirror typeMirror = compileType.getTypeMirror();
         if (!TypeUtil.isIterable(env, typeMirror)) {
             return;
         }
@@ -109,7 +121,7 @@ public class AnnotateMethodProcessor {
         if (genericTypes == null || genericTypes.isEmpty()) {
             env.getLog().error(
                     CompileErrors.NOT_BOUND_GENERIC_TYPES,
-                    element
+                    compileType
             );
         }
     }

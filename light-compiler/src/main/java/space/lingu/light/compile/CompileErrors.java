@@ -17,10 +17,10 @@
 package space.lingu.light.compile;
 
 import space.lingu.light.SQLDataType;
+import space.lingu.light.compile.javac.CompileType;
 import space.lingu.light.compile.struct.DataConverter;
 
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
@@ -145,18 +145,20 @@ public final class CompileErrors {
     private static final String TYPE_MISS_MATCH =
             "In/out types miss match, expected: %s, actual: %s.";
 
-    public static String unknownInType(TypeMirror typeMirror, SQLDataType type) {
+    public static String unknownInType(CompileType compileType, SQLDataType type) {
+        String name = compileType.getTypeMirror().toString();
         if (type == null) {
-            return String.format(UNKNOWN_OUT_TYPE, typeMirror.toString(), "null");
+            return String.format(UNKNOWN_OUT_TYPE, name, "null");
         }
-        return String.format(UNKNOWN_IN_TYPE, typeMirror.toString(), type.name());
+        return String.format(UNKNOWN_IN_TYPE, name, type.name());
     }
 
-    public static String unknownOutType(TypeMirror typeMirror, SQLDataType type) {
+    public static String unknownOutType(CompileType compileType, SQLDataType type) {
+        String name = compileType.getTypeMirror().toString();
         if (type == null) {
-            return String.format(UNKNOWN_OUT_TYPE, typeMirror.toString(), "null");
+            return String.format(UNKNOWN_OUT_TYPE, name, "null");
         }
-        return String.format(UNKNOWN_OUT_TYPE, typeMirror.toString(), type.name());
+        return String.format(UNKNOWN_OUT_TYPE, name, type.name());
     }
 
     public static String typeMismatch(SQLDataType finalType, SQLDataType dataType) {

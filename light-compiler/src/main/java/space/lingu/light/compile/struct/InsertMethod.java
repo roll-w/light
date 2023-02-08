@@ -18,78 +18,62 @@ package space.lingu.light.compile.struct;
 
 import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.compile.coder.annotated.binder.InsertMethodBinder;
+import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 一个具有{@code @Insert}注解的方法
+ * {@code @Insert} method.
+ *
  * @author RollW
  */
 public class InsertMethod implements AnnotatedMethod<Parameter> {
-    private ExecutableElement element;
-    private Map<String, ParamEntity> entities;
-    private TypeMirror returnType;
-    private List<Parameter> parameters;
-    private InsertMethodBinder binder;
-    private OnConflictStrategy onConflict;
+    private final MethodCompileType methodCompileType;
+    private final Map<String, ParamEntity> entities;
+    private final List<Parameter> parameters;
+    private final InsertMethodBinder binder;
+    private final OnConflictStrategy onConflict;
 
-    public InsertMethod() {
-    }
-
-    public InsertMethodBinder getBinder() {
-        return binder;
-    }
-
-    public InsertMethod setBinder(InsertMethodBinder binder) {
+    public InsertMethod(MethodCompileType methodCompileType,
+                        Map<String, ParamEntity> entities,
+                        List<Parameter> parameters,
+                        InsertMethodBinder binder,
+                        OnConflictStrategy onConflict) {
+        this.methodCompileType = methodCompileType;
+        this.entities = entities;
+        this.parameters = parameters;
         this.binder = binder;
-        return this;
+        this.onConflict = onConflict;
     }
 
-    public ExecutableElement getElement() {
-        return element;
+    @Override
+    public MethodCompileType getMethodCompileType() {
+        return methodCompileType;
     }
 
-    public InsertMethod setElement(ExecutableElement element) {
-        this.element = element;
-        return this;
-    }
-
+    @Override
     public Map<String, ParamEntity> getEntities() {
         return entities;
     }
 
-    public InsertMethod setEntities(Map<String, ParamEntity> entities) {
-        this.entities = entities;
-        return this;
-    }
-
-    public TypeMirror getReturnType() {
-        return returnType;
-    }
-
-    public InsertMethod setReturnType(TypeMirror returnType) {
-        this.returnType = returnType;
-        return this;
-    }
-
+    @Override
     public List<Parameter> getParameters() {
         return parameters;
     }
 
-    public InsertMethod setParameters(List<Parameter> parameters) {
-        this.parameters = parameters;
-        return this;
+    @Override
+    public TypeCompileType getReturnType() {
+        return methodCompileType.getReturnType();
+    }
+
+    @Override
+    public InsertMethodBinder getBinder() {
+        return binder;
     }
 
     public OnConflictStrategy getOnConflict() {
         return onConflict;
-    }
-
-    public InsertMethod setOnConflict(OnConflictStrategy onConflict) {
-        this.onConflict = onConflict;
-        return this;
     }
 }

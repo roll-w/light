@@ -18,12 +18,12 @@ package space.lingu.light.compile.processor;
 
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.struct.DataConverter;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.Collections;
 import java.util.List;
@@ -32,60 +32,57 @@ import java.util.List;
  * @author RollW
  */
 public class DataConverterProcessor implements Processor<DataConverter> {
-    private final TypeElement mContaining;
-    private final ExecutableElement mExecutable;
+    private final TypeCompileType mContaining;
+    private final MethodCompileType methodCompileType;
     private final ProcessEnv mEnv;
 
-    public DataConverterProcessor(ExecutableElement executable,
-                                  TypeElement containing,// 包含此方法的类
+    public DataConverterProcessor(MethodCompileType methodCompileType,
+                                  TypeCompileType containing,// 包含此方法的类
                                   ProcessEnv env) {
         mContaining = containing;
-        mExecutable = executable;
+        this.methodCompileType = methodCompileType;
         mEnv = env;
     }
 
     @Override
     public DataConverter process() {
-        if (!ElementUtil.isPublic(mExecutable)) {
+        if (!ElementUtil.isPublic(methodCompileType.getElement())) {
             mEnv.getLog().error(
                     CompileErrors.DATA_CONVERTER_METHOD_NOT_PUBLIC,
-                    mExecutable
+                    methodCompileType
             );
         }
-        if (!ElementUtil.isStatic(mExecutable)) {
+        if (!ElementUtil.isStatic(methodCompileType.getElement())) {
             mEnv.getLog().error(
                     CompileErrors.DATA_CONVERTER_METHOD_NOT_STATIC,
-                    mExecutable
+                    methodCompileType
             );
         }
 
-        DataConverter converter = new DataConverter();
-        if (mExecutable.getParameters().size() > 1) {
+
+        if (methodCompileType.getParameters().size() > 1) {
             mEnv.getLog().error(
                     CompileErrors.DATA_CONVERTER_TOO_MUCH_PARAMS,
-                    mExecutable
+                    methodCompileType
             );
         }
-        if (mExecutable.getParameters().isEmpty()) {
+        if (methodCompileType.getParameters().isEmpty()) {
             mEnv.getLog().error(
                     CompileErrors.DATA_CONVERTER_NO_PARAM,
-                    mExecutable
+                    methodCompileType
             );
         }
 
-        TypeMirror returnType = mExecutable.getReturnType();
-        if (isInvalidReturnType(returnType)) {
+        TypeCompileType returnType = methodCompileType.getReturnType();
+        if (isInvalidReturnType(returnType.getTypeMirror())) {
             mEnv.getLog().error(
                     CompileErrors.DATA_CONVERTER_INVALID_RETURN_TYPE,
-                    mExecutable
+                    methodCompileType
             );
         }
-
-        return converter
-                .setElement(mExecutable)
-                .setEnclosingClass(mContaining)
-                .setFromType(mExecutable.getParameters().get(0).asType())
-                .setToType(mExecutable.getReturnType());
+        return  new DataConverter(mContaining, methodCompileType,
+                methodCompileType.getParameters().get(0).getType(),
+                methodCompileType.getReturnType());
     }
 
     private static boolean isInvalidReturnType(TypeMirror returnType) {

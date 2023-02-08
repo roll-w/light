@@ -17,15 +17,13 @@
 package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.CodeBlock;
-
-import javax.lang.model.element.VariableElement;
+import space.lingu.light.compile.javac.VariableCompileType;
 
 /**
- * 字段设定值
  * @author RollW
  */
 public class FieldSetter {
-    private final VariableElement element;
+    private final VariableCompileType variableCompileType;
     private final Field.CallType callType;
     private final String name;
 
@@ -46,14 +44,14 @@ public class FieldSetter {
         builder.addStatement(statement, owner, name, in);
     }
 
-    public FieldSetter(VariableElement element, Field.CallType callType, String name) {
-        this.element = element;
+    public FieldSetter(VariableCompileType variableCompileType, Field.CallType callType, String name) {
+        this.variableCompileType = variableCompileType;
         this.callType = callType;
         this.name = name;
     }
 
-    public VariableElement getElement() {
-        return element;
+    public VariableCompileType getVariableCompileType() {
+        return variableCompileType;
     }
 
     public Field.CallType getCallType() {

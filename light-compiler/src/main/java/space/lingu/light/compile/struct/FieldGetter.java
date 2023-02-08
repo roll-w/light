@@ -17,16 +17,13 @@
 package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.TypeName;
-
-import javax.lang.model.element.VariableElement;
+import space.lingu.light.compile.javac.VariableCompileType;
 
 /**
- * 字段的获取方法
  * @author RollW
  */
 public class FieldGetter {
-    private final VariableElement element;
+    private final VariableCompileType variableCompileType;
     private final Field.CallType callType;
     private final String name;
 
@@ -44,17 +41,19 @@ public class FieldGetter {
         }
         if (statement == null) return;
 
-        builder.addStatement(statement, TypeName.get(element.asType()), out, owner, name);
+        builder.addStatement(statement, variableCompileType.getTypeMirror(),
+                out, owner, name);
     }
 
-    public FieldGetter(VariableElement element, Field.CallType callType, String name) {
-        this.element = element;
+    public FieldGetter(VariableCompileType variableCompileType,
+                       Field.CallType callType, String name) {
+        this.variableCompileType = variableCompileType;
         this.callType = callType;
         this.name = name;
     }
 
-    public VariableElement getElement() {
-        return element;
+    public VariableCompileType getVariableCompileType() {
+        return variableCompileType;
     }
 
     public Field.CallType getCallType() {

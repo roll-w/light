@@ -35,7 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 将给定Insert操作翻译成Java代码
+ * Translator for insert method.
+ *
  * @author RollW
  */
 public class InsertMethodTranslator {
@@ -83,6 +84,7 @@ public class InsertMethodTranslator {
     }
 
     private static final List<InsertType> sMultipleList = new ArrayList<>();
+
     static {
         sMultipleList.add(InsertType.VOID);
         sMultipleList.add(InsertType.VOID_OBJECT);
@@ -158,22 +160,35 @@ public class InsertMethodTranslator {
     }
 
     /**
-     * 返回值类型
+     * Return types.
+     *
+     * @see space.lingu.light.handler.InsertHandler
      */
     public enum InsertType {
-        // 修改space.lingu.light.handler.InsertHandler下的方法名时，这里也要对应修改
-        /**return void*/
+        /**
+         * return void
+         */
         VOID("insert", TypeName.VOID),
-        /**return void*/
+        /**
+         * return void
+         */
         VOID_OBJECT("insert", TypeName.VOID.box()),
-        /**return long/Long*/
+        /**
+         * return long/Long
+         */
         SINGLE_ID("insertAndReturnId", TypeName.LONG),
-        /**return long[]*/
+        /**
+         * return long[]
+         */
         ID_ARRAY("insertAndReturnIdsArray", ArrayTypeName.of(TypeName.LONG)),
-        /**return Long[]*/
+        /**
+         * return Long[]
+         */
         ID_ARRAY_BOXED("insertAndReturnIdsArrayBox",
                 ArrayTypeName.of(TypeName.LONG.box())),
-        /**return {@code List<Long>}*/
+        /**
+         * return {@code List<Long>}
+         */
         ID_LIST("insertAndReturnIdsList",
                 ParameterizedTypeName.get(ClassName.get(List.class), TypeName.LONG.box()));
         public final String methodName;

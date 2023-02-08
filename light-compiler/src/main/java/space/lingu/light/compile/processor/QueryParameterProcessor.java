@@ -16,38 +16,32 @@
 
 package space.lingu.light.compile.processor;
 
+import space.lingu.light.compile.javac.CompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.struct.QueryParameter;
-
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 
 /**
  * @author RollW
  */
 public class QueryParameterProcessor implements Processor<QueryParameter> {
-    private final VariableElement mElement;
-    private final Element mContaining;
+    private final VariableCompileType variableCompileType;
+    private final CompileType mContaining;
     private final ProcessEnv mEnv;
-    private final QueryParameter parameter = new QueryParameter();
 
-    public QueryParameterProcessor(VariableElement element,
-                                   Element containing,
+    public QueryParameterProcessor(VariableCompileType variableCompileType,
+                                   CompileType containing,
                                    ProcessEnv env) {
-        mElement = element;
+        this.variableCompileType = variableCompileType;
         mContaining = containing;
         mEnv = env;
     }
 
     @Override
     public QueryParameter process() {
-        return parameter
-                .setElement(mElement)
-                .setName(mElement.getSimpleName().toString())
-                .setSqlName(parameter.getName())
-                .setTypeMirror(mElement.asType())
-                .setType((TypeElement) mEnv.getTypeUtils().asElement(parameter.getTypeMirror()));
+        return new QueryParameter(
+                variableCompileType,
+                variableCompileType.getName()
+        );
     }
-
 }

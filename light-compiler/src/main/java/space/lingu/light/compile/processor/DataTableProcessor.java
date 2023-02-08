@@ -22,6 +22,7 @@ import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.struct.Configurable;
 import space.lingu.light.compile.struct.DataTable;
 import space.lingu.light.compile.struct.Field;
@@ -30,7 +31,6 @@ import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.compile.struct.PrimaryKey;
 import space.lingu.light.util.StringUtil;
 
-import javax.lang.model.element.TypeElement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,47 +44,47 @@ import java.util.stream.Collectors;
  * @author RollW
  */
 public class DataTableProcessor implements Processor<DataTable> {
-    private final TypeElement mElement;
-    private final DataTable dataTable = new DataTable();
+    private final TypeCompileType typeCompileType;
     private final space.lingu.light.DataTable anno;
     private final ProcessEnv mEnv;
 
-    public DataTableProcessor(TypeElement element, ProcessEnv env) {
+    public DataTableProcessor(TypeCompileType typeCompileType,
+                              ProcessEnv env) {
         this.mEnv = env;
-        this.mElement = element;
-        this.anno = element.getAnnotation(space.lingu.light.DataTable.class);
+        this.typeCompileType = typeCompileType;
+        this.anno = typeCompileType.getAnnotation(space.lingu.light.DataTable.class);
         if (anno == null) {
-            mEnv.getLog().error(CompileErrors.DATA_TABLE_NOT_ANNOTATED, element);
+            mEnv.getLog().error(CompileErrors.DATA_TABLE_NOT_ANNOTATED, typeCompileType);
         }
     }
 
     @Override
     public DataTable process() {
-        PojoProcessor processor = new PojoProcessor(mElement, mEnv);
+        PojoProcessor processor = new PojoProcessor(typeCompileType, mEnv);
         final String tableName = getTableName(anno);
 
         Pojo pojo = processor.process();
-        dataTable.setElement(mElement)
-                .setTableName(tableName)
-                .setConstructor(pojo.getConstructor())
-                .setTypeName(pojo.getTypeName())
-                .setFields(pojo.getFields());
-        checkColumnName(dataTable);
+        Field.Fields fields = pojo.getFields();
+
+        checkColumnName(fields);
+
         if (pojo.getFields().isEmpty()) {
-            mEnv.getLog().error(CompileErrors.TABLE_NO_FIELDS, mElement);
+            mEnv.getLog().error(CompileErrors.TABLE_NO_FIELDS, typeCompileType);
         }
 
         PrimaryKey primaryKey = findPrimaryKey(pojo.getFields());
         if (primaryKey == PrimaryKey.MISSING &&
-                mElement.getAnnotation(LightIgnore.class) == null) {
-            mEnv.getLog().warn(Warnings.PRIMARY_KEY_NOT_FOUND, mElement);
+                typeCompileType.getAnnotation(LightIgnore.class) == null) {
+            mEnv.getLog().warn(Warnings.PRIMARY_KEY_NOT_FOUND, typeCompileType);
         }
-        Configurations configurations = Configurable.createFrom(anno.configuration(), mElement);
-
-        return dataTable
-                .setConfigurations(configurations)
-                .setPrimaryKey(primaryKey)
-                .setIndices(processIndices(dataTable.getTableName(), pojo.getFields()));
+        Configurations configurations = Configurable.createFrom(anno.configuration(), typeCompileType);
+        List<Index> indices = processIndices(tableName, pojo.getFields());
+        return new DataTable(
+                typeCompileType,
+                fields, pojo.getConstructor(),
+                tableName, primaryKey,
+                indices, Collections.emptyList(),
+                configurations);
     }
 
     @SuppressWarnings({"deprecation"})
@@ -98,23 +98,23 @@ public class DataTableProcessor implements Processor<DataTable> {
         if (!tableName.isEmpty()) {
             return tableName;
         }
-        return mElement.getSimpleName().toString();
+        return typeCompileType.getName();
     }
 
-    private PrimaryKey findPrimaryKey(List<Field> fields) {
+    private PrimaryKey findPrimaryKey(Field.Fields fields) {
         List<PrimaryKey> primaryKeys = new ArrayList<>();
         primaryKeys.add(getPrimaryKeyFromPrimaryKey(fields));
-        return choosePrimaryKey(primaryKeys, mElement);
+        return choosePrimaryKey(primaryKeys, typeCompileType);
     }
 
-    private PrimaryKey getPrimaryKeyFromPrimaryKey(List<Field> fields) {
+    private PrimaryKey getPrimaryKeyFromPrimaryKey(Field.Fields fields) {
         if (fields == null || fields.isEmpty()) {
             return PrimaryKey.MISSING;
         }
         List<Field> hasAnnotationFields = new ArrayList<>();
-        fields.forEach(field -> {
+        fields.getFields().forEach(field -> {
             space.lingu.light.PrimaryKey keyAnno =
-                    field.getElement().getAnnotation(space.lingu.light.PrimaryKey.class);
+                    field.getVariableCompileType().getAnnotation(space.lingu.light.PrimaryKey.class);
             if (keyAnno == null) {
                 return;
             }
@@ -126,21 +126,29 @@ public class DataTableProcessor implements Processor<DataTable> {
         boolean autoGenerate = false;
         if (hasAnnotationFields.size() == 1) {
             autoGenerate = hasAnnotationFields.get(0)
-                    .getElement()
+                    .getVariableCompileType()
                     .getAnnotation(space.lingu.light.PrimaryKey.class)
                     .autoGenerate();
         }
         return new PrimaryKey(
-                mElement,
+                typeCompileType,
                 new Field.Fields(hasAnnotationFields),
                 autoGenerate
         );
     }
 
-    private PrimaryKey choosePrimaryKey(List<PrimaryKey> candidates, TypeElement typeElement) {
+    private PrimaryKey choosePrimaryKey(List<PrimaryKey> candidates, TypeCompileType typeCompileType) {
         List<PrimaryKey> filtered = candidates.stream()
-                .filter(primaryKey ->
-                        ElementUtil.equalTypeElement(primaryKey.getDeclaredIn(), typeElement))
+                .filter(primaryKey -> {
+                    if (primaryKey == PrimaryKey.MISSING ||
+                            primaryKey.getDeclaredIn() == null) {
+                        return false;
+                    }
+                    return ElementUtil.equalTypeElement(
+                            primaryKey.getDeclaredIn().getElement(),
+                            typeCompileType.getElement()
+                    );
+                })
                 .collect(Collectors.toList());
 
         if (filtered.isEmpty()) {
@@ -150,18 +158,17 @@ public class DataTableProcessor implements Processor<DataTable> {
             return filtered.get(0);
         }
 
-        mEnv.getLog().error(CompileErrors.MULTIPLE_PRIMARY_KEY_FOUND, typeElement);
+        mEnv.getLog().error(CompileErrors.MULTIPLE_PRIMARY_KEY_FOUND, typeCompileType);
         return null;
     }
 
-    private void checkColumnName(DataTable dataTable) {
-        List<Field> fields = dataTable.getFields();
+    private void checkColumnName(Field.Fields fields) {
         Set<String> names = new HashSet<>();
-        fields.forEach(field -> {
+        fields.getFields().forEach(field -> {
             if (names.contains(field.getColumnName())) {
                 mEnv.getLog().error(
                         CompileErrors.duplicatedTableColumnName(field.getColumnName()),
-                        field.getElement()
+                        field.getVariableCompileType()
                 );
                 return;
             }
@@ -170,16 +177,16 @@ public class DataTableProcessor implements Processor<DataTable> {
     }
 
     private List<Index> processIndices(String tableName,
-                                       List<Field> fields) {
+                                       Field.Fields fields) {
         List<Index> indices = new ArrayList<>();
         for (space.lingu.light.Index index : anno.indices()) {
             Configurations configurations =
                     Configurations.createFrom(index.configurations());
             List<Field> indexFields = new ArrayList<>();
             for (String columnName : index.value()) {
-                Field field = findFieldByColumnName(fields, columnName);
+                Field field = fields.findFieldByColumnName(columnName);
                 if (field == null) {
-                    mEnv.getLog().error(CompileErrors.cannotFoundIndexField(columnName), mElement);
+                    mEnv.getLog().error(CompileErrors.cannotFoundIndexField(columnName), typeCompileType);
                     continue;
                 }
                 indexFields.add(field);
@@ -202,7 +209,7 @@ public class DataTableProcessor implements Processor<DataTable> {
             indices.add(processedIndex);
         }
 
-        for (Field field : fields) {
+        for (Field field : fields.getFields()) {
             if (field.isIndexed()) {
                 Index index = new Index(
                         generateIndexName(
@@ -238,16 +245,4 @@ public class DataTableProcessor implements Processor<DataTable> {
         columnNames.forEach(columns::add);
         return Index.DEFAULT_PREFIX + "_" + tableName + "_" + columns;
     }
-
-    private static Field findFieldByColumnName(List<Field> fields, String columnName) {
-        List<Field> filtered = fields.stream()
-                .filter(field ->
-                        field.getColumnName().equals(columnName))
-                .collect(Collectors.toList());
-        if (filtered.isEmpty()) {
-            return null;
-        }
-        return filtered.get(0);
-    }
-
 }

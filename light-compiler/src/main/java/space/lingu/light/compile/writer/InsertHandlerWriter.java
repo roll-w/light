@@ -21,11 +21,13 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.compile.JavaPoetClass;
+import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.InsertMethod;
 import space.lingu.light.compile.struct.ParamEntity;
 import space.lingu.light.compile.struct.Pojo;
 
 import javax.lang.model.element.Modifier;
+import java.util.List;
 
 /**
  * @author RollW
@@ -47,11 +49,12 @@ public class InsertHandlerWriter {
 
     public TypeSpec createAnonymous(ClassWriter writer, String dbParam) {
         StringBuilder args = new StringBuilder();
-        for (int i = 0; i < pojo.getFields().size(); i++) {
-            if (i < pojo.getFields().size() - 1) {
-                args.append("\"").append(pojo.getFields().get(i).getColumnName()).append("\", ");
+        List<Field> fields = pojo.getFields().getFields();
+        for (int i = 0; i < fields.size(); i++) {
+            if (i < fields.size() - 1) {
+                args.append("\"").append(fields.get(i).getColumnName()).append("\", ");
             } else {
-                args.append("\"").append(pojo.getFields().get(i).getColumnName()).append("\"");
+                args.append("\"").append(fields.get(i).getColumnName()).append("\"");
             }
         }
         AnnotatedMethodWriter delegate = new AnnotatedMethodWriter(pojo);
@@ -70,7 +73,7 @@ public class InsertHandlerWriter {
                                         args.toString())
                                 .build());
 
-        builder.addMethod(delegate.createBindMethod(writer, pojo.getFields()));
+        builder.addMethod(delegate.createBindMethod(writer, fields));
         return builder.build();
     }
 

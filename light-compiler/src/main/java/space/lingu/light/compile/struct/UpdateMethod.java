@@ -18,9 +18,9 @@ package space.lingu.light.compile.struct;
 
 import space.lingu.light.OnConflictStrategy;
 import space.lingu.light.compile.coder.annotated.binder.AutoDeleteUpdateMethodBinder;
+import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.List;
 import java.util.Map;
 
@@ -28,24 +28,27 @@ import java.util.Map;
  * @author RollW
  */
 public class UpdateMethod implements AnnotatedMethod<Parameter> {
-    private ExecutableElement element;
-    private Map<String, ParamEntity> entities;
-    private TypeMirror returnType;
-    private List<Parameter> parameters;
-    private AutoDeleteUpdateMethodBinder binder;
-    private OnConflictStrategy onConflict;
+    private final MethodCompileType methodCompileType;
+    private final Map<String, ParamEntity> entities;
+    private final List<Parameter> parameters;
+    private final AutoDeleteUpdateMethodBinder binder;
+    private final OnConflictStrategy onConflict;
 
-    public UpdateMethod() {
+    public UpdateMethod(MethodCompileType methodCompileType,
+                        Map<String, ParamEntity> entities,
+                        List<Parameter> parameters,
+                        AutoDeleteUpdateMethodBinder binder,
+                        OnConflictStrategy onConflict) {
+        this.methodCompileType = methodCompileType;
+        this.entities = entities;
+        this.parameters = parameters;
+        this.binder = binder;
+        this.onConflict = onConflict;
     }
 
     @Override
-    public ExecutableElement getElement() {
-        return element;
-    }
-
-    public UpdateMethod setElement(ExecutableElement element) {
-        this.element = element;
-        return this;
+    public MethodCompileType getMethodCompileType() {
+        return methodCompileType;
     }
 
     @Override
@@ -53,29 +56,14 @@ public class UpdateMethod implements AnnotatedMethod<Parameter> {
         return entities;
     }
 
-    public UpdateMethod setEntities(Map<String, ParamEntity> entities) {
-        this.entities = entities;
-        return this;
-    }
-
-    @Override
-    public TypeMirror getReturnType() {
-        return returnType;
-    }
-
-    public UpdateMethod setReturnType(TypeMirror returnType) {
-        this.returnType = returnType;
-        return this;
-    }
-
     @Override
     public List<Parameter> getParameters() {
         return parameters;
     }
 
-    public UpdateMethod setParameters(List<Parameter> parameters) {
-        this.parameters = parameters;
-        return this;
+    @Override
+    public TypeCompileType getReturnType() {
+        return methodCompileType.getReturnType();
     }
 
     @Override
@@ -83,17 +71,7 @@ public class UpdateMethod implements AnnotatedMethod<Parameter> {
         return binder;
     }
 
-    public UpdateMethod setBinder(AutoDeleteUpdateMethodBinder binder) {
-        this.binder = binder;
-        return this;
-    }
-
     public OnConflictStrategy getOnConflict() {
         return onConflict;
-    }
-
-    public UpdateMethod setOnConflict(OnConflictStrategy onConflict) {
-        this.onConflict = onConflict;
-        return this;
     }
 }

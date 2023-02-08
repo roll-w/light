@@ -21,15 +21,15 @@ import space.lingu.light.Transaction;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
 import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
+import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.struct.ExpressionBind;
 import space.lingu.light.compile.struct.QueryMethod;
 import space.lingu.light.compile.struct.QueryParameter;
 import space.lingu.light.compile.struct.SQLCustomParameter;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,35 +39,34 @@ import java.util.List;
  * @author RollW
  */
 public class QueryMethodProcessor implements Processor<QueryMethod> {
-    private final ExecutableElement mExecutable;
-    private final TypeElement mContaining;
+    private final MethodCompileType methodCompileType;
+    private final TypeCompileType mContaining;
     private final ProcessEnv mEnv;
-    private final QueryMethod method = new QueryMethod();
 
-    public QueryMethodProcessor(ExecutableElement element,
-                                TypeElement containing,
+    public QueryMethodProcessor(MethodCompileType methodCompileType,
+                                TypeCompileType containing,
                                 ProcessEnv env) {
-        mExecutable = element;
+        this.methodCompileType = methodCompileType;
         mContaining = containing;
         mEnv = env;
     }
 
     @Override
     public QueryMethod process() {
-        Query queryAnno = mExecutable.getAnnotation(Query.class);
+        Query queryAnno = methodCompileType.getAnnotation(Query.class);
         if (queryAnno.value().isEmpty()) {
-            mEnv.getLog().error(CompileErrors.QUERY_SQL_EMPTY, mExecutable);
+            mEnv.getLog().error(CompileErrors.QUERY_SQL_EMPTY, methodCompileType);
         }
         DaoProcessor.sHandleAnnotations.forEach(anno -> {
-            if (anno != Query.class && mExecutable.getAnnotation(anno) != null) {
+            if (anno != Query.class && methodCompileType.getAnnotation(anno) != null) {
                 mEnv.getLog().error(
                         CompileErrors.DUPLICATED_METHOD_ANNOTATION,
-                        mExecutable
+                        methodCompileType
                 );
             }
         });
 
-        List<? extends VariableElement> parameters = mExecutable.getParameters();
+        List<VariableCompileType> parameters = methodCompileType.getParameters();
         List<SQLCustomParameter> queryParameters = new ArrayList<>();
         parameters.forEach(variableElement -> {
             Processor<QueryParameter> parameterProcessor =
@@ -75,33 +74,32 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
             queryParameters.add(parameterProcessor.process());
         });
 
+        final String sql = queryAnno.value();
 
-        boolean transaction = mExecutable.getAnnotation(Transaction.class) != null;
-        method.setElement(mExecutable)
-                .setSql(queryAnno.value())
-                .setReturnType(mExecutable.getReturnType())
-                .setParameters(queryParameters)
-                .setTransaction(transaction);
+        boolean transaction = methodCompileType.getAnnotation(Transaction.class) != null;
         QueryResultBinder binder = null;
         try {
-            binder = mEnv.getBinders().findQueryResultBinder(method.getReturnType());
+            binder = mEnv.getBinders().findQueryResultBinder(
+                    methodCompileType.getReturnType().getTypeMirror());
         } catch (LightCompileException e) {
             // TODO: move unbound check here
             // e.printStackTrace();
-            mEnv.getLog().error(e.getMessage(), mExecutable);
+            mEnv.getLog().error(e.getMessage(), methodCompileType);
         }
 
         if (binder == null) {
             mEnv.getLog().error(
                     CompileErrors.QUERY_UNKNOWN_RETURN_TYPE,
-                    mExecutable
+                    methodCompileType
             );
         }
         Processor<List<ExpressionBind>>
-                processor = new SQLBindProcessor(mExecutable, method.getSql(), mEnv);
-        return method
-                .setExpressionBinds(processor.process())
-                .setResultBinder(binder);
+                processor = new SQLBindProcessor(methodCompileType, sql, mEnv);
+        List<ExpressionBind> binds = processor.process();
+        return new QueryMethod(methodCompileType,
+                sql, binder,
+                queryParameters,  binds,
+                transaction);
     }
 
     private void checkUnboundType(List<SQLCustomParameter> parameters) {

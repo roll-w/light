@@ -16,21 +16,18 @@
 
 package space.lingu.light.compile.struct;
 
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.VariableCompileType;
 
 /**
  * @author RollW
  */
 public interface Parameter {
-
     String getName();
 
-    TypeElement getType();
-
-    TypeMirror getTypeMirror();
+    VariableCompileType getCompileType();
 
     boolean isMultiple();
 
-    TypeElement getWrappedType();
+    TypeCompileType getWrappedCompileType();
 }

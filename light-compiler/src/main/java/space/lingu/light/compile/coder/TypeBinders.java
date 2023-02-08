@@ -49,6 +49,7 @@ import space.lingu.light.compile.coder.type.VoidColumnTypeBinder;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.types.JavacTypeCompileType;
 import space.lingu.light.compile.processor.PojoProcessor;
 import space.lingu.light.compile.processor.ReturnTypes;
 import space.lingu.light.compile.struct.DataConverter;
@@ -340,7 +341,11 @@ public class TypeBinders {
         }
         if (mEnv.getTypeUtils().asElement(type) != null && !TypeUtil.isPrimitive(type)) {
             TypeElement element = ElementUtil.asTypeElement(type);
-            Pojo pojo = new PojoProcessor(element, mEnv).process();
+            PojoProcessor processor = new PojoProcessor(
+                    new JavacTypeCompileType(type, element),
+                    mEnv
+            );
+            Pojo pojo = processor.process();
             // TODO: other check
             return new PojoRowConverter(pojo, type);
         }

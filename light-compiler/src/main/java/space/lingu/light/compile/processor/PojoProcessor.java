@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.processor;
 
-import com.squareup.javapoet.ClassName;
 import space.lingu.light.DataColumn;
 import space.lingu.light.Embedded;
 import space.lingu.light.LightIgnore;
@@ -24,7 +23,10 @@ import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.VariableCompileType;
+import space.lingu.light.compile.javac.types.JavacVariableCompileType;
 import space.lingu.light.compile.struct.*;
 
 import javax.lang.model.element.*;
@@ -35,37 +37,35 @@ import java.util.stream.Collectors;
  * @author RollW
  */
 public class PojoProcessor implements Processor<Pojo> {
-    private final TypeElement mElement;
+    private final TypeCompileType typeCompileType;
     private final ProcessEnv mEnv;
-    private final Pojo pojo = new Pojo();
 
-    public PojoProcessor(TypeElement element, ProcessEnv env) {
-        mElement = element;
+    public PojoProcessor(TypeCompileType typeCompileType, ProcessEnv env) {
+        this.typeCompileType = typeCompileType;
         mEnv = env;
     }
 
     @Override
     public Pojo process() {
-        pojo.setElement(mElement)
-                .setTypeName(ClassName.get(mElement))
-                .setFields(extractFields())
-                .setConstructor(chooseConstructor(pojo.getFields()));
+        Field.Fields fields = new Field.Fields(extractFields());
+        Constructor constructor = chooseConstructor(fields);
+
         final List<ExecutableElement> methods = new ArrayList<>();
-        final List<? extends Element> elements = mElement.getEnclosedElements();
+        final List<? extends Element> elements = typeCompileType.getElement().getEnclosedElements();
         elements.forEach(e -> {
             if (e.getKind() == ElementKind.METHOD) {
                 methods.add((ExecutableElement) e);
             }
         });
 
-        setFieldsGetterMethod(pojo.getFields(), methods);
-        setFieldsSetterMethod(pojo.getFields(), methods, pojo.getConstructor());
+        setFieldsGetterMethod(fields.getFields(), methods);
+        setFieldsSetterMethod(fields.getFields(), methods, constructor);
 
-        return pojo;
+        return new Pojo(typeCompileType, fields, constructor);
     }
 
     private List<Field> extractFields() {
-        List<? extends Element> elements = mElement.getEnclosedElements();
+        List<? extends Element> elements = typeCompileType.getElement().getEnclosedElements();
         List<Field> fields = new ArrayList<>();
         elements.forEach(e -> {
             if (e.getKind() != ElementKind.FIELD) {
@@ -87,12 +87,15 @@ public class PojoProcessor implements Processor<Pojo> {
             }
             Embedded embedded = e.getAnnotation(Embedded.class);
             if (embedded == null) {
-                Field field = new FieldProcessor((VariableElement) e, mEnv).process();
+                VariableElement variableElement = (VariableElement) e;
+                VariableCompileType variableCompileType =
+                        new JavacVariableCompileType(
+                                variableElement.asType(),
+                                variableElement
+                        );
+                Field field = new FieldProcessor(variableCompileType, mEnv).process();
                 fields.add(field);
-                return;
             }
-
-
         });
         return fields;
     }
@@ -102,8 +105,8 @@ public class PojoProcessor implements Processor<Pojo> {
     }
 
 
-    private Constructor chooseConstructor(List<Field> fields) {
-        List<? extends Element> elements = mElement.getEnclosedElements();
+    private Constructor chooseConstructor(Field.Fields fields) {
+        List<? extends Element> elements = typeCompileType.getElement().getEnclosedElements();
         List<ExecutableElement> candidates = new ArrayList<>();
         for (Element element : elements) {
             if (element.getKind() != ElementKind.CONSTRUCTOR) {
@@ -121,8 +124,8 @@ public class PojoProcessor implements Processor<Pojo> {
         Collections.reverse(candidates);
         if (candidates.isEmpty()) {
             mEnv.getLog().error(
-                    CompileErrors.cannotFoundConstructor(mElement.getQualifiedName().toString()),
-                    mElement
+                    CompileErrors.cannotFoundConstructor(typeCompileType.getName()),
+                    typeCompileType
             );
         }
         Constructor constructor = chooseCandidatesConstructors(candidates, fields);
@@ -130,13 +133,14 @@ public class PojoProcessor implements Processor<Pojo> {
             return constructor;
         }
         mEnv.getLog().error(
-                CompileErrors.cannotFoundConstructor(mElement.getQualifiedName().toString()),
-                mElement
+                CompileErrors.cannotFoundConstructor(typeCompileType.getName()),
+                typeCompileType
         );
         return null;
     }
 
-    private Constructor checkAnnotatedConstructor(List<ExecutableElement> candidates, List<Field> fields) {
+    private Constructor checkAnnotatedConstructor(List<ExecutableElement> candidates,
+                                                  Field.Fields fields) {
         List<ExecutableElement> annotated = candidates
                 .stream()
                 .filter(e -> e.getAnnotation(space.lingu.light.Constructor.class) != null)
@@ -145,17 +149,18 @@ public class PojoProcessor implements Processor<Pojo> {
             return null;
         }
         if (annotated.size() > 1) {
-            mEnv.getLog().error(CompileErrors.MULTIPLE_CONSTRUCTOR_ANNOTATED, mElement);
+            mEnv.getLog().error(CompileErrors.MULTIPLE_CONSTRUCTOR_ANNOTATED, typeCompileType);
         }
         Constructor chosen = chooseCandidatesConstructors(annotated, fields);
         if (chosen != null) {
             return chosen;
         }
-        mEnv.getLog().error(CompileErrors.CANNOT_MATCH_CONSTRUCTOR, mElement);
+        mEnv.getLog().error(CompileErrors.CANNOT_MATCH_CONSTRUCTOR, typeCompileType);
         return null;
     }
 
-    private Constructor chooseCandidatesConstructors(List<ExecutableElement> candidates, List<Field> fields) {
+    private Constructor chooseCandidatesConstructors(List<ExecutableElement> candidates,
+                                                     Field.Fields fields) {
         for (ExecutableElement candidate : candidates) {
             Constructor constructor = checkConstructorParams(candidate, fields);
             if (constructor != null) {
@@ -166,12 +171,12 @@ public class PojoProcessor implements Processor<Pojo> {
     }
 
     private Constructor checkConstructorParams(ExecutableElement constructorMethod,
-                                               List<Field> fields) {
+                                               Field.Fields fields) {
         List<Field> constructorParams = new ArrayList<>();
         Set<Field> usedFields = new HashSet<>();
         for (VariableElement e : constructorMethod.getParameters()) {
             Field find = null;
-            for (Field field : fields) {
+            for (Field field : fields.getFields()) {
                 if (usedFields.contains(field)) {
                     continue;
                 }
@@ -200,8 +205,8 @@ public class PojoProcessor implements Processor<Pojo> {
     }
 
     private void setFieldGetterMethod(Field field, List<ExecutableElement> elements) {
-        if (ElementUtil.isPublic(field.getElement())) {
-            FieldGetter getter = new FieldGetter(field.getElement(),
+        if (ElementUtil.isPublic(field.getVariableCompileType().getElement())) {
+            FieldGetter getter = new FieldGetter(field.getVariableCompileType(),
                     Field.CallType.FIELD, field.getName());
             field.setGetter(getter);
             return;
@@ -216,11 +221,11 @@ public class PojoProcessor implements Processor<Pojo> {
         if (filteredElements.isEmpty()) {
             mEnv.getLog().error(
                     CompileErrors.cannotFoundGetter(candidates),
-                    field.getElement()
+                    field.getVariableCompileType()
             );
         }
         FieldGetter getter = new FieldGetter(
-                field.getElement(),
+                field.getVariableCompileType(),
                 Field.CallType.METHOD,
                 filteredElements.get(0).getSimpleName().toString()
         );
@@ -231,14 +236,14 @@ public class PojoProcessor implements Processor<Pojo> {
                                       List<ExecutableElement> elements,
                                       Constructor constructor) {
         if (constructor != null && constructor.containsField(field)) {
-            FieldSetter setter = new FieldSetter(field.getElement(),
+            FieldSetter setter = new FieldSetter(field.getVariableCompileType(),
                     Field.CallType.CONSTRUCTOR, field.getName());
             field.setSetter(setter);
             return;
         }
 
-        if (ElementUtil.isPublic(field.getElement())) {
-            FieldSetter setter = new FieldSetter(field.getElement(),
+        if (ElementUtil.isPublic(field.getVariableCompileType().getElement())) {
+            FieldSetter setter = new FieldSetter(field.getVariableCompileType(),
                     Field.CallType.FIELD, field.getName());
             field.setSetter(setter);
             return;
@@ -252,16 +257,18 @@ public class PojoProcessor implements Processor<Pojo> {
                                 executableElement.getParameters().size() == 1 &&
                                 TypeUtil.equalTypeMirror(
                                         executableElement.getParameters().get(0).asType(),
-                                        field.getTypeMirror()))
+                                        field.getVariableCompileType().getTypeMirror()
+                                )
+                )
                 .collect(Collectors.toList());
         if (filteredElements.isEmpty()) {
             mEnv.getLog().error(
                     CompileErrors.cannotFoundSetter(candidates),
-                    field.getElement()
+                    field.getVariableCompileType()
             );
         }
         FieldSetter setter = new FieldSetter(
-                field.getElement(),
+                field.getVariableCompileType(),
                 Field.CallType.METHOD,
                 filteredElements.get(0).getSimpleName().toString());
         field.setSetter(setter);

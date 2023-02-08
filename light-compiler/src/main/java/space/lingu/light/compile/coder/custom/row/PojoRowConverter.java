@@ -39,7 +39,7 @@ public class PojoRowConverter extends RowConverter {
     public PojoRowConverter(Pojo pojo, TypeMirror outType) {
         super(outType);
         mPojo = pojo;
-        usedFields.addAll(mPojo.getFields());
+        usedFields.addAll(mPojo.getFields().getFields());
     }
 
     @Override

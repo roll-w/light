@@ -47,10 +47,10 @@ public class DeleteHandlerWriter {
     public TypeSpec createAnonymous(ClassWriter writer, String dbParam) {
         StringJoiner args = new StringJoiner(", ");
         if (mEntity.getPrimaryKey() == PrimaryKey.MISSING) {
-            mEntity.getPojo().getFields().forEach(field ->
+            mEntity.getPojo().getFields().getFields().forEach(field ->
                     args.add("\"" + field.getColumnName() + "\""));
         } else {
-            mEntity.getPrimaryKey().getFields().fields.forEach(field -> {
+            mEntity.getPrimaryKey().getFields().getFields().forEach(field -> {
                 args.add("\"" + field.getColumnName() + "\"");
             });
         }
@@ -67,9 +67,9 @@ public class DeleteHandlerWriter {
                                 .build());
         List<Field> needsBind;
         if (mEntity.getPrimaryKey() == PrimaryKey.MISSING) {
-            needsBind = mEntity.getPojo().getFields();
+            needsBind = mEntity.getPojo().getFields().getFields();
         } else {
-            needsBind = mEntity.getPrimaryKey().getFields().fields;
+            needsBind = mEntity.getPrimaryKey().getFields().getFields();
         }
         builder.addMethod(
                 delegate.createBindMethod(writer, needsBind)

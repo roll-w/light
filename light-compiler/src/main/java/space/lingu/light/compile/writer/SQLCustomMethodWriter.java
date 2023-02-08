@@ -57,14 +57,14 @@ public class SQLCustomMethodWriter {
         List<String> argsSizeParams = new ArrayList<>();
 
         mMethod.getExpressionBinds().forEach(bind -> {
-            if (!bind.binder.isMultiple) {
+            if (!bind.getBinder().isMultiple) {
                 argsSizeParams.add("1");
                 pairList.add(Pair.createPair(bind, "1"));
                 return;
             }
             String argCountSingle = block.getTempVar("_argsCount");
             argsSizeParams.add(argCountSingle);
-            bind.binder.getArgsCount(bind.expression, argCountSingle, block);
+            bind.getBinder().getArgsCount(bind.getExpression(), argCountSingle, block);
             pairList.add(Pair.createPair(bind, argCountSingle));
         });
 
@@ -110,13 +110,13 @@ public class SQLCustomMethodWriter {
             // save to a temp variable
             String tempVar = block.getTempVar("_tmpArg");
             block.builder().addStatement("$T $L = $L",
-                    param.first.type,
-                    tempVar, param.first.expression);
+                    param.first.getType().toTypeName(),
+                    tempVar, param.first.getExpression());
 
-            param.first.binder.bindToStatement(outName, argIndex,
+            param.first.getBinder().bindToStatement(outName, argIndex,
                     tempVar, block);
             List<Pair<ExpressionBind, String>> pairList = listSizeVars.stream()
-                    .filter(pair -> pair.first.expression.equals(param.first.expression))
+                    .filter(pair -> pair.first.getExpression().equals(param.first.getExpression()))
                     .collect(Collectors.toList());
             if (pairList.isEmpty()) {
                 constInputs.getAndIncrement();

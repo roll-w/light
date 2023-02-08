@@ -123,7 +123,7 @@ public abstract class ClassWriter {
                     .addFileComment(NOTE_GENERATE)
                     .addFileComment("\n")
                     .addFileComment(NOTE_DO_NOT_MODIFY)
-                    .indent("    ")// four spaces
+                    .indent("  ")
                     .build()
                     .writeTo(filer);
         } catch (FilerException e) {

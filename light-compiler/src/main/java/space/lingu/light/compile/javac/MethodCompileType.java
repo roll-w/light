@@ -14,29 +14,38 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.struct;
+package space.lingu.light.compile.javac;
 
-import space.lingu.light.compile.coder.annotated.binder.AnnotatedMethodBinder;
-import space.lingu.light.compile.javac.MethodCompileType;
-import space.lingu.light.compile.javac.TypeCompileType;
-
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Name;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author RollW
  */
-public interface AnnotatedMethod<P extends Parameter> extends Method<P> {
+public interface MethodCompileType extends CompileType {
     @Override
-    MethodCompileType getMethodCompileType();
-
-    Map<String, ParamEntity> getEntities();
-
-    AnnotatedMethodBinder getBinder();
+    ExecutableType getTypeMirror();
 
     @Override
-    List<P> getParameters();
+    ExecutableElement getElement();
+
+    DeclaredType getDeclaringType();
 
     @Override
+    String getSignature();
+
+    TypeCompileType getDeclaringIn();
+
     TypeCompileType getReturnType();
+
+    List<VariableCompileType> getParameters();
+
+    @Override
+    String getName();
+
+    @Override
+    Name getSimpleName();
 }

@@ -16,53 +16,40 @@
 
 package space.lingu.light.compile.struct;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * @author RollW
  */
 public class DataConverter {
-    private TypeElement enclosingClass;
-    private ExecutableElement element;
-    private TypeMirror fromType;
-    private TypeMirror toType;
+    private final TypeCompileType enclosingClass;
+    private final MethodCompileType element;
+    private final TypeCompileType fromType;
+    private final TypeCompileType toType;
 
-    public TypeElement getEnclosingClass() {
+    public DataConverter(TypeCompileType enclosingClass, MethodCompileType element,
+                         TypeCompileType fromType, TypeCompileType toType) {
+        this.enclosingClass = enclosingClass;
+        this.element = element;
+        this.fromType = fromType;
+        this.toType = toType;
+    }
+
+    public TypeCompileType getEnclosingClass() {
         return enclosingClass;
     }
 
-    public DataConverter setEnclosingClass(TypeElement enclosingClass) {
-        this.enclosingClass = enclosingClass;
-        return this;
-    }
-
-    public ExecutableElement getElement() {
+    public MethodCompileType getElement() {
         return element;
     }
 
-    public DataConverter setElement(ExecutableElement element) {
-        this.element = element;
-        return this;
-    }
-
-    public TypeMirror getFromType() {
+    public TypeCompileType getFromType() {
         return fromType;
     }
 
-    public DataConverter setFromType(TypeMirror fromType) {
-        this.fromType = fromType;
-        return this;
-    }
-
-    public TypeMirror getToType() {
+    public TypeCompileType getToType() {
         return toType;
-    }
-
-    public DataConverter setToType(TypeMirror toType) {
-        this.toType = toType;
-        return this;
     }
 
     public String getMethodName() {

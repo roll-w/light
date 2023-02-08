@@ -39,7 +39,7 @@ public class AutoDeleteUpdateMethodTranslator {
     }
 
     public static AutoDeleteUpdateMethodTranslator create(TypeMirror typeMirror,
-                                                              List<Parameter> params) {
+                                                          List<Parameter> params) {
         if (check(typeMirror, params)) {
             return new AutoDeleteUpdateMethodTranslator(typeMirror);
         }
@@ -70,7 +70,7 @@ public class AutoDeleteUpdateMethodTranslator {
             }
 
             block.builder().addStatement("$L$N.$L($L)",
-                            increaseVar, handlerField, methodName, param.getName());
+                    increaseVar, handlerField, methodName, param.getName());
         });
 
         if (returnVarName != null) {

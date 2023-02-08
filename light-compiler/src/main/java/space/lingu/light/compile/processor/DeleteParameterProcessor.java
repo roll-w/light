@@ -16,39 +16,34 @@
 
 package space.lingu.light.compile.processor;
 
+import space.lingu.light.compile.javac.CompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.struct.DeleteParameter;
-
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 
 /**
  * @author RollW
  */
 public class DeleteParameterProcessor implements Processor<DeleteParameter> {
-    private final VariableElement mElement;
-    private final Element mContaining;
-    private final ProcessEnv mEnv;
+    private final VariableCompileType variableCompileType;
+    private final CompileType containing;
+    private final ProcessEnv env;
 
-    public DeleteParameterProcessor(VariableElement element,
-                                    Element containing,
+    public DeleteParameterProcessor(VariableCompileType variableCompileType,
+                                    CompileType containing,
                                     ProcessEnv env) {
-        mElement = element;
-        mContaining = containing;
-        mEnv = env;
+        this.variableCompileType = variableCompileType;
+        this.containing = containing;
+        this.env = env;
     }
 
     @Override
     public DeleteParameter process() {
-        DeleteParameter parameter = new DeleteParameter();
-        parameter
-                .setElement(mElement)
-                .setName(mElement.getSimpleName().toString())
-                .setTypeMirror(mElement.asType())
-                .setType((TypeElement) mEnv.getTypeUtils().asElement(parameter.getTypeMirror()));
 
-        return parameter;
+        return new DeleteParameter(
+                variableCompileType,
+                null,
+                false);
     }
 
 }

@@ -20,19 +20,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 用于传入参数的实体
  * @author RollW
  */
 public class ParamEntity {
     private final DataTable dataTable;
     private final Pojo pojo;
 
-    private String tableName;
+    private final String tableName;
 
     public ParamEntity(DataTable table, Pojo pojo) {
-        dataTable = table;
+        this.dataTable = table;
         this.pojo = pojo;
-        tableName = dataTable.getTableName();
+        this.tableName = dataTable.getTableName();
     }
 
     public Pojo getPojo() {
@@ -54,22 +53,15 @@ public class ParamEntity {
         return tableName;
     }
 
-    public ParamEntity setTableName(String tableName) {
-        this.tableName = tableName;
-        return this;
-    }
-
     public PrimaryKey getPrimaryKey() {
         if (pojo == null) {
             return dataTable.getPrimaryKey();
         }
         List<Field> primaryKeyFields = new ArrayList<>();
-        dataTable.getPrimaryKey().getFields().fields.forEach(field ->
+        dataTable.getPrimaryKey().getFields().getFields().forEach(field ->
                 primaryKeyFields.add(pojo.findFieldByColumnName(field.getColumnName())));
         return new PrimaryKey(dataTable.getPrimaryKey().getDeclaredIn(),
                 new Field.Fields(primaryKeyFields),
                 dataTable.getPrimaryKey().isAutoGenerate());
     }
-
-
 }

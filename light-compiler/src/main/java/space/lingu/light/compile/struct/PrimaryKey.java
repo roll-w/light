@@ -16,7 +16,7 @@
 
 package space.lingu.light.compile.struct;
 
-import javax.lang.model.element.TypeElement;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * Primary key structure.
@@ -27,18 +27,18 @@ import javax.lang.model.element.TypeElement;
 public class PrimaryKey {
     public static final PrimaryKey MISSING = new PrimaryKey(null, new Field.Fields(), false);
 
-    private final TypeElement declaredIn;
+    private final TypeCompileType declaredIn;
     private final Field.Fields fields;
     private final boolean autoGenerate;
 
-    public PrimaryKey(TypeElement declaredIn,
+    public PrimaryKey(TypeCompileType declaredIn,
                       Field.Fields fields, boolean autoGenerate) {
         this.declaredIn = declaredIn;
         this.fields = fields;
         this.autoGenerate = autoGenerate;
     }
 
-    public TypeElement getDeclaredIn() {
+    public TypeCompileType getDeclaredIn() {
         return declaredIn;
     }
 

@@ -16,79 +16,42 @@
 
 package space.lingu.light.compile.struct;
 
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.VariableCompileType;
 
 /**
- * 直接使用注解无方法体的方法参数
  * @author RollW
  */
 public class AnnotateParameter implements Parameter {
-    private VariableElement element;
-    private String name;
-    private TypeElement type;
-    private TypeElement wrappedType;
-    private TypeMirror typeMirror;
-    private boolean isMultiple;
+    private final VariableCompileType variableCompileType;
+    private final TypeCompileType wrapperCompileType;
+    private final boolean isMultiple;
 
-    public AnnotateParameter() {
-    }
-
-    @Override
-    public TypeMirror getTypeMirror() {
-        return typeMirror;
-    }
-
-    public AnnotateParameter setTypeMirror(TypeMirror typeMirror) {
-        this.typeMirror = typeMirror;
-        return this;
-    }
-
-    public VariableElement getElement() {
-        return element;
-    }
-
-    public AnnotateParameter setElement(VariableElement element) {
-        this.element = element;
-        return this;
+    public AnnotateParameter(VariableCompileType variableCompileType,
+                             TypeCompileType wrapperCompileType,
+                             boolean isMultiple) {
+        this.variableCompileType = variableCompileType;
+        this.wrapperCompileType = wrapperCompileType;
+        this.isMultiple = isMultiple;
     }
 
     @Override
     public String getName() {
-        return name;
-    }
-
-    public AnnotateParameter setName(String name) {
-        this.name = name;
-        return this;
+        return variableCompileType.getName();
     }
 
     @Override
-    public TypeElement getType() {
-        return type;
+    public VariableCompileType getCompileType() {
+        return variableCompileType;
     }
 
-    public AnnotateParameter setType(TypeElement type) {
-        this.type = type;
-        return this;
-    }
-
-    public TypeElement getWrappedType() {
-        return wrappedType;
-    }
-
-    public AnnotateParameter setWrappedType(TypeElement wrappedType) {
-        this.wrappedType = wrappedType;
-        return this;
-    }
-
+    @Override
     public boolean isMultiple() {
         return isMultiple;
     }
 
-    public AnnotateParameter setMultiple(boolean multiple) {
-        isMultiple = multiple;
-        return this;
+    @Override
+    public TypeCompileType getWrappedCompileType() {
+        return wrapperCompileType;
     }
 }

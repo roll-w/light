@@ -17,8 +17,7 @@
 package space.lingu.light.compile.struct;
 
 import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
-
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * Expression bind info
@@ -26,15 +25,27 @@ import javax.lang.model.type.TypeMirror;
  * @author RollW
  */
 public class ExpressionBind {
-    public final String expression;
-    public final TypeMirror type;
-    public final QueryParameterBinder binder;
+    private final String expression;
+    private final TypeCompileType type;
+    private final QueryParameterBinder binder;
 
     public ExpressionBind(String expression,
-                          TypeMirror type,
+                          TypeCompileType type,
                           QueryParameterBinder binder) {
         this.expression = expression;
         this.type = type;
         this.binder = binder;
+    }
+
+    public String getExpression() {
+        return expression;
+    }
+
+    public TypeCompileType getType() {
+        return type;
+    }
+
+    public QueryParameterBinder getBinder() {
+        return binder;
     }
 }

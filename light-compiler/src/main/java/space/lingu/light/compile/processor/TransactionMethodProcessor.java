@@ -17,9 +17,12 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.compile.coder.annotated.binder.DirectTransactionMethodBinder;
+import space.lingu.light.compile.coder.annotated.binder.TransactionMethodBinder;
 import space.lingu.light.compile.coder.annotated.translator.TransactionMethodTranslator;
 import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.struct.TransactionMethod;
 
 import javax.lang.model.element.ExecutableElement;
@@ -31,40 +34,39 @@ import java.util.List;
  * @author RollW
  */
 public class TransactionMethodProcessor implements Processor<TransactionMethod> {
-    private final TypeElement mContaining;
-    private final ExecutableElement mExecutable;
+    private final TypeCompileType mContaining;
+    private final MethodCompileType methodCompileType;
     private final ProcessEnv mEnv;
-    private final TransactionMethod method = new TransactionMethod();
 
-    public TransactionMethodProcessor(ExecutableElement executable,
-                                      TypeElement containing,
+    public TransactionMethodProcessor(MethodCompileType methodCompileType,
+                                      TypeCompileType containing,
                                       ProcessEnv env) {
+        this.methodCompileType = methodCompileType;
         mContaining = containing;
-        mExecutable = executable;
         mEnv = env;
     }
 
     @Override
     public TransactionMethod process() {
         List<String> paramNames = new ArrayList<>();
-        mExecutable.getParameters().forEach(variableElement ->
+        methodCompileType.getParameters().forEach(variableElement ->
                 paramNames.add(variableElement.getSimpleName().toString()));
-        TransactionMethod.CallType callType = getCallType(mExecutable, mContaining);
-        method.setCallType(callType);
+        TransactionMethod.CallType callType = getCallType();
+
         TransactionMethodTranslator transactionMethodTranslator =
                 new TransactionMethodTranslator(
-                        mExecutable.getSimpleName().toString(),
+                        methodCompileType.getName(),
                         callType
                 );
+        TransactionMethodBinder binder = new DirectTransactionMethodBinder(
+                transactionMethodTranslator);
 
-        return method.setElement(mExecutable)
-                .setReturnType(mExecutable.getReturnType())
-                .setParamNames(paramNames)
-                .setBinder(new DirectTransactionMethodBinder(transactionMethodTranslator));
+        return new TransactionMethod(methodCompileType, paramNames, binder, callType);
     }
 
-    private static TransactionMethod.CallType getCallType(ExecutableElement executableElement,
-                                                          TypeElement typeElement) {
+    private TransactionMethod.CallType getCallType() {
+        ExecutableElement executableElement = methodCompileType.getElement();
+        TypeElement typeElement = mContaining.getElement();
         if (!ElementUtil.isDefault(executableElement)) {
             return TransactionMethod.CallType.DIRECT;
         }

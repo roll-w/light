@@ -19,7 +19,9 @@ package space.lingu.light.compile;
 import space.lingu.light.LightDatabase;
 import space.lingu.light.handler.SQLHandler;
 import space.lingu.light.sql.SQLEscaper;
+import space.lingu.light.struct.StructUtil;
 import space.lingu.light.struct.Table;
+import space.lingu.light.util.ResultSetUtil;
 
 import java.sql.ResultSet;
 import java.util.List;
@@ -31,7 +33,7 @@ import java.util.List;
  */
 public final class MethodNames {
     /**
-     * {@link space.lingu.light.struct.StructUtil#findByName(String, List)}
+     * {@link StructUtil#findByName(String, List)}
      */
     public static final String sFindByName = "findByName";
 
@@ -46,13 +48,13 @@ public final class MethodNames {
     public static final String sRegisterAllTables = "registerAllTables";
 
     /**
-     * {@link space.lingu.light.util.ResultSetUtil#getColumnIndexSwallow(ResultSet, String, SQLEscaper)}
+     * {@link ResultSetUtil#getColumnIndexSwallow(ResultSet, String, SQLEscaper)}
      * <p>
-     * {@link space.lingu.light.util.ResultSetUtil#getColumnIndexSwallow(ResultSet, String)}
+     * {@link ResultSetUtil#getColumnIndexSwallow(ResultSet, String)}
      */
     public static final String sGetColumnIndexSwallow = "getColumnIndexSwallow";
     /**
-     * {@link space.lingu.light.util.ResultSetUtil#getColumnIndexOrThrow(ResultSet, String)}}
+     * {@link ResultSetUtil#getColumnIndexOrThrow(ResultSet, String)}}
      */
     public static final String sGetColumnIndexOrThrow = "getColumnIndexOrThrow";
 

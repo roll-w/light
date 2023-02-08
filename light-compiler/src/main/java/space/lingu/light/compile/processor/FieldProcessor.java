@@ -25,39 +25,33 @@ import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.struct.Configurable;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Nullability;
 import space.lingu.light.util.StringUtil;
 
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 /**
  * @author RollW
  */
 public class FieldProcessor implements Processor<Field> {
-    private final VariableElement mElement;
-    private final Field field;
+    private final VariableCompileType variableCompileType;
     private final ProcessEnv mEnv;
     private final DataColumn dataColumn;
 
-    public FieldProcessor(VariableElement element, ProcessEnv env) {
-        mElement = element;
-        dataColumn = mElement.getAnnotation(DataColumn.class);
-        field = new Field(mElement, mElement.getSimpleName().toString());
+    public FieldProcessor(VariableCompileType variableCompileType,
+                          ProcessEnv env) {
+        this.variableCompileType = variableCompileType;
+        dataColumn = this.variableCompileType.getAnnotation(DataColumn.class);
         mEnv = env;
     }
 
     @Override
     public Field process() {
-        if (StringUtil.isEmpty(dataColumn.name())) {
-            field.setColumnName(field.getName());
-        } else {
-            field.setColumnName(dataColumn.name());
-        }
-        if (field.getColumnName() == null || field.getColumnName().isEmpty()) {
+        final String columnName = getColumnName();
+        if (StringUtil.isEmpty(columnName)) {
             // should not happen
             throw new IllegalArgumentException("Field cannot have an empty column name.");
         }
@@ -71,54 +65,64 @@ public class FieldProcessor implements Processor<Field> {
                 ? Nullability.NULLABLE
                 : Nullability.NONNULL;
 
-        TypeElement typeElement = (TypeElement) mElement.getEnclosingElement();
-        SQLDataType preprocessType = recognizeSQLDataType(dataColumn.dataType(), mElement);
+        SQLDataType preprocessType = recognizeSQLDataType(
+                dataColumn.dataType(),
+                variableCompileType);
 
-        Configurations configurations = Configurable.createFrom(dataColumn.configuration(), mElement);
-
-        field.setType(typeElement)
-                .setTypeMirror(mElement.asType())
-                .setNullability(nullability)
-                .setHasDefault(hasDefault)
-                .setConfigurations(configurations)
-                .setDefaultValue(defaultValue)
-                .setIndexed(dataColumn.index());
+        Configurations configurations = Configurable.createFrom(dataColumn.configuration(), variableCompileType);
 
         ColumnValueReader reader = mEnv.getBinders()
-                .findColumnReader(field.getTypeMirror(), preprocessType);
+                .findColumnReader(variableCompileType.getTypeMirror(), preprocessType);
         if (reader == null) {
             mEnv.getLog().error(
-                    CompileErrors.unknownInType(mElement.asType(), preprocessType),
-                    mElement
+                    CompileErrors.unknownInType(
+                            variableCompileType,
+                            preprocessType),
+                    variableCompileType
             );
         }
         SQLDataType finalType = reader.getDataType();
         StatementBinder binder = mEnv.getBinders()
-                .findStatementBinder(field.getTypeMirror(), finalType);
+                .findStatementBinder(
+                        variableCompileType.getTypeMirror(),
+                        finalType
+                );
         if (binder == null) {
             mEnv.getLog().error(
-                    CompileErrors.unknownOutType(mElement.asType(), finalType),
-                    mElement
+                    CompileErrors.unknownOutType(variableCompileType, finalType),
+                    variableCompileType
             );
         }
         if (finalType != binder.getDataType()) {
             mEnv.getLog().error(
                     CompileErrors.typeMismatch(finalType, binder.getDataType()),
-                    mElement
+                    variableCompileType
             );
         }
-        return field
-                .setDataType(finalType)
-                .setColumnValueReader(reader)
-                .setStatementBinder(binder);
-        // TODO 嵌套类 等处理。
+
+        // TODO: embedded type
+        return new Field(
+                variableCompileType,
+                columnName, defaultValue,
+                finalType, false,
+                hasDefault, nullability,
+                binder, reader,
+                configurations
+        );
     }
 
-    private SQLDataType recognizeSQLDataType(SQLDataType sqlDataType, VariableElement variable) {
+    private String getColumnName() {
+        if (StringUtil.isEmpty(dataColumn.name())) {
+          return variableCompileType.getName();
+        }
+        return dataColumn.name();
+    }
+
+    private SQLDataType recognizeSQLDataType(SQLDataType sqlDataType, VariableCompileType variableCompileType) {
         if (sqlDataType != null && sqlDataType != SQLDataType.UNDEFINED) {
             return sqlDataType;
         }
-        TypeMirror type = variable.asType();
+        TypeMirror type = variableCompileType.getTypeMirror();
         TypeName typeName = TypeName.get(type);
         if (isEqualBothBox(typeName, TypeName.INT)) {
             return SQLDataType.INT;

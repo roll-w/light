@@ -18,19 +18,16 @@ package space.lingu.light.compile.coder.custom.binder;
 
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.annotated.binder.AnnotatedMethodBinder;
-import space.lingu.light.compile.struct.DeleteMethod;
 
 /**
  * @author RollW
  */
 public class HandlerDeleteResultBinder extends QueryResultBinder {
     private final AnnotatedMethodBinder binder;
-    private final DeleteMethod method;
 
-    public HandlerDeleteResultBinder(DeleteMethod method, AnnotatedMethodBinder binder) {
+    public HandlerDeleteResultBinder(AnnotatedMethodBinder binder) {
         super(null);
         this.binder = binder;
-        this.method = method;
     }
 
     @Override
@@ -46,9 +43,5 @@ public class HandlerDeleteResultBinder extends QueryResultBinder {
 
     public AnnotatedMethodBinder getBinder() {
         return binder;
-    }
-
-    public DeleteMethod getMethod() {
-        return method;
     }
 }

@@ -16,15 +16,18 @@
 
 package space.lingu.light.compile.struct;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.TypeCompileType;
+
 import java.util.Collection;
 
 /**
  * @author RollW
  */
 public interface Method<P extends Parameter> {
-    ExecutableElement getElement();
+    MethodCompileType getMethodCompileType();
+
     Collection<P> getParameters();
-    TypeMirror getReturnType();
+
+    TypeCompileType getReturnType();
 }

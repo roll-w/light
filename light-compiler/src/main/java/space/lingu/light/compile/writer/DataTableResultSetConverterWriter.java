@@ -42,7 +42,7 @@ public class DataTableResultSetConverterWriter extends ClassWriter.SharedMethodS
 
     @Override
     public String getUniqueKey() {
-        return "GenericEntityConverterOf-" + mTable.getElement().getQualifiedName();
+        return "GenericEntityConverterOf-" + mTable.getTypeCompileType().getQualifiedName();
     }
 
     @Override
@@ -62,8 +62,8 @@ public class DataTableResultSetConverterWriter extends ClassWriter.SharedMethodS
         block.builder().addStatement("final $T $L", mTable.getTypeName(), tableVar);
         List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
 
-        mTable.getFields().forEach(field -> {
-            String indexVar = block.getTempVar("_resultSetIndexOf" + mTable.getElement().getSimpleName());
+        mTable.getFields().getFields().forEach(field -> {
+            String indexVar = block.getTempVar("_resultSetIndexOf" + mTable.getTypeCompileType().getSimpleName());
             block.builder()
                     .addStatement("final $T $L = $T.getColumnIndexSwallow($N, $S)",
                             TypeName.INT, indexVar,

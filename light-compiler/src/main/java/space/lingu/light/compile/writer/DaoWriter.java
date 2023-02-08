@@ -25,6 +25,7 @@ import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.struct.*;
@@ -38,7 +39,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * 写入{@code Dao_Impl}类中
+ * Write to {@code Dao_Impl.java} file.
  *
  * @author RollW
  */
@@ -83,15 +84,15 @@ public class DaoWriter extends ClassWriter {
 
         Configurations configurations = mDao.getConfigurations();
 
-        if (ElementUtil.isInterface(mDao.getElement())) {
-            builder.addSuperinterface(ClassName.get(mDao.getElement()))
+        if (ElementUtil.isInterface(mDao.getTypeCompileType().getElement())) {
+            builder.addSuperinterface(mDao.getTypeCompileType().toTypeName())
                     .addMethod(createConstructor(dbParam,
                             autoMethodPairs,
                             sqlMethodPairs,
                             new ConstructorConf(false, false),
                             configurations));
         } else {
-            builder.superclass(ClassName.get(mDao.getElement()))
+            builder.superclass(mDao.getTypeCompileType().toTypeName())
                     .addMethod(createConstructor(dbParam,
                             autoMethodPairs,
                             sqlMethodPairs,
@@ -116,7 +117,8 @@ public class DaoWriter extends ClassWriter {
     }
 
     private boolean checkConnectionGetterInterface(Dao dao) {
-        for (TypeMirror anInterface : dao.getElement().getInterfaces()) {
+        for (TypeMirror anInterface : dao.getTypeCompileType()
+                .getElement().getInterfaces()) {
             TypeElement element = ElementUtil.asTypeElement(anInterface);
             if (element != null && element.getQualifiedName()
                     .contentEquals(DaoConnectionGetter.class.getCanonicalName())) {
@@ -137,7 +139,9 @@ public class DaoWriter extends ClassWriter {
     }
 
     private ConstructorConf checkConstructorCallSuper() {
-        List<? extends Element> elements = mDao.getElement().getEnclosedElements();
+        List<? extends Element> elements = mDao.getTypeCompileType()
+                .getElement()
+                .getEnclosedElements();
         List<ExecutableElement> constructors = new ArrayList<>();
         boolean isSuper = false, isEmpty = false;
         for (Element element : elements) {
@@ -150,7 +154,7 @@ public class DaoWriter extends ClassWriter {
         if (constructors.size() > 1) {
             mEnv.getLog().error(
                     CompileErrors.DAO_TOO_MUCH_CONSTRUCTORS,
-                    mDao.getElement()
+                    mDao.getTypeCompileType()
             );
         }
 
@@ -249,13 +253,16 @@ public class DaoWriter extends ClassWriter {
             }
             final Map<String, Pair<FieldSpec, TypeSpec>> fields = new HashMap<>();
             method.getEntities().forEach((s, paramEntity) -> {
-                fields.put(s,
-                        Pair.createPair(
-                                getOrCreateField(new DeleteUpdateMethodField("delete", paramEntity, null)),
-                                new DeleteHandlerWriter(paramEntity).createAnonymous(this, sDatabaseField.name)));
+                fields.put(s, Pair.createPair(
+                        getOrCreateField(new DeleteUpdateMethodField("delete", paramEntity, null)),
+                        new DeleteHandlerWriter(paramEntity).createAnonymous(this, sDatabaseField.name)));
             });
 
-            MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
+            MethodCompileType methodCompileType = method.getMethodCompileType();
+            MethodSpec methodImpl = MethodSpec.overriding(
+                            methodCompileType.getElement(),
+                            methodCompileType.getDeclaringType(),
+                            mEnv.getTypeUtils())
                     .addModifiers(Modifier.FINAL)
                     .addCode(createAnnotatedMethodBody(method, fields))
                     .build();
@@ -275,7 +282,11 @@ public class DaoWriter extends ClassWriter {
                                         new DeleteUpdateMethodField("update", paramEntity, method.getOnConflict())),
                                 new UpdateHandlerWriter(paramEntity, method).createAnonymous(this, sDatabaseField.name)));
             });
-            MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
+            MethodCompileType methodCompileType = method.getMethodCompileType();
+            MethodSpec methodImpl = MethodSpec.overriding(
+                            methodCompileType.getElement(),
+                            methodCompileType.getDeclaringType(),
+                            mEnv.getTypeUtils())
                     .addModifiers(Modifier.FINAL)
                     .addCode(createAnnotatedMethodBody(method, fields))
                     .build();
@@ -287,14 +298,22 @@ public class DaoWriter extends ClassWriter {
 
     private List<AutoMethodPair> createInsertMethods() {
         List<AutoMethodPair> pairList = new ArrayList<>();
+
         mDao.getInsertMethods().forEach(method -> {
             final Map<String, Pair<FieldSpec, TypeSpec>> fields = new HashMap<>();
             method.getEntities().forEach((s, paramEntity) -> {
-                fields.put(s,
-                        Pair.createPair(getOrCreateField(new InsertMethodField(paramEntity, method.getOnConflict())),
-                                new InsertHandlerWriter(method, paramEntity).createAnonymous(this, sDatabaseField.name)));
+                fields.put(s, Pair.createPair(
+                        getOrCreateField(
+                                new InsertMethodField(paramEntity, method.getOnConflict())),
+                        new InsertHandlerWriter(method, paramEntity)
+                                .createAnonymous(this, sDatabaseField.name))
+                );
             });
-            MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
+            MethodCompileType methodCompileType = method.getMethodCompileType();
+            MethodSpec methodImpl = MethodSpec.overriding(
+                            methodCompileType.getElement(),
+                            methodCompileType.getDeclaringType(),
+                            mEnv.getTypeUtils())
                     .addModifiers(Modifier.FINAL)
                     .addCode(createAnnotatedMethodBody(method, fields))
                     .build();
@@ -324,7 +343,11 @@ public class DaoWriter extends ClassWriter {
         List<SQLMethodPair> pairList = new ArrayList<>();
         mDao.getQueryMethods().forEach(method -> {
             FieldSpec fieldSpec = getOrCreateField(new QueryHandlerField(method));
-            MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
+            MethodCompileType methodCompileType = method.getMethodCompileType();
+            MethodSpec methodImpl = MethodSpec.overriding(
+                            methodCompileType.getElement(),
+                            methodCompileType.getDeclaringType(),
+                            mEnv.getTypeUtils())
                     .addModifiers(Modifier.FINAL)
                     .addCode(createQueryMethodBody(method, fieldSpec))
                     .build();
@@ -342,7 +365,11 @@ public class DaoWriter extends ClassWriter {
             }
             FieldSpec fieldSpec =
                     getOrCreateField(new CustomDeleteMethodField(method));
-            MethodSpec methodImpl = MethodSpec.overriding(method.getElement())
+            MethodCompileType methodCompileType = method.getMethodCompileType();
+            MethodSpec methodImpl = MethodSpec.overriding(
+                            methodCompileType.getElement(),
+                            methodCompileType.getDeclaringType(),
+                            mEnv.getTypeUtils())
                     .addModifiers(Modifier.FINAL)
                     .addCode(createQueryMethodBody(method, fieldSpec))
                     .build();
@@ -354,9 +381,18 @@ public class DaoWriter extends ClassWriter {
 
     private MethodSpec createTransactionMethodBody(TransactionMethod method) {
         GenerateCodeBlock block = new GenerateCodeBlock(this);
-        method.getBinder().writeBlock(method.getReturnType(), method.getParamNames(),
-                mDao.getClassName(), mDao.getImplClassName(), block);
-        return MethodSpec.overriding(method.getElement())
+        method.getBinder().writeBlock(
+                method.getReturnType().getTypeMirror(),
+                method.getParamNames(),
+                mDao.getClassName(),
+                mDao.getImplClassName(),
+                block
+        );
+        MethodCompileType methodCompileType = method.getMethodCompileType();
+        return MethodSpec.overriding(
+                        methodCompileType.getElement(),
+                        methodCompileType.getDeclaringType(),
+                        mEnv.getTypeUtils())
                 .addCode(block.generate())
                 .build();
     }
@@ -370,7 +406,7 @@ public class DaoWriter extends ClassWriter {
 
         method.getResultBinder()
                 .writeBlock(field.name, connVar, stmtVar, true,
-                        !TypeUtil.isVoid(method.getReturnType()),
+                        !TypeUtil.isVoid(method.getReturnType().getTypeMirror()),
                         method.isTransaction(), block);
         return block.generate();
     }
@@ -381,7 +417,7 @@ public class DaoWriter extends ClassWriter {
             builder.append("__")
                     .append(StringUtil.firstUpperCase(parameter.getName()))
                     .append("_")
-                    .append(typeMirrorToFieldName(parameter.getTypeMirror()));
+                    .append(typeMirrorToFieldName(parameter.getCompileType().getTypeMirror()));
         });
         return builder.toString();
     }
@@ -419,7 +455,7 @@ public class DaoWriter extends ClassWriter {
 
         private QueryHandlerField(QueryMethod method) {
             super("queryHandlerOf" + StringUtil
-                            .firstUpperCase(method.getElement().getSimpleName().toString())
+                            .firstUpperCase(method.getMethodCompileType().getSimpleName().toString())
                             + identifierParamNameAndType(method.getParameters()),
                     JavaPoetClass.SQL_HANDLER);
             this.sql = method.getSql();
@@ -442,7 +478,7 @@ public class DaoWriter extends ClassWriter {
         private CustomDeleteMethodField(DeleteMethod method) {
             super("customDeleteHandlerOf" +
                             StringUtil.firstUpperCase(
-                                    method.getElement().getSimpleName().toString()) +
+                                    method.getMethodCompileType().getSimpleName().toString()) +
                             identifierParamNameAndType(method.getParameters()),
                     JavaPoetClass.SQL_HANDLER);
             this.sql = method.getSql();

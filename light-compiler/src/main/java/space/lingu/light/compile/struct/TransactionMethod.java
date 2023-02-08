@@ -17,67 +17,48 @@
 package space.lingu.light.compile.struct;
 
 import space.lingu.light.compile.coder.annotated.binder.TransactionMethodBinder;
+import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.List;
 
 /**
  * @author RollW
  */
 public class TransactionMethod {
-    private ExecutableElement element;
-    private TypeMirror returnType;
-    private List<String> paramNames;
-    private TransactionMethodBinder binder;
-    private CallType callType;
+    private final MethodCompileType methodCompileType;
+    private final List<String> paramNames;
+    private final TransactionMethodBinder binder;
+    private final CallType callType;
 
-    public TransactionMethod() {
-    }
-
-    public CallType getCallType() {
-        return callType;
-    }
-
-    public TransactionMethod setCallType(CallType callType) {
+    public TransactionMethod(MethodCompileType methodCompileType,
+                             List<String> paramNames,
+                             TransactionMethodBinder binder,
+                             CallType callType) {
+        this.methodCompileType = methodCompileType;
+        this.paramNames = paramNames;
+        this.binder = binder;
         this.callType = callType;
-        return this;
     }
 
-    public ExecutableElement getElement() {
-        return element;
-    }
-
-    public TransactionMethod setElement(ExecutableElement element) {
-        this.element = element;
-        return this;
-    }
-
-    public TypeMirror getReturnType() {
-        return returnType;
-    }
-
-    public TransactionMethod setReturnType(TypeMirror returnType) {
-        this.returnType = returnType;
-        return this;
+    public MethodCompileType getMethodCompileType() {
+        return methodCompileType;
     }
 
     public List<String> getParamNames() {
         return paramNames;
     }
 
-    public TransactionMethod setParamNames(List<String> paramNames) {
-        this.paramNames = paramNames;
-        return this;
-    }
-
     public TransactionMethodBinder getBinder() {
         return binder;
     }
 
-    public TransactionMethod setBinder(TransactionMethodBinder binder) {
-        this.binder = binder;
-        return this;
+    public CallType getCallType() {
+        return callType;
+    }
+
+    public TypeCompileType getReturnType() {
+        return methodCompileType.getReturnType();
     }
 
     public enum CallType {

@@ -28,14 +28,11 @@ import java.util.List;
  */
 public class Database implements Configurable {
     private TypeElement superClassElement;// represents super class
-
     private List<DataTable> dataTableList;
     private List<DatabaseDaoMethod> databaseDaoMethods;
-
     private ClassName superClassName;
     private ClassName implClassName;
     private String implName;
-
     private Configurations configurations;
 
     public Database() {

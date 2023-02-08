@@ -16,19 +16,22 @@
 
 package space.lingu.light.compile.struct;
 
+import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.VariableCompileType;
+
 /**
  * @author RollW
  */
 public class DeleteParameter extends AnnotateParameter implements SQLCustomParameter{
-    public DeleteParameter() {
+    public DeleteParameter(VariableCompileType variableCompileType,
+                           TypeCompileType wrapperCompileType,
+                           boolean isMultiple) {
+        super(variableCompileType, wrapperCompileType, isMultiple);
     }
 
     public DeleteParameter(Parameter parameter) {
-        setName(parameter.getName());
-        setType(parameter.getType());
-        setWrappedType(parameter.getWrappedType());
-        setTypeMirror(parameter.getTypeMirror());
-        setMultiple(parameter.isMultiple());
+        super(parameter.getCompileType(),
+                parameter.getWrappedCompileType(),
+                parameter.isMultiple());
     }
-
 }

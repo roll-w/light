@@ -33,7 +33,7 @@ import space.lingu.light.compile.struct.DatabaseDaoMethod;
 import javax.lang.model.element.Modifier;
 
 /**
- * 写入{@code Database_Impl}类中
+ * Write to {@code Database_Impl.java} file.
  *
  * @author RollW
  */
@@ -72,7 +72,7 @@ public class DatabaseWriter extends ClassWriter {
         GenerateCodeBlock block = new GenerateCodeBlock(this);
         String dbConfVarName = writeDatabaseConf(block);
         mDatabase.getDataTableList().forEach(dataTable -> {
-            String qualifiedName = dataTable.getElement().getQualifiedName().toString();
+            String qualifiedName = dataTable.getTypeCompileType().getQualifiedName().toString();
             block.builder().add("\n// start create " + qualifiedName + " structure. \n");
             RuntimeStructWriter writer = new RuntimeStructWriter(dataTable);
             final String tableVar = writer.writeDataTable(block, dbConfVarName);
@@ -106,7 +106,8 @@ public class DatabaseWriter extends ClassWriter {
         mDatabase.getDatabaseDaoMethods().forEach(method -> {
             String name = method.getDao().getSimpleName();
             String fieldName = block.getTempVar("_" + name);
-            FieldSpec field = FieldSpec.builder(ClassName.get(method.getDao().getElement()),
+            FieldSpec field = FieldSpec.builder(
+                    method.getDao().getTypeCompileType().toTypeName(),
                     fieldName, Modifier.PRIVATE, Modifier.VOLATILE).build();
             builder.addField(field).addMethod(createDaoGetter(field, method));
         });
@@ -115,7 +116,7 @@ public class DatabaseWriter extends ClassWriter {
     private MethodSpec createDaoGetter(FieldSpec field, DatabaseDaoMethod method) {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(method.getElement().getSimpleName().toString())
                 .addAnnotation(Override.class)
-                .returns(ClassName.get(method.getDao().getElement()));
+                .returns(method.getDao().getTypeCompileType().toTypeName());
         if (ElementUtil.isPublic(method.getElement())) {
             methodBuilder.addModifiers(Modifier.PUBLIC);
         } else if (ElementUtil.isProtected(method.getElement())) {

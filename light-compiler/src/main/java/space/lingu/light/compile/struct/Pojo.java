@@ -17,71 +17,44 @@
 package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.TypeName;
-
-import javax.lang.model.element.TypeElement;
-import java.util.List;
-import java.util.stream.Collectors;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * 代表一个用于处理的实体
+ *
  * @author RollW
  */
 public class Pojo {
-    private TypeElement element;
-    private TypeName typeName;
-    private List<Field> fields;
-    private Constructor constructor;
+    private final TypeCompileType typeCompileType;
+    private final TypeName typeName;
+    private final Field.Fields fields;
+    private final Constructor constructor;
 
-    public Pojo() {
+    public Pojo(TypeCompileType typeCompileType,
+                Field.Fields fields, Constructor constructor) {
+        this.typeCompileType = typeCompileType;
+        this.typeName = TypeName.get(typeCompileType.getTypeMirror());
+        this.fields = fields;
+        this.constructor = constructor;
     }
 
-    public TypeElement getElement() {
-        return element;
-    }
-
-    public Pojo setElement(TypeElement element) {
-        this.element = element;
-        return this;
+    public TypeCompileType getTypeCompileType() {
+        return typeCompileType;
     }
 
     public TypeName getTypeName() {
         return typeName;
     }
 
-    public Pojo setTypeName(TypeName typeName) {
-        this.typeName = typeName;
-        return this;
-    }
-
-    public List<Field> getFields() {
+    public Field.Fields getFields() {
         return fields;
-    }
-
-    public Pojo setFields(List<Field> fields) {
-        this.fields = fields;
-        return this;
     }
 
     public Constructor getConstructor() {
         return constructor;
     }
 
-    public Pojo setConstructor(Constructor constructor) {
-        this.constructor = constructor;
-        return this;
-    }
-
     public Field findFieldByColumnName(String columnName) {
-        if (fields == null) {
-            return null;
-        }
-        List<Field> filtered = fields.stream()
-                .filter(field ->
-                        field.getColumnName().equals(columnName))
-                .collect(Collectors.toList());
-        if (filtered.isEmpty()) {
-            return null;
-        }
-        return filtered.get(0);
+        return fields.findFieldByColumnName(columnName);
     }
 }

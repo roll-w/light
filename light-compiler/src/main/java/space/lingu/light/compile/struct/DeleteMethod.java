@@ -18,9 +18,9 @@ package space.lingu.light.compile.struct;
 
 import space.lingu.light.compile.coder.annotated.binder.AnnotatedMethodBinder;
 import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
+import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.List;
 import java.util.Map;
 
@@ -28,68 +28,52 @@ import java.util.Map;
  * @author RollW
  */
 public class DeleteMethod implements SQLCustomMethod, AnnotatedMethod<SQLCustomParameter> {
-    private ExecutableElement element;
-    private Map<String, ParamEntity> entities;
-    private TypeMirror returnType;
-    private String sql = null;
+    private final MethodCompileType methodCompileType;
+    private final String sql;
+    private final Map<String, ParamEntity> entities;
+    private final AnnotatedMethodBinder binder;
+    private final QueryResultBinder resultBinder;
+    private final List<SQLCustomParameter> parameters;
+    private final List<ExpressionBind> expressionBinds;
+    private final boolean isTransaction;
 
-    private boolean isTransaction;
-    private List<SQLCustomParameter> parameters;
-    private QueryResultBinder resultBinder;
-    private AnnotatedMethodBinder binder;
-    private List<ExpressionBind> expressionBinds;
 
-    public DeleteMethod() {
+    public DeleteMethod(MethodCompileType methodCompileType,
+                        String sql,
+                        Map<String, ParamEntity> entities,
+                        AnnotatedMethodBinder binder,
+                        QueryResultBinder resultBinder,
+                        List<SQLCustomParameter> parameters,
+                        List<ExpressionBind> expressionBinds,
+                        boolean isTransaction) {
+        this.methodCompileType = methodCompileType;
+        this.sql = sql;
+        this.entities = entities;
+        this.binder = binder;
+        this.resultBinder = resultBinder;
+        this.parameters = parameters;
+        this.expressionBinds = expressionBinds;
+        this.isTransaction = isTransaction;
     }
 
     @Override
-    public ExecutableElement getElement() {
-        return element;
+    public MethodCompileType getMethodCompileType() {
+        return methodCompileType;
     }
 
-    public DeleteMethod setElement(ExecutableElement element) {
-        this.element = element;
-        return this;
+    @Override
+    public String getSql() {
+        return sql;
     }
 
+    @Override
     public Map<String, ParamEntity> getEntities() {
         return entities;
-    }
-
-    public DeleteMethod setBinder(AnnotatedMethodBinder binder) {
-        this.binder = binder;
-        return this;
     }
 
     @Override
     public AnnotatedMethodBinder getBinder() {
         return binder;
-    }
-
-
-    public DeleteMethod setEntities(Map<String, ParamEntity> entities) {
-        this.entities = entities;
-        return this;
-    }
-
-    @Override
-    public TypeMirror getReturnType() {
-        return returnType;
-    }
-
-    public DeleteMethod setReturnType(TypeMirror returnType) {
-        this.returnType = returnType;
-        return this;
-    }
-
-    @Override
-    public List<SQLCustomParameter> getParameters() {
-        return parameters;
-    }
-
-    public DeleteMethod setParameters(List<SQLCustomParameter> parameters) {
-        this.parameters = parameters;
-        return this;
     }
 
     @Override
@@ -98,30 +82,13 @@ public class DeleteMethod implements SQLCustomMethod, AnnotatedMethod<SQLCustomP
     }
 
     @Override
-    public boolean isTransaction() {
-        if (sql == null) {
-            return false;
-        }
-        return isTransaction;
+    public List<SQLCustomParameter> getParameters() {
+        return parameters;
     }
 
-    public DeleteMethod setTransaction(boolean transaction) {
-        isTransaction = transaction;
-        return this;
-    }
-
-    public DeleteMethod setResultBinder(QueryResultBinder binder) {
-        this.resultBinder = binder;
-        return this;
-    }
-
-    public String getSql() {
-        return sql;
-    }
-
-    public DeleteMethod setSql(String sql) {
-        this.sql = sql;
-        return this;
+    @Override
+    public TypeCompileType getReturnType() {
+        return methodCompileType.getReturnType();
     }
 
     @Override
@@ -129,8 +96,8 @@ public class DeleteMethod implements SQLCustomMethod, AnnotatedMethod<SQLCustomP
         return expressionBinds;
     }
 
-    public DeleteMethod setExpressionBinds(List<ExpressionBind> expressionBinds) {
-        this.expressionBinds = expressionBinds;
-        return this;
+    @Override
+    public boolean isTransaction() {
+        return isTransaction;
     }
 }

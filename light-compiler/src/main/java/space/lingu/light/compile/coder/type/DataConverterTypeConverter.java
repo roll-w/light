@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.coder.type;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.DataConverter;
@@ -28,7 +27,8 @@ public class DataConverterTypeConverter extends SingleStatementTypeConverter {
     private final DataConverter mConverter;
 
     public DataConverterTypeConverter(DataConverter dataConverter) {
-        super(dataConverter.getFromType(), dataConverter.getToType());
+        super(dataConverter.getFromType().getTypeMirror(),
+                dataConverter.getToType().getTypeMirror());
         mConverter = dataConverter;
     }
 
@@ -36,7 +36,7 @@ public class DataConverterTypeConverter extends SingleStatementTypeConverter {
     protected CodeBlock buildStatement(String inputVar, GenerateCodeBlock block) {
         // may support non-static method future
         return CodeBlock.of("$T.$L($L)",
-                ClassName.get(mConverter.getEnclosingClass()),
+                mConverter.getEnclosingClass().toTypeName(),
                 mConverter.getMethodName(),
                 inputVar);
     }

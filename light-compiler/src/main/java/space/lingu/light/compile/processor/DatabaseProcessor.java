@@ -23,7 +23,11 @@ import space.lingu.light.DataConverters;
 import space.lingu.light.LightInfo;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.types.JavacMethodCompileType;
+import space.lingu.light.compile.javac.types.JavacTypeCompileType;
 import space.lingu.light.compile.struct.Configurable;
 import space.lingu.light.compile.struct.DataConverter;
 import space.lingu.light.compile.struct.DataTable;
@@ -35,6 +39,8 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.MirroredTypesException;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
@@ -60,7 +66,7 @@ public class DatabaseProcessor implements Processor<Database> {
         anno = mElement.getAnnotation(space.lingu.light.Database.class);
         mEnv = env;
         List<Element> elements = new ArrayList<>();
-        getAllSuperClass(element).forEach(clzElement ->
+        getAllSuperClasses(element).forEach(clzElement ->
                 elements.addAll(clzElement.getEnclosedElements()));
         enclosedElements = elements
                 .stream()
@@ -86,7 +92,11 @@ public class DatabaseProcessor implements Processor<Database> {
             // it will and should be caught
             tableClassMirror.addAll(e.getTypeMirrors());
         }
-        Configurations configurations = Configurable.createFrom(anno.configuration(), mElement);
+
+        Configurations configurations = Configurable.createFrom(
+                anno.configuration(),
+                mElement
+        );
 
         return database.setDataTableList(processDataTables(tableClassMirror))
                 .setSuperClassElement(mElement)
@@ -97,8 +107,11 @@ public class DatabaseProcessor implements Processor<Database> {
                         ClassName.get(packageName, implName));
     }
 
-    private TypeElement loadLightInfoTable() {
-        return mEnv.getElementUtils().getTypeElement(LightInfo.class.getCanonicalName());
+    private TypeCompileType loadLightInfoTable() {
+        TypeElement typeElement = mEnv.getElementUtils()
+                .getTypeElement(LightInfo.class.getCanonicalName());
+        TypeMirror typeMirror = typeElement.asType();
+        return new JavacTypeCompileType(typeMirror, typeElement);
     }
 
     private List<DataTable> processDataTables(List<? extends TypeMirror> mirrors) {
@@ -114,7 +127,11 @@ public class DatabaseProcessor implements Processor<Database> {
                         mElement);
                 return;
             }
-            dataTableList.add(new DataTableProcessor(element, mEnv).process());
+            TypeCompileType typeCompileType =
+                    new JavacTypeCompileType(typeMirror, element);
+            DataTableProcessor processor =  new DataTableProcessor(
+                    typeCompileType, mEnv);
+            dataTableList.add(processor.process());
         });
         dataTableList.add(new DataTableProcessor(loadLightInfoTable(), mEnv).process());
 
@@ -123,7 +140,7 @@ public class DatabaseProcessor implements Processor<Database> {
             if (nameSet.contains(dataTable.getTableName())) {
                 mEnv.getLog().error(
                         CompileErrors.duplicatedTableName(dataTable.getTableName()),
-                        dataTable.getElement()
+                        dataTable.getTypeCompileType()
                 );
                 return;
             }
@@ -133,19 +150,24 @@ public class DatabaseProcessor implements Processor<Database> {
         return dataTableList;
     }
 
+    private List<? extends TypeMirror> getConvertersClasses(DataConverters annotation) {
+        try {
+            Class<?>[] classes = annotation.value();
+        } catch (MirroredTypesException e) {
+            return e.getTypeMirrors();
+        }
+        return Collections.emptyList();
+    }
+
     private List<DataConverter> getDataConverterMethods() {
         DataConverters dataConvertersAnno = mElement.getAnnotation(DataConverters.class);
         List<DataConverter> dataConverterList = new ArrayList<>();
         if (dataConvertersAnno == null) {
             return Collections.emptyList();
         }
+        List<? extends TypeMirror> convertersClassMirrors =
+                getConvertersClasses(dataConvertersAnno);
 
-        List<? extends TypeMirror> convertersClassMirrors = Collections.emptyList();
-        try {
-            Class<?>[] classes = dataConvertersAnno.value();
-        } catch (MirroredTypesException e) {
-            convertersClassMirrors = e.getTypeMirrors();
-        }
         convertersClassMirrors.forEach(typeMirror -> {
             TypeElement convertersElement = ElementUtil.asTypeElement(typeMirror);
             if (convertersElement == null) {
@@ -155,16 +177,29 @@ public class DatabaseProcessor implements Processor<Database> {
                 );
                 return;
             }
+            TypeCompileType typeCompileType = new JavacTypeCompileType(
+                    typeMirror,
+                    convertersElement
+            );
 
             convertersElement.getEnclosedElements().forEach(enclosedElement -> {
                 if (enclosedElement.getAnnotation(space.lingu.light.DataConverter.class) == null) {
                     return;
                 }
                 if (enclosedElement.getKind() == ElementKind.METHOD) {
+                    ExecutableElement element = (ExecutableElement) enclosedElement;
+                    DeclaredType declaredType = (DeclaredType) element.getEnclosingElement().asType();
+                    ExecutableType executableType = (ExecutableType)
+                            mEnv.getTypeUtils().asMemberOf(declaredType, element);
+
+                    MethodCompileType methodCompileType = new JavacMethodCompileType(
+                            executableType,
+                            element,
+                            typeCompileType
+                    );
                     Processor<DataConverter> converterProcessor =
-                            new DataConverterProcessor(
-                                    (ExecutableElement) enclosedElement,
-                                    convertersElement, mEnv);
+                            new DataConverterProcessor(methodCompileType,
+                                    typeCompileType, mEnv);
                     dataConverterList.add(converterProcessor.process());
                 }
             });
@@ -179,7 +214,7 @@ public class DatabaseProcessor implements Processor<Database> {
         checkRepeatedInternal(dataConverters, DataConverter::getToType);
     }
 
-    private void checkRepeatedInternal(List<DataConverter> dataConverters, Function<DataConverter, TypeMirror> classifier) {
+    private void checkRepeatedInternal(List<DataConverter> dataConverters, Function<DataConverter, TypeCompileType> classifier) {
         dataConverters
                 .stream()
                 .collect(Collectors.groupingBy(classifier,
@@ -191,8 +226,7 @@ public class DatabaseProcessor implements Processor<Database> {
                     converters.forEach(dataConverter -> {
                         List<DataConverter> conflicts = converters.stream()
                                 .filter(converter -> converter != dataConverter &&
-                                        mEnv.getTypeUtils().isSameType(converter.getFromType(), dataConverter.getFromType()) &&
-                                        mEnv.getTypeUtils().isSameType(converter.getToType(), dataConverter.getToType()))
+                                        equalsConverter(converter, dataConverter))
                                 .collect(Collectors.toList());
                         if (conflicts.isEmpty()) {
                             return;
@@ -205,8 +239,20 @@ public class DatabaseProcessor implements Processor<Database> {
                 });
     }
 
+    private boolean equalsConverter(DataConverter converter1, DataConverter converter2) {
+        return mEnv.getTypeUtils().isSameType(
+                converter1.getFromType().getTypeMirror(),
+                converter2.getFromType().getTypeMirror()
+        ) && mEnv.getTypeUtils().isSameType(
+                converter1.getToType().getTypeMirror(),
+                converter2.getToType().getTypeMirror()
+        );
+    }
+
     private List<DatabaseDaoMethod> getAllDaoMethods(Configurations configurations) {
         List<DatabaseDaoMethod> daoMethods = new ArrayList<>();
+        // TODO: supports methods in interfaces and abstract classes
+
         for (Element e : enclosedElements) {
             if (e.getKind() != ElementKind.METHOD || !ElementUtil.isAbstract(e)) {
                 continue;
@@ -223,19 +269,23 @@ public class DatabaseProcessor implements Processor<Database> {
             if (!method.getParameters().isEmpty()) {
                 mEnv.getLog().error(CompileErrors.DAO_METHOD_NOT_PARAMLESS, method);
             }
-
+            TypeCompileType typeCompileType = new JavacTypeCompileType(
+                    method.getReturnType(),
+                    returnType
+            );
             DaoProcessor daoProcessor = new DaoProcessor(
-                    returnType, mEnv, configurations);
+                    typeCompileType,
+                    mEnv, configurations);
+
             space.lingu.light.compile.struct.Dao dao = daoProcessor.process();
             DatabaseDaoMethod daoMethod = new DatabaseDaoMethod(method, dao);
             daoMethods.add(daoMethod);
         }
 
         return daoMethods;
-        // 查找所有抽象方法的返回类型
     }
 
-    private List<TypeElement> getAllSuperClass(TypeElement element) {
+    private List<TypeElement> getAllSuperClasses(TypeElement element) {
         List<TypeElement> elements = new ArrayList<>();
         elements.add(element);
         TypeElement iter = element;

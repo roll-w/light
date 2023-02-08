@@ -76,11 +76,11 @@ public class RuntimeStructWriter {
                 .addStatement("$T $L = new $T()", columnListType, columnListVarName, columnArrayListType)
                 .addStatement("$T $L = new $T()", indexListType, indexListVarName, indexArrayListType);
         String tableConfVarName = writeConfigurationsAndFork(mTable,
-                "TbOf" + mTable.getElement().getSimpleName().toString(),
+                "TbOf" + mTable.getTypeCompileType().getSimpleName().toString(),
                 databaseConfVarName, block);
         mTable.getIndices().forEach(index ->
                 writeIndex(block, index, indexListVarName, tableConfVarName));
-        mTable.getFields().forEach(field ->
+        mTable.getFields().getFields().forEach(field ->
                 writeTableColumn(block, field, columnListVarName, tableConfVarName));
         final String pkVarName = writePrimaryKey(block, columnListVarName, mTable.getPrimaryKey());
 
@@ -163,7 +163,7 @@ public class RuntimeStructWriter {
         );
 
         StringJoiner columnsJoiner = new StringJoiner(", ");
-        index.getFields().fields.forEach(field ->
+        index.getFields().getFields().forEach(field ->
                 columnsJoiner.add("\"" + field.getColumnName() + "\""));
 
         block.builder()
@@ -184,13 +184,13 @@ public class RuntimeStructWriter {
     private String writePrimaryKey(GenerateCodeBlock block,
                                    String listVarName,
                                    PrimaryKey key) {
-        final String simpleName = mTable.getElement().getSimpleName().toString();
+        final String simpleName = mTable.getTypeCompileType().getSimpleName().toString();
         final String primaryKeyVarName = block.getTempVar("_pkOf" + simpleName);
         String pkColumnsVarName = block.getTempVar("_pkTableColumnsOf" + simpleName);
         TypeName keyArrayListType = createArrayListType(TableColumn.class);
         block.builder().addStatement("$T $L = new $T()",
                 keyArrayListType, pkColumnsVarName, keyArrayListType);
-        for (Field field : key.getFields().fields) {
+        for (Field field : key.getFields().getFields()) {
             block.builder().addStatement("$L.add($T.$L($S, $L))",
                     pkColumnsVarName,
                     JavaPoetClass.UtilNames.STRUCT_UTIL, MethodNames.sFindByName,

@@ -19,16 +19,16 @@ package space.lingu.light.compile.processor;
 import space.lingu.light.Insert;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.coder.annotated.binder.DirectInsertMethodBinder;
+import space.lingu.light.compile.coder.annotated.binder.InsertMethodBinder;
 import space.lingu.light.compile.coder.annotated.translator.InsertMethodTranslator;
+import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.struct.InsertMethod;
 import space.lingu.light.compile.struct.ParamEntity;
 import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.List;
 import java.util.Map;
 
@@ -38,58 +38,54 @@ import java.util.Map;
  * @author RollW
  */
 public class InsertMethodProcessor implements Processor<InsertMethod> {
-    private final TypeElement mContaining;
-    private final ExecutableElement mExecutable;
+    private final TypeCompileType mContaining;
+    private final MethodCompileType methodCompileType;
     private final ProcessEnv mEnv;
-    private final InsertMethod insertMethod = new InsertMethod();
 
-    public InsertMethodProcessor(ExecutableElement executable,
-                                 TypeElement containing,
+    public InsertMethodProcessor(MethodCompileType methodCompileType,
+                                 TypeCompileType containing,
                                  ProcessEnv env) {
         mContaining = containing;
-        mExecutable = executable;
+        this.methodCompileType = methodCompileType;
         mEnv = env;
     }
 
     @Override
     public InsertMethod process() {
-        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(mExecutable, mEnv);
+        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(methodCompileType, mEnv);
 
-        Insert insertAnno = mExecutable.getAnnotation(Insert.class);
+        Insert insertAnno = methodCompileType.getAnnotation(Insert.class);
         if (insertAnno == null) {
             // but this will never happen.
             throw new IllegalStateException("An insertion method must be annotated with @Insert.");
         }
         DaoProcessor.sHandleAnnotations.forEach(anno -> {
-            if (anno != Insert.class && mExecutable.getAnnotation(anno) != null) {
+            if (anno != Insert.class && methodCompileType.getAnnotation(anno) != null) {
                 mEnv.getLog().error(
                         CompileErrors.DUPLICATED_METHOD_ANNOTATION,
-                        mExecutable
+                        methodCompileType
                 );
             }
         });
-        TypeMirror returnType = mExecutable.getReturnType();
+        TypeCompileType returnType = methodCompileType.getReturnType();
         checkUnbound(returnType);
-
 
         Pair<Map<String, ParamEntity>, List<Parameter>> pair =
                 delegate.extractParameters(mContaining);
+        InsertMethodBinder binder = new DirectInsertMethodBinder(
+                InsertMethodTranslator.create(
+                        methodCompileType.getElement(),
+                        mEnv,
+                        pair.second)
+        );
 
-        return insertMethod.setElement(mExecutable)
-                .setReturnType(returnType)
-                .setOnConflict(insertAnno.onConflict())
-                .setEntities(pair.first)
-                .setParameters(pair.second)
-                .setBinder(
-                        new DirectInsertMethodBinder(
-                                InsertMethodTranslator.create(
-                                        insertMethod.getElement(),
-                                        mEnv,
-                                        insertMethod.getParameters()))
-                );
+        return new InsertMethod(methodCompileType,
+                pair.first,
+                pair.second, binder,
+                insertAnno.onConflict());
     }
 
-    private void checkUnbound(TypeMirror typeMirror) {
-        AnnotateMethodProcessor.checkUnbound(typeMirror, mEnv, mExecutable);
+    private void checkUnbound(TypeCompileType typeMirror) {
+        AnnotateMethodProcessor.checkUnbound(typeMirror, mEnv);
     }
 }

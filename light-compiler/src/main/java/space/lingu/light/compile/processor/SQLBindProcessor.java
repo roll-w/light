@@ -18,12 +18,12 @@ package space.lingu.light.compile.processor;
 
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
+import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.parser.SQLParser;
 import space.lingu.light.compile.struct.ExpressionBind;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,40 +31,41 @@ import java.util.List;
  * @author RollW
  */
 public class SQLBindProcessor implements Processor<List<ExpressionBind>> {
-    private final ExecutableElement mElement;
-    private final String mSql;
+    private final MethodCompileType methodCompileType;
+    private final String sql;
     private final ProcessEnv mEnv;
 
 
-    public SQLBindProcessor(ExecutableElement element,
+    public SQLBindProcessor(MethodCompileType methodCompileType,
                             String sql,
                             ProcessEnv env) {
-        mElement = element;
-        mSql = sql;
+        this.methodCompileType = methodCompileType;
+        this.sql = sql;
         mEnv = env;
     }
 
     @Override
     public List<ExpressionBind> process() {
-        SQLParser parser = new SQLParser(mSql, mElement);
+        SQLParser parser = new SQLParser(sql, methodCompileType);
         List<String> expressions = parser.expressions();
         List<ExpressionBind> binds = new ArrayList<>();
         expressions.forEach(expression -> {
-            TypeMirror mirror = parser.findType(expression);
-            if (mirror == null) {
+            TypeCompileType compileType = parser.findType(expression);
+            if (compileType == null) {
                 mEnv.getLog().error(
                         CompileErrors.QUERY_UNKNOWN_PARAM + " In expression of '" + expression + "'.",
-                        mElement
+                        methodCompileType
                 );
             }
-            QueryParameterBinder binder = mEnv.getBinders().findQueryParameterBinder(mirror);
+            QueryParameterBinder binder = mEnv.getBinders().findQueryParameterBinder(
+                    compileType.getTypeMirror());
             if (binder == null) {
                 mEnv.getLog().error(
                         CompileErrors.QUERY_UNKNOWN_PARAM + " In type of '" + expression + "'.",
-                        mElement
+                        methodCompileType
                 );
             }
-            ExpressionBind bind = new ExpressionBind(expression, mirror, binder);
+            ExpressionBind bind = new ExpressionBind(expression, compileType, binder);
             binds.add(bind);
         });
         return binds;

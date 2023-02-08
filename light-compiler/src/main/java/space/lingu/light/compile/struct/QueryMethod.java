@@ -17,9 +17,9 @@
 package space.lingu.light.compile.struct;
 
 import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
+import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.TypeMirror;
 import java.util.List;
 
 /**
@@ -27,42 +27,29 @@ import java.util.List;
  * @author RollW
  */
 public class QueryMethod implements SQLCustomMethod {
-    private ExecutableElement element;
-    private TypeMirror returnType;
-    private List<SQLCustomParameter> parameters;
-    private String sql;
-    private boolean isTransaction;
-    private QueryResultBinder resultBinder;
-    private List<ExpressionBind> expressionBinds;
+    private final MethodCompileType methodCompileType;
+    private final String sql;
+    private final QueryResultBinder resultBinder;
+    private final List<SQLCustomParameter> parameters;
+    private final List<ExpressionBind> expressionBinds;
+    private final boolean transaction;
 
-    @Override
-    public ExecutableElement getElement() {
-        return element;
-    }
-
-    public QueryMethod setElement(ExecutableElement element) {
-        this.element = element;
-        return this;
-    }
-
-    @Override
-    public boolean isTransaction() {
-        return isTransaction;
-    }
-
-    public QueryMethod setTransaction(boolean transaction) {
-        isTransaction = transaction;
-        return this;
-    }
-
-    @Override
-    public List<SQLCustomParameter> getParameters() {
-        return parameters;
-    }
-
-    public QueryMethod setParameters(List<SQLCustomParameter> parameters) {
+    public QueryMethod(MethodCompileType methodCompileType, String sql,
+                       QueryResultBinder resultBinder,
+                       List<SQLCustomParameter> parameters,
+                       List<ExpressionBind> expressionBinds,
+                       boolean transaction) {
+        this.methodCompileType = methodCompileType;
+        this.sql = sql;
+        this.resultBinder = resultBinder;
         this.parameters = parameters;
-        return this;
+        this.expressionBinds = expressionBinds;
+        this.transaction = transaction;
+    }
+
+    @Override
+    public MethodCompileType getMethodCompileType() {
+        return methodCompileType;
     }
 
     @Override
@@ -70,29 +57,19 @@ public class QueryMethod implements SQLCustomMethod {
         return sql;
     }
 
-    public QueryMethod setSql(String sql) {
-        this.sql = sql;
-        return this;
-    }
-
-    @Override
-    public TypeMirror getReturnType() {
-        return returnType;
-    }
-
-    public QueryMethod setReturnType(TypeMirror returnTypeMirror) {
-        this.returnType = returnTypeMirror;
-        return this;
-    }
-
     @Override
     public QueryResultBinder getResultBinder() {
         return resultBinder;
     }
 
-    public QueryMethod setResultBinder(QueryResultBinder binder) {
-        this.resultBinder = binder;
-        return this;
+    @Override
+    public List<SQLCustomParameter> getParameters() {
+        return parameters;
+    }
+
+    @Override
+    public TypeCompileType getReturnType() {
+        return methodCompileType.getReturnType();
     }
 
     @Override
@@ -100,8 +77,8 @@ public class QueryMethod implements SQLCustomMethod {
         return expressionBinds;
     }
 
-    public QueryMethod setExpressionBinds(List<ExpressionBind> expressionBinds) {
-        this.expressionBinds = expressionBinds;
-        return this;
+    @Override
+    public boolean isTransaction() {
+        return transaction;
     }
 }

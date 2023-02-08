@@ -43,6 +43,12 @@ public class Log {
                     Element element) {
         mMessager.printMessage(kind, "Light: " + charSequence, element);
     }
+    
+    public void log(Diagnostic.Kind kind, CharSequence charSequence,
+                    CompileType compileType) {
+        mMessager.printMessage(kind, "Light: " + charSequence, 
+                compileType.getElement());
+    }
 
     public void log(Diagnostic.Kind kind, CharSequence msg,
                     Element e, AnnotationMirror a) {
@@ -70,6 +76,10 @@ public class Log {
     public void error(CharSequence s, Element element) {
         error(s, element, true);
     }
+    
+    public void error(CharSequence s, CompileType compileType) {
+        error(s, compileType, true);
+    }
 
     public void error(CharSequence s, Element element, boolean throwsException) {
         log(Diagnostic.Kind.ERROR, s, element);
@@ -77,7 +87,23 @@ public class Log {
             throw new LightCompileException(s.toString());
         }
     }
+    
+    public void error(CharSequence s, CompileType compileType, 
+                      boolean throwsException) {
+        log(Diagnostic.Kind.ERROR, s, compileType);
+        if (throwsException) {
+            throw new LightCompileException(s.toString());
+        }
+    }
 
+    public void note(CharSequence s, CompileType compileType) {
+        log(Diagnostic.Kind.NOTE, s, compileType);
+    }
+
+    public void warn(CharSequence s, CompileType compileType) {
+        log(Diagnostic.Kind.WARNING, s, compileType);
+    }
+    
     public void note(CharSequence s, Element element) {
         log(Diagnostic.Kind.NOTE, s, element);
     }

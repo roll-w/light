@@ -18,16 +18,17 @@ package space.lingu.light.compile.processor;
 
 import space.lingu.light.Update;
 import space.lingu.light.compile.CompileErrors;
+import space.lingu.light.compile.coder.annotated.binder.AutoDeleteUpdateMethodBinder;
 import space.lingu.light.compile.coder.annotated.binder.DirectAutoDeleteUpdateMethodBinder;
 import space.lingu.light.compile.coder.annotated.translator.AutoDeleteUpdateMethodTranslator;
+import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.struct.ParamEntity;
 import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.compile.struct.UpdateMethod;
 import space.lingu.light.util.Pair;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
 import java.util.List;
 import java.util.Map;
 
@@ -37,53 +38,50 @@ import java.util.Map;
  * @author RollW
  */
 public class UpdateMethodProcessor implements Processor<UpdateMethod> {
-    private final ExecutableElement mExecutable;
-    private final TypeElement mContaining;
+    private final MethodCompileType methodCompileType;
+    private final TypeCompileType containing;
     private final ProcessEnv mEnv;
-    private final UpdateMethod method = new UpdateMethod();
 
-    public UpdateMethodProcessor(ExecutableElement element,
-                                 TypeElement containing,
+    public UpdateMethodProcessor(MethodCompileType methodCompileType,
+                                 TypeCompileType containing,
                                  ProcessEnv env) {
-        mExecutable = element;
-        mContaining = containing;
+        this.methodCompileType = methodCompileType;
+        this.containing = containing;
         mEnv = env;
     }
 
     @Override
     public UpdateMethod process() {
-        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(mExecutable, mEnv);
+        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(methodCompileType, mEnv);
 
-        Update updateAnno = mExecutable.getAnnotation(Update.class);
+        Update updateAnno = methodCompileType.getAnnotation(Update.class);
         if (updateAnno == null) {
             throw new IllegalStateException("A update method must be annotated with @Update.");
         }
         DaoProcessor.sHandleAnnotations.forEach(anno -> {
-            if (anno != Update.class && mExecutable.getAnnotation(anno) != null) {
+            if (anno != Update.class && methodCompileType.getAnnotation(anno) != null) {
                 mEnv.getLog().error(
                         CompileErrors.DUPLICATED_METHOD_ANNOTATION,
-                        mExecutable
+                        methodCompileType
                 );
             }
         });
         Pair<Map<String, ParamEntity>, List<Parameter>> pair =
-                delegate.extractParameters(mContaining);
+                delegate.extractParameters(containing);
 
-        method.setElement(mExecutable)
-                .setEntities(pair.first)
-                .setOnConflict(updateAnno.onConflict())
-                .setParameters(pair.second)
-                .setReturnType(mExecutable.getReturnType());
         AutoDeleteUpdateMethodTranslator translator =
                 AutoDeleteUpdateMethodTranslator.create(
-                        method.getReturnType(),
-                        method.getParameters()
+                        methodCompileType.getReturnType().getTypeMirror(),
+                        pair.second
                 );
         if (translator == null) {
-            mEnv.getLog().error(CompileErrors.UPDATE_INVALID_RETURN, mExecutable);
+            mEnv.getLog().error(CompileErrors.UPDATE_INVALID_RETURN, methodCompileType);
         }
-        return method.setBinder(
-                new DirectAutoDeleteUpdateMethodBinder(translator)
-        );
+        AutoDeleteUpdateMethodBinder binder =
+                new DirectAutoDeleteUpdateMethodBinder(translator);
+
+        return new UpdateMethod(methodCompileType, pair.first,
+                pair.second, binder,
+                updateAnno.onConflict());
     }
 }

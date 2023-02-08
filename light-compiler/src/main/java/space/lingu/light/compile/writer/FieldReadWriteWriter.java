@@ -44,12 +44,13 @@ public class FieldReadWriteWriter {
                                        List<FieldWithNumber> fieldsWithIndex,
                                        GenerateCodeBlock block) {
         fieldsWithIndex.forEach(fieldWithNumber -> {
-            // TODO 嵌套
+            // TODO: embedded field
             new FieldReadWriteWriter(fieldWithNumber.field, fieldWithNumber.indexNum)
                     .bindToStatement(owner, stmt, block);
         });
     }
 
+    // TODO: refactor this method
     public static void readFromResultSet(String owner, Pojo outPojo, String resSetVar,
                                          List<FieldWithNumber> fieldsWithIndex,
                                          GenerateCodeBlock block) {
@@ -61,11 +62,12 @@ public class FieldReadWriteWriter {
                 .collect(Collectors.toList());
         filteredFields.forEach(fieldWithNumber -> constructorField.put(
                 new FieldReadWriteWriter(fieldWithNumber.field, fieldWithNumber.indexNum).readIntoTempVar(resSetVar,
-                        TypeName.get(fieldWithNumber
-                                .field
+                        fieldWithNumber.field
                                 .getSetter()
-                                .getElement()
-                                .asType()), block),
+                                .getVariableCompileType()
+                                .getType()
+                                .toTypeName()
+                        , block),
                 fieldWithNumber)
         );
         setFromConstructor(owner, outPojo.getConstructor(), outPojo.getTypeName(), constructorField, block);
@@ -111,19 +113,22 @@ public class FieldReadWriteWriter {
         field.getStatementBinder().bindToStatement(stmt, indexVar, varName, block);
     }
 
-    private void readFromResultSet(String owner, String resSetVar, GenerateCodeBlock block) {
-
+    private void readFromResultSet(String owner, String resSetVar,
+                                   GenerateCodeBlock block) {
         switch (field.getSetter().getCallType()) {
             case FIELD: {
-                field.getColumnValueReader()
-                        .readFromResultSet(owner + "." +
-                                        field.getSetter().getName(),
-                                resSetVar, indexVar, block);
+                field.getColumnValueReader().readFromResultSet(
+                        owner + "." + field.getSetter().getName(),
+                        resSetVar, indexVar, block);
                 break;
             }
             case METHOD: {
                 String tempVar = block.getTempVar("_tmp" + StringUtil.firstUpperCase(field.getName()));
-                block.builder().addStatement("final $T $L", TypeName.get(field.getSetter().getElement().asType()), tempVar);
+                block.builder().addStatement("final $T $L",
+                        field.getSetter()
+                                .getVariableCompileType().getType()
+                                .toTypeName(),
+                        tempVar);
                 field.getColumnValueReader().readFromResultSet(tempVar, resSetVar, indexVar, block);
                 block.builder().addStatement("$L.$L($L)", owner, field.getSetter().getName(), tempVar);
                 break;

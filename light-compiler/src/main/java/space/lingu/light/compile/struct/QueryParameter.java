@@ -16,10 +16,8 @@
 
 package space.lingu.light.compile.struct;
 
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
-import java.util.Objects;
+import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.VariableCompileType;
 
 /**
  * Query Parameter
@@ -27,32 +25,13 @@ import java.util.Objects;
  * @author RollW
  */
 public class QueryParameter implements SQLCustomParameter {
-    private VariableElement element;
-    private String name;
-    private String sqlName;
-    private TypeElement type;
-    private TypeMirror typeMirror;
+    private final VariableCompileType variableCompileType;
+    private final String name;
 
-    public QueryParameter() {
-    }
-
-    @Override
-    public TypeMirror getTypeMirror() {
-        return typeMirror;
-    }
-
-    public QueryParameter setTypeMirror(TypeMirror typeMirror) {
-        this.typeMirror = typeMirror;
-        return this;
-    }
-
-    public VariableElement getElement() {
-        return element;
-    }
-
-    public QueryParameter setElement(VariableElement element) {
-        this.element = element;
-        return this;
+    public QueryParameter(VariableCompileType variableCompileType,
+                          String name) {
+        this.variableCompileType = variableCompileType;
+        this.name = name;
     }
 
     @Override
@@ -60,40 +39,13 @@ public class QueryParameter implements SQLCustomParameter {
         return name;
     }
 
-    public QueryParameter setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public String getSqlName() {
-        return sqlName;
-    }
-
-    public QueryParameter setSqlName(String sqlName) {
-        this.sqlName = sqlName;
-        return this;
+    @Override
+    public VariableCompileType getCompileType() {
+        return variableCompileType;
     }
 
     @Override
-    public TypeElement getType() {
-        return type;
-    }
-
-    public QueryParameter setType(TypeElement type) {
-        this.type = type;
-        return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        QueryParameter that = (QueryParameter) o;
-        return Objects.equals(element, that.element) && Objects.equals(name, that.name) && Objects.equals(sqlName, that.sqlName) && Objects.equals(type, that.type) && Objects.equals(typeMirror, that.typeMirror);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(element, name, sqlName, type, typeMirror);
+    public TypeCompileType getWrappedCompileType() {
+        return null;
     }
 }
