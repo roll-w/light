@@ -17,9 +17,12 @@
 package space.lingu.light.compile.coder;
 
 import com.squareup.javapoet.TypeName;
+import space.lingu.light.LightRuntimeException;
 import space.lingu.light.SQLDataType;
 
 import javax.lang.model.type.TypeMirror;
+import java.sql.SQLException;
+import java.sql.Types;
 
 /**
  * value binder
@@ -60,6 +63,20 @@ public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueRe
                 .nextControlFlow("else")
                 .addStatement("$L = $L.$L($L)",
                         outVarName, resultSetName, methodName, indexName)
+                .endControlFlow();
+    }
+
+    protected void bindToStatementWithNullable(String stmtVarName, String indexVarName,
+                                               String valueVarName, String methodName, GenerateCodeBlock block) {
+        block.builder()
+                .beginControlFlow("try")
+                .beginControlFlow("if ($L == null)", valueVarName)
+                .addStatement("$L.setNull($L, $L)", stmtVarName, indexVarName, Types.NULL)
+                .nextControlFlow("else")
+                .addStatement("$L.$L($L, $L)", stmtVarName, methodName, indexVarName, valueVarName)
+                .endControlFlow()
+                .nextControlFlow("catch ($T e)", SQLException.class)
+                .addStatement("throw new $T(e)", LightRuntimeException.class)
                 .endControlFlow();
     }
 }

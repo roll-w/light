@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.coder.type;
 
-import space.lingu.light.LightRuntimeException;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.ColumnValueReader;
@@ -25,8 +24,6 @@ import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 
 import javax.lang.model.type.TypeMirror;
-import java.sql.SQLException;
-import java.sql.Types;
 
 /**
  * Column type binder for {@link String}.
@@ -49,16 +46,9 @@ public class StringColumnTypeBinder extends ColumnTypeBinder implements Statemen
     @Override
     public void bindToStatement(String stmtVarName, String indexVarName,
                                 String valueVarName, GenerateCodeBlock block) {
-        block.builder()
-                .beginControlFlow("try")
-                .beginControlFlow("if ($L == null)", valueVarName)
-                .addStatement("$L.setNull($L, $L)", stmtVarName, indexVarName, Types.NULL)
-                .nextControlFlow("else")
-                .addStatement("$L.setString($L, $L)", stmtVarName, indexVarName, valueVarName)
-                .endControlFlow()
-                .nextControlFlow("catch ($T e)", SQLException.class)
-                .addStatement("throw new $T(e)", LightRuntimeException.class)
-                .endControlFlow();
+       bindToStatementWithNullable(stmtVarName,
+                indexVarName, valueVarName,
+                "setString", block);
     }
 
     public static StringColumnTypeBinder create(ProcessEnv env) {

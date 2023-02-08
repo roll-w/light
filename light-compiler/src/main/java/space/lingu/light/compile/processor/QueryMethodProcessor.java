@@ -87,7 +87,7 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
             binder = mEnv.getBinders().findQueryResultBinder(method.getReturnType());
         } catch (LightCompileException e) {
             // TODO: move unbound check here
-            e.printStackTrace();
+            // e.printStackTrace();
             mEnv.getLog().error(e.getMessage(), mExecutable);
         }
 

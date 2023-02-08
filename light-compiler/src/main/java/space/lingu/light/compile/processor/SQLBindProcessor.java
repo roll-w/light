@@ -53,14 +53,14 @@ public class SQLBindProcessor implements Processor<List<ExpressionBind>> {
             TypeMirror mirror = parser.findType(expression);
             if (mirror == null) {
                 mEnv.getLog().error(
-                        CompileErrors.QUERY_UNKNOWN_PARAM + " In [expression] of " + expression,
+                        CompileErrors.QUERY_UNKNOWN_PARAM + " In expression of '" + expression + "'.",
                         mElement
                 );
             }
             QueryParameterBinder binder = mEnv.getBinders().findQueryParameterBinder(mirror);
             if (binder == null) {
                 mEnv.getLog().error(
-                        CompileErrors.QUERY_UNKNOWN_PARAM + " In [type] of " + expression,
+                        CompileErrors.QUERY_UNKNOWN_PARAM + " In type of '" + expression + "'.",
                         mElement
                 );
             }

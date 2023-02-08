@@ -18,8 +18,12 @@ package space.lingu.light.compile.javac;
 
 import com.google.auto.common.MoreTypes;
 
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.*;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.lang.model.util.Types;
 import java.util.List;
@@ -62,9 +66,13 @@ public class TypeUtil {
         return getExtendBound(mirror) == null ? mirror : getExtendBound(mirror);
     }
 
-    public static boolean isCollection(TypeMirror mirror) {
-        TypeElement element = ElementUtil.asTypeElement(mirror);
-        return ElementUtil.isCollection(element);
+    public static boolean isCollection(ProcessEnv env, TypeMirror typeMirror) {
+        TypeMirror erasure = env.getTypeUtils().erasure(typeMirror);
+        return TypeUtil.isAssignedFrom(
+                env.getTypeUtils(),
+                erasure,
+                env.getElementUtils().getTypeElement("java.util.Collection").asType()
+        );
     }
 
     public static boolean isArray(TypeMirror mirror) {

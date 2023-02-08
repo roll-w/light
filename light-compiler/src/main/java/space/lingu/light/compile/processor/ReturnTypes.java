@@ -25,7 +25,6 @@ import javax.lang.model.element.TypeElement;
  */
 public class ReturnTypes {
     // List, Collection, Iterable
-    // not support Set yet.
     public static boolean isLegalCollectionReturnType(TypeElement typeElement) {
         if (ElementUtil.isList(typeElement)) {
             return true;

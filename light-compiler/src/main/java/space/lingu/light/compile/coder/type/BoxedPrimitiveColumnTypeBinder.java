@@ -50,9 +50,9 @@ public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements 
     public static List<BoxedPrimitiveColumnTypeBinder> create(List<PrimitiveColumnTypeBinder> primitiveBinders, ProcessEnv env) {
         List<BoxedPrimitiveColumnTypeBinder> binders = new ArrayList<>();
         primitiveBinders.forEach(binder ->
-                binders.add(
-                        new BoxedPrimitiveColumnTypeBinder(
-                                getBoxedFromPrimitive(binder.type(), env), binder))
+                binders.add(new BoxedPrimitiveColumnTypeBinder(
+                        getBoxedFromPrimitive(binder.type(), env), binder)
+                )
         );
         return binders;
     }

@@ -16,16 +16,36 @@
 
 package space.lingu.light.compile.coder;
 
-import com.google.auto.common.MoreTypes;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.LightCompileException;
-import space.lingu.light.compile.coder.custom.binder.*;
-import space.lingu.light.compile.coder.custom.result.*;
+import space.lingu.light.compile.coder.custom.binder.ArrayQueryParameterBinder;
+import space.lingu.light.compile.coder.custom.binder.BasicQueryParameterBinder;
+import space.lingu.light.compile.coder.custom.binder.CollectionQueryParameterBinder;
+import space.lingu.light.compile.coder.custom.binder.InstantQueryResultBinder;
+import space.lingu.light.compile.coder.custom.binder.QueryParameterBinder;
+import space.lingu.light.compile.coder.custom.binder.QueryResultBinder;
+import space.lingu.light.compile.coder.custom.result.ArrayQueryResultConverter;
+import space.lingu.light.compile.coder.custom.result.ListQueryResultConverter;
+import space.lingu.light.compile.coder.custom.result.QueryResultConverter;
+import space.lingu.light.compile.coder.custom.result.RawQueryResultConverter;
+import space.lingu.light.compile.coder.custom.result.SingleEntityQueryResultConverter;
 import space.lingu.light.compile.coder.custom.row.PojoRowConverter;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
 import space.lingu.light.compile.coder.custom.row.SingleColumnRowConverter;
-import space.lingu.light.compile.coder.type.*;
+import space.lingu.light.compile.coder.type.BigDecimalColumnTypeBinder;
+import space.lingu.light.compile.coder.type.BoxedPrimitiveColumnTypeBinder;
+import space.lingu.light.compile.coder.type.ByteArrayColumnTypeBinder;
+import space.lingu.light.compile.coder.type.CombinedTypeConverter;
+import space.lingu.light.compile.coder.type.CompositeTypeBinder;
+import space.lingu.light.compile.coder.type.DataConverterTypeConverter;
+import space.lingu.light.compile.coder.type.DateTypeBinder;
+import space.lingu.light.compile.coder.type.EnumColumnTypeBinder;
+import space.lingu.light.compile.coder.type.NoOpTypeConverter;
+import space.lingu.light.compile.coder.type.PrimitiveColumnTypeBinder;
+import space.lingu.light.compile.coder.type.StringColumnTypeBinder;
+import space.lingu.light.compile.coder.type.TypeConverter;
+import space.lingu.light.compile.coder.type.VoidColumnTypeBinder;
 import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeUtil;
@@ -38,7 +58,13 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -55,7 +81,6 @@ public class TypeBinders {
     public TypeBinders(ProcessEnv env) {
         mEnv = env;
         initColumnTypeBinders();
-        loadAllKnownTypes();
     }
 
     private void initColumnTypeBinders() {
@@ -64,13 +89,27 @@ public class TypeBinders {
         mColumnTypeBinders.add(ByteArrayColumnTypeBinder.create(mEnv));
         List<PrimitiveColumnTypeBinder> primitiveColumnTypeBinders =
                 PrimitiveColumnTypeBinder.create(mEnv);
+        mColumnTypeBinders.addAll(DateTypeBinder.create(mEnv));
         mColumnTypeBinders.addAll(primitiveColumnTypeBinders);
         mColumnTypeBinders.addAll(BoxedPrimitiveColumnTypeBinder.create(primitiveColumnTypeBinders, mEnv));
         mVoidColumnTypeBinder = new VoidColumnTypeBinder();
+
+        loadInKnownTypes(mColumnTypeBinders);
+        loadAllKnownTypes();
     }
 
-    private void addBinder(ColumnTypeBinder binder) {
-        mColumnTypeBinders.add(binder);
+    private final Map<SQLDataType, List<TypeMirror>> mKnownTypes = new HashMap<>();
+
+    private void loadInKnownTypes(List<ColumnTypeBinder> binders) {
+        for (ColumnTypeBinder binder : binders) {
+            SQLDataType dataType = binder.getDataType();
+            if (dataType == null) {
+                continue;
+            }
+            List<TypeMirror> types = mKnownTypes.computeIfAbsent(
+                    dataType, k -> new ArrayList<>());
+            types.add(binder.type());
+        }
     }
 
     public StatementBinder findStatementBinder(TypeMirror type, SQLDataType dataType) {
@@ -201,7 +240,6 @@ public class TypeBinders {
         return fallback;
     }
 
-
     private List<TypeConverter> getAllTypeConverters(TypeMirror in, List<TypeMirror> excludes) {
         return mTypeConverters.stream()
                 .filter(typeConverter ->
@@ -220,27 +258,29 @@ public class TypeBinders {
         if (typeMirror == null) {
             throw new IllegalArgumentException("TypeMirror cannot be null");
         }
-
-        if (TypeUtil.isCollection(typeMirror)) {
-            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(TypeUtil.getGenericTypes(typeMirror).get(0));
+        if (TypeUtil.isCollection(mEnv, typeMirror)) {
+            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(
+                    TypeUtil.getGenericTypes(typeMirror).get(0)
+            );
             StatementBinder binder = findStatementBinder(typeArg, null);
             if (binder != null) {
                 return new CollectionQueryParameterBinder(binder);
             }
-        } else if (TypeUtil.isArray(typeMirror) &&
+            return null;
+        }
+        if (TypeUtil.isArray(typeMirror) &&
                 TypeUtil.getArrayElementType(typeMirror).getKind() != TypeKind.BYTE) {
             TypeMirror componentType = TypeUtil.getArrayElementType(typeMirror);
             StatementBinder binder = findStatementBinder(componentType, null);
             if (binder != null) {
                 return new ArrayQueryParameterBinder(binder);
             }
-        } else {
-            StatementBinder binder = findStatementBinder(typeMirror, null);
-            if (binder != null) {
-                return new BasicQueryParameterBinder(binder);
-            }
+            return null;
         }
-
+        StatementBinder binder = findStatementBinder(typeMirror, null);
+        if (binder != null) {
+            return new BasicQueryParameterBinder(binder);
+        }
         return null;
     }
 
@@ -301,7 +341,7 @@ public class TypeBinders {
         if (mEnv.getTypeUtils().asElement(type) != null && !TypeUtil.isPrimitive(type)) {
             TypeElement element = ElementUtil.asTypeElement(type);
             Pojo pojo = new PojoProcessor(element, mEnv).process();
-            // TODO other check
+            // TODO: other check
             return new PojoRowConverter(pojo, type);
         }
         return null;
@@ -355,13 +395,9 @@ public class TypeBinders {
 
     private void loadAllKnownTypes() {
         mHandleableTypes.clear();
-        mHandleableTypes.addAll(getTypes(SQLDataType.INT));
-        mHandleableTypes.addAll(getTypes(SQLDataType.LONG));
-        mHandleableTypes.addAll(getTypes(SQLDataType.BINARY));
-        mHandleableTypes.addAll(getTypes(SQLDataType.BOOLEAN));
-        mHandleableTypes.addAll(getTypes(SQLDataType.DOUBLE));
-        mHandleableTypes.addAll(getTypes(SQLDataType.FLOAT));
-        mHandleableTypes.addAll(getTypes(SQLDataType.VARCHAR));
+        for (SQLDataType value : SQLDataType.values()) {
+            mHandleableTypes.addAll(getTypes(value));
+        }
     }
 
     private List<TypeMirror> findTypesFor(SQLDataType dataType, boolean findsAll) {
@@ -372,59 +408,13 @@ public class TypeBinders {
     }
 
     private List<TypeMirror> getTypes(SQLDataType dataType) {
-        List<TypeMirror> typeMirrors = new ArrayList<>();
         if (dataType == null || dataType == SQLDataType.UNDEFINED) {
             return mHandleableTypes;
         }
-        switch (dataType) {
-            case INT:
-            case CHAR:
-                typeMirrors.addAll(getIncludeBoxed(TypeKind.INT));
-                typeMirrors.addAll(getIncludeBoxed(TypeKind.SHORT));
-                typeMirrors.addAll(getIncludeBoxed(TypeKind.BYTE));
-                break;
-            case LONG:
-                typeMirrors.addAll(getIncludeBoxed(TypeKind.LONG));
-                break;
-            case BINARY:
-                typeMirrors.add(getArrayType(getType(TypeKind.BYTE)));
-                break;
-            case BOOLEAN:
-                typeMirrors.add(getType(TypeKind.BOOLEAN));
-                break;
-            case DOUBLE:
-                typeMirrors.add(getType(TypeKind.DOUBLE));
-                break;
-            case FLOAT:
-                typeMirrors.add(getType(TypeKind.FLOAT));
-                break;
-            case LONGTEXT:
-            case VARCHAR:
-            case TEXT:
-                typeMirrors.add(getType(String.class));
-                break;
+        List<TypeMirror> typeMirrors = mKnownTypes.get(dataType);
+        if (typeMirrors == null) {
+            return Collections.emptyList();
         }
         return typeMirrors;
     }
-
-    private TypeMirror getType(TypeKind kind) {
-        return mEnv.getTypeUtils().getPrimitiveType(kind);
-    }
-
-    private TypeMirror getType(Class<?> clz) {
-        return mEnv.getElementUtils().getTypeElement(clz.getCanonicalName()).asType();
-    }
-
-    private List<TypeMirror> getIncludeBoxed(TypeKind kind) {
-        TypeMirror mirror = mEnv.getTypeUtils().getPrimitiveType(kind);
-        TypeMirror boxed = mEnv.getTypeUtils().boxedClass(
-                MoreTypes.asPrimitiveType(mirror)).asType();
-        return Arrays.asList(mirror, boxed);
-    }
-
-    private TypeMirror getArrayType(TypeMirror mirror) {
-        return mEnv.getTypeUtils().getArrayType(mirror);
-    }
-
-
 }

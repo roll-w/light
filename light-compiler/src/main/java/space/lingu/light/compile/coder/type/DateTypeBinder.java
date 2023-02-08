@@ -21,7 +21,9 @@ import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.javac.ProcessEnv;
 
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -32,6 +34,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author RollW
@@ -51,11 +55,9 @@ public class DateTypeBinder extends ColumnTypeBinder {
     private final Type type;
 
     public DateTypeBinder(TypeMirror typeMirror,
-                          SQLDataType dataType,
                           Type type) {
-        super(typeMirror, dataType);
+        super(typeMirror, type.getConvert().dataType);
         this.type = type;
-        // TODO: parse type
     }
 
     @Override
@@ -63,9 +65,18 @@ public class DateTypeBinder extends ColumnTypeBinder {
                                   String resultSetName,
                                   String indexName,
                                   GenerateCodeBlock block) {
+        if (type.equalsType()) {
+            readValueWithCheckIndex(
+                    outVarName, resultSetName, indexName,
+                    type.convert.readMethodName, "null",
+                    block
+            );
+            return;
+        }
+
         String readVar = block.getTempVar("_readDateOrTime");
         block.builder()
-                .addStatement("final $T $L", type.clazzType, readVar)
+                .addStatement("final $T $L", type.convert.clazzType, readVar)
                 .beginControlFlow("if ($L < 0)", indexName)
                 .addStatement("$L = $L", readVar, null)
                 .nextControlFlow("else")
@@ -82,9 +93,18 @@ public class DateTypeBinder extends ColumnTypeBinder {
     @Override
     public void bindToStatement(String stmtVarName, String indexVarName,
                                 String valueVarName, GenerateCodeBlock block) {
+        if (type.equalsType()) {
+            bindToStatementWithNullable(
+                    stmtVarName, indexVarName,
+                    valueVarName, type.convert.bindMethodName,
+                    block
+            );
+            return;
+        }
+
         String bindVar = block.getTempVar("_bindDateOrTime");
         block.builder()
-                .addStatement("$T $L = $T.$L($L)", type.clazzType, bindVar,
+                .addStatement("$T $L = $T.$L($L)", type.convert.clazzType, bindVar,
                         JavaPoetClass.UtilNames.DATE_TIME_UTIL, type.fromMethodName,
                         valueVarName)
                 .beginControlFlow("try")
@@ -99,6 +119,34 @@ public class DateTypeBinder extends ColumnTypeBinder {
                 .endControlFlow();
     }
 
+
+    public static List<DateTypeBinder> create(ProcessEnv env) {
+        List<DateTypeBinder> typeBinders = new ArrayList<>();
+        for (Type type : Type.values()) {
+            TypeMirror typeMirror = from(type.clazzType, env);
+            DateTypeBinder binder = new DateTypeBinder(typeMirror, type);
+            typeBinders.add(binder);
+        }
+        return typeBinders;
+    }
+
+    private static TypeMirror from(Class<?> clazz, ProcessEnv env) {
+        if (clazz == long.class) {
+            return env.getTypeUtils().getPrimitiveType(TypeKind.LONG);
+        }
+        return env.getElementUtils()
+                .getTypeElement(clazz.getCanonicalName())
+                .asType();
+    }
+
+    public static List<TypeMirror> getTypes(SQLDataType sqlDataType, ProcessEnv env) {
+        List<TypeMirror> typeMirrors = new ArrayList<>();
+        List<Type> types = Type.findTypes(sqlDataType);
+        for (Type type : types) {
+            typeMirrors.add(from(type.clazzType, env));
+        }
+        return typeMirrors;
+    }
 
     /**
      * @see space.lingu.light.util.DateTimeUtils
@@ -152,6 +200,20 @@ public class DateTypeBinder extends ColumnTypeBinder {
 
         public Class<?> getClazzType() {
             return clazzType;
+        }
+
+        public boolean equalsType() {
+            return this.clazzType == convert.clazzType;
+        }
+
+        public static List<Type> findTypes(SQLDataType type) {
+            List<Type> types = new ArrayList<>();
+            for (Type t : values()) {
+                if (t.convert.dataType == type) {
+                    types.add(t);
+                }
+            }
+            return types;
         }
     }
 

@@ -16,7 +16,6 @@
 
 package space.lingu.light.compile.coder.type;
 
-import space.lingu.light.LightRuntimeException;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
@@ -24,8 +23,6 @@ import space.lingu.light.compile.javac.ProcessEnv;
 
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.sql.SQLException;
-import java.sql.Types;
 
 /**
  * @author RollW
@@ -51,16 +48,9 @@ public class ByteArrayColumnTypeBinder extends ColumnTypeBinder {
                                 String indexVarName,
                                 String valueVarName,
                                 GenerateCodeBlock block) {
-        block.builder()
-                .beginControlFlow("try")
-                .beginControlFlow("if ($L == null)", valueVarName)
-                .addStatement("$L.setNull($L, $L)", stmtVarName, indexVarName, Types.NULL)
-                .nextControlFlow("else")
-                .addStatement("$L.setBytes($L, $L)", stmtVarName, indexVarName, valueVarName)
-                .endControlFlow()
-                .nextControlFlow("catch ($T e)", SQLException.class)
-                .addStatement("throw new $T(e)", LightRuntimeException.class)
-                .endControlFlow();
+        bindToStatementWithNullable(stmtVarName,
+                indexVarName, valueVarName,
+                "setBytes", block);
     }
 
     public static ByteArrayColumnTypeBinder create(ProcessEnv env) {

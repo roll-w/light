@@ -49,23 +49,28 @@ public class TransactionMethodProcessor implements Processor<TransactionMethod> 
         List<String> paramNames = new ArrayList<>();
         mExecutable.getParameters().forEach(variableElement ->
                 paramNames.add(variableElement.getSimpleName().toString()));
-        if (ElementUtil.isDefault(mExecutable)) {
-            if (ElementUtil.isInterface(mContaining)) {
-                method.setCallType(TransactionMethod.CallType.DEFAULT);
-            } else {
-                method.setCallType(TransactionMethod.CallType.INHERITED_DEFAULT);
-            }
-        } else {
-            method.setCallType(TransactionMethod.CallType.DIRECT);
-        }
+        TransactionMethod.CallType callType = getCallType(mExecutable, mContaining);
+        method.setCallType(callType);
+        TransactionMethodTranslator transactionMethodTranslator =
+                new TransactionMethodTranslator(
+                        mExecutable.getSimpleName().toString(),
+                        callType
+                );
 
         return method.setElement(mExecutable)
                 .setReturnType(mExecutable.getReturnType())
                 .setParamNames(paramNames)
-                .setBinder(new DirectTransactionMethodBinder(
-                        new TransactionMethodTranslator(
-                                method.getElement()
-                                        .getSimpleName()
-                                        .toString(), method.getCallType())));
+                .setBinder(new DirectTransactionMethodBinder(transactionMethodTranslator));
+    }
+
+    private static TransactionMethod.CallType getCallType(ExecutableElement executableElement,
+                                                          TypeElement typeElement) {
+        if (!ElementUtil.isDefault(executableElement)) {
+            return TransactionMethod.CallType.DIRECT;
+        }
+        if (ElementUtil.isInterface(typeElement)) {
+            return TransactionMethod.CallType.DEFAULT;
+        }
+        return TransactionMethod.CallType.INHERITED_DEFAULT;
     }
 }
