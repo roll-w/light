@@ -89,7 +89,7 @@ public class SQLiteDialectProvider extends GeneralDialectProvider
                                                Configurations configurations) {
         if (dataType == null) {
             throw new IllegalArgumentException("SQLDataType is null. " +
-                    "This may be a Light bug, please report it to us.");
+                    "This may be a bug of Light, please report it to us.");
         }
         String type = configurations.findConfigurationValue(
                 LightConfiguration.KEY_COLUMN_TYPE);
@@ -97,12 +97,14 @@ public class SQLiteDialectProvider extends GeneralDialectProvider
             return type;
         }
 
+        // see https://www.sqlite.org/datatype3.html
         switch (dataType) {
             case CHAR:
             case INT:
             case TINYINT:
             case SMALLINT:
             case LONG:
+            case TIMESTAMP:
                 return "INTEGER";
             case BOOLEAN:
                 return "BOOLEAN";
@@ -110,6 +112,8 @@ public class SQLiteDialectProvider extends GeneralDialectProvider
             case DOUBLE:
             case REAL:
                 return "REAL";
+            case DECIMAL:
+                return "NUMERIC";
             case CHARS:
             case VARCHAR:
             case LONGTEXT:
@@ -117,9 +121,13 @@ public class SQLiteDialectProvider extends GeneralDialectProvider
                 return "TEXT";
             case BINARY:
                 return "BLOB";
+            case TIME:
+                return "TIME";
+            case DATE:
+                return "DATETIME";
             default:
                 throw new IllegalArgumentException("SQLDataType is undefined. " +
-                        "This may be a Light bug, please report it to us.");
+                        "This may be a bug of Light, please report it to us.");
         }
     }
 
@@ -136,25 +144,22 @@ public class SQLiteDialectProvider extends GeneralDialectProvider
                 .append(" (");
         StringJoiner indexColumns = new StringJoiner(", ");
         String[] columns = index.getColumns();
-        boolean ordersEmpty = index.getOrders().length == 0;
-
         for (int i = 0; i < columns.length; i++) {
-            indexColumns.add(escapeParam(columns[i]) +
-                    (ordersEmpty
-                            ? ""
-                            : " " + getOrderOrDefault(i, index.getOrders())
-                    ));
+            indexColumns.add(
+                    escapeParam(columns[i]) + getOrderOrDefault(i, index.getOrders()));
         }
-        builder.append(indexColumns).append(") ");
+        builder.append(indexColumns).append(")");
         return builder.toString();
     }
 
     private String getOrderOrDefault(int index, Order[] orders) {
-        try {
-            return orders[index].name();
-        } catch (Exception e) {
-            return Order.ASC.name();
+        if (orders == null || orders.length == 0) {
+            return "";
         }
+        if (index >= orders.length) {
+            return " " + Order.ASC.name();
+        }
+        return " " + orders[index].name();
     }
 
     @Override

@@ -57,7 +57,7 @@ public class MySQLDialectProvider extends GeneralDialectProvider
     public String create(Table table) {
         StringBuilder builder = new StringBuilder("CREATE TABLE IF NOT EXISTS ")
                 .append(escapeParam(table.getName()))
-                .append(" ( ");
+                .append(" (");
         StringJoiner columnJoiner = new StringJoiner(", ");
         table.getColumns().forEach(column ->
                 columnJoiner.add(createColumn(column)));
@@ -79,21 +79,19 @@ public class MySQLDialectProvider extends GeneralDialectProvider
         if (!table.getPrimaryKey().getColumns().isEmpty()) {
             builder.append(", PRIMARY KEY (")
                     .append(primaryKeyJoiner)
-                    .append(") ");
+                    .append(")");
         }
 
-        builder.append(") ");
+        builder.append(")");
         if (autoIncrementStart != null) {
             builder.append(" AUTO_INCREMENT=")
                     .append(autoIncrementStart);
         }
         builder.append(" ENGINE=").append(engine)
                 .append(" ")
-                .append("DEFAULT CHARSET=")
-                .append(charset);
+                .append("DEFAULT CHARSET=").append(charset);
         if (!StringUtil.isEmpty(collate)) {
-            builder.append(" COLLATE=")
-                    .append(collate);
+            builder.append(" COLLATE=").append(collate);
         }
 
         return builder.toString();
@@ -111,26 +109,23 @@ public class MySQLDialectProvider extends GeneralDialectProvider
                 .append(escapeParam(index.getTableName()))
                 .append("(");
         StringJoiner indexColumns = new StringJoiner(", ");
-        boolean ordersEmpty = index.getOrders().length == 0;
         String[] columns = index.getColumns();
         for (int i = 0; i < columns.length; i++) {
-            indexColumns.add(escapeParam(columns[i]) + " " +
-                    (ordersEmpty
-                            ? ""
-                            : getOrderOrDefault(i, index.getOrders())
-                    )
-            );
+            indexColumns.add(escapeParam(columns[i]) +
+                    getOrderOrDefault(i, index.getOrders()));
         }
-        builder.append(indexColumns).append(") ");
+        builder.append(indexColumns).append(")");
         return builder.toString();
     }
 
     private String getOrderOrDefault(int index, Order[] orders) {
-        try {
-            return orders[index].name();
-        } catch (Exception e) {
-            return Order.ASC.name();
+        if (orders == null || orders.length == 0) {
+            return "";
         }
+        if (index >= orders.length) {
+            return " " + Order.ASC.name();
+        }
+        return " " + orders[index].name();
     }
 
     private String createForeignKey(TableForeignKey index) {
@@ -149,10 +144,10 @@ public class MySQLDialectProvider extends GeneralDialectProvider
 
     @Override
     protected String getDefaultTypeDeclaration(SQLDataType dataType,
-                                             Configurations configurations) {
+                                               Configurations configurations) {
         if (dataType == null || dataType == SQLDataType.UNDEFINED) {
             throw new IllegalArgumentException("SQLDataType is null or undefined. " +
-                    "This may be a Light bug, please report it to us.");
+                    "This may be a bug of Light, please report it to us.");
         }
         String type = configurations.findConfigurationValue(
                 LightConfiguration.KEY_COLUMN_TYPE);
@@ -189,9 +184,17 @@ public class MySQLDialectProvider extends GeneralDialectProvider
                 return "LONGTEXT";
             case BINARY:
                 return "BLOB";
+            case TIME:
+                return "TIME";
+            case DATE:
+                return "DATE";
+            case TIMESTAMP:
+                return "DATETIME";
+            case DECIMAL:
+                return "DECIMAL";
             default:
                 throw new IllegalArgumentException("SQLDataType is null or undefined. " +
-                        "This may be a Light bug, please report it to us.");
+                        "This may be a bug of Light, please report it to us.");
         }
     }
 
