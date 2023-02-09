@@ -24,7 +24,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.Configurable;
 import space.lingu.light.compile.struct.Database;
@@ -117,9 +117,9 @@ public class DatabaseWriter extends ClassWriter {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(method.getElement().getSimpleName().toString())
                 .addAnnotation(Override.class)
                 .returns(method.getDao().getTypeCompileType().toTypeName());
-        if (ElementUtil.isPublic(method.getElement())) {
+        if (ElementUtils.isPublic(method.getElement())) {
             methodBuilder.addModifiers(Modifier.PUBLIC);
-        } else if (ElementUtil.isProtected(method.getElement())) {
+        } else if (ElementUtils.isProtected(method.getElement())) {
             methodBuilder.addModifiers(Modifier.PROTECTED);
         }
 

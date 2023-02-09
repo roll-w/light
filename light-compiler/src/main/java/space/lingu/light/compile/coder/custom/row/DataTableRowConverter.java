@@ -29,7 +29,7 @@ public class DataTableRowConverter extends RowConverter {
     private MethodSpec methodSpec;
 
     protected DataTableRowConverter(DataTable table) {
-        super(table.getTypeCompileType().getTypeMirror());
+        super(table.getTypeCompileType());
         mTable = table;
     }
 

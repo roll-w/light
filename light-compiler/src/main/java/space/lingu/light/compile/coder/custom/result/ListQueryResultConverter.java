@@ -22,8 +22,8 @@ import com.squareup.javapoet.TypeName;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.type.TypeMirror;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,10 +33,10 @@ import java.util.List;
  * @author RollW
  */
 public class ListQueryResultConverter extends QueryResultConverter {
-    private final TypeMirror mType;
+    private final TypeCompileType mType;
     private final RowConverter mConverter;
 
-    public ListQueryResultConverter(TypeMirror type, RowConverter converter) {
+    public ListQueryResultConverter(TypeCompileType type, RowConverter converter) {
         super(Collections.singletonList(converter));
         mConverter = converter;
         mType = type;
@@ -46,14 +46,14 @@ public class ListQueryResultConverter extends QueryResultConverter {
     public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
         mConverter.onResultSetReady(resultSetName, block);
         TypeName listType = ParameterizedTypeName
-                .get(ClassName.get(List.class), TypeName.get(mType));
+                .get(ClassName.get(List.class), mType.toTypeName());
         TypeName arrayListType = ParameterizedTypeName
-                .get(ClassName.get(ArrayList.class), TypeName.get(mType));
+                .get(ClassName.get(ArrayList.class), mType.toTypeName());
         final String tempVar = block.getTempVar("_item");
         block.builder().addStatement("final $T $L = new $T()", listType, outVarName, arrayListType)
                 .beginControlFlow("try")
                 .beginControlFlow("while ($L.next())", resultSetName)
-                .addStatement("final $T $L", TypeName.get(mType), tempVar);
+                .addStatement("final $T $L", mType.toTypeName(), tempVar);
 
         mConverter.convert(tempVar, resultSetName, block);
         block.builder().addStatement("$L.add($L)", outVarName, tempVar)

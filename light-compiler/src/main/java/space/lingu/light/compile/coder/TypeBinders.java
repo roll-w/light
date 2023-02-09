@@ -46,12 +46,12 @@ import space.lingu.light.compile.coder.type.PrimitiveColumnTypeBinder;
 import space.lingu.light.compile.coder.type.StringColumnTypeBinder;
 import space.lingu.light.compile.coder.type.TypeConverter;
 import space.lingu.light.compile.coder.type.VoidColumnTypeBinder;
-import space.lingu.light.compile.javac.ElementUtil;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.javac.TypeUtil;
-import space.lingu.light.compile.javac.types.JavacTypeCompileType;
+import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.TypeUtils;
 import space.lingu.light.compile.processor.PojoProcessor;
 import space.lingu.light.compile.processor.ReturnTypes;
+import space.lingu.light.compile.processor.SQLDataTypeUtils;
 import space.lingu.light.compile.struct.DataConverter;
 import space.lingu.light.compile.struct.Pojo;
 
@@ -72,6 +72,8 @@ import java.util.stream.Collectors;
  * @author RollW
  */
 public class TypeBinders {
+    // TODO: refactor TypeBinders
+
     private final ProcessEnv mEnv;
     private final List<ColumnTypeBinder> mColumnTypeBinders = new ArrayList<>();
     private final List<QueryResultConverter> mQueryResultConverters = new ArrayList<>();
@@ -109,22 +111,25 @@ public class TypeBinders {
             }
             List<TypeMirror> types = mKnownTypes.computeIfAbsent(
                     dataType, k -> new ArrayList<>());
-            types.add(binder.type());
+            types.add(binder.type().getTypeMirror());
         }
     }
 
-    public StatementBinder findStatementBinder(TypeMirror type, SQLDataType dataType) {
-        if (TypeUtil.isError(type)) {
+    public StatementBinder findStatementBinder(TypeCompileType typeCompileType,
+                                               SQLDataType dataType) {
+        TypeMirror type = typeCompileType.getTypeMirror();
+        if (TypeUtils.isError(type)) {
             return null;
         }
-        ColumnTypeBinder binder = findColumnTypeBinder(type, dataType);
+        ColumnTypeBinder binder = findColumnTypeBinder(
+                typeCompileType, dataType);
         if (binder != null) {
             return binder;
         }
         boolean findsAll = dataType == null || dataType == SQLDataType.UNDEFINED;
         TypeConverter converter = findConverterInto(type, findTypesFor(dataType, findsAll));
         if (converter == null) {
-            return findEnumColumnTypeBinder(type);
+            return findEnumColumnTypeBinder(typeCompileType);
         }
         List<ColumnTypeBinder> binders = getAllColumnBinders(converter.to);
         ColumnTypeBinder converterBinder = binders
@@ -132,24 +137,26 @@ public class TypeBinders {
                 .findFirst()
                 .orElse(null);
         if (converterBinder != null) {
-            return new CompositeTypeBinder(type, converterBinder,
+            return new CompositeTypeBinder(typeCompileType, converterBinder,
                     converter, null);
         }
         return null;
     }
 
-    public ColumnValueReader findColumnReader(TypeMirror type, SQLDataType dataType) {
-        if (TypeUtil.isError(type)) {
+    public ColumnValueReader findColumnReader(TypeCompileType typeCompileType,
+                                              SQLDataType dataType) {
+        TypeMirror type = typeCompileType.getTypeMirror();
+        if (TypeUtils.isError(type)) {
             return null;
         }
-        ColumnTypeBinder binder = findColumnTypeBinder(type, dataType);
+        ColumnTypeBinder binder = findColumnTypeBinder(typeCompileType, dataType);
         if (binder != null) {
             return binder;
         }
         boolean findsAll = dataType == null || dataType == SQLDataType.UNDEFINED;
         TypeConverter converter = findConverterRead(findTypesFor(dataType, findsAll), type);
         if (converter == null) {
-            return findEnumColumnTypeBinder(type);
+            return findEnumColumnTypeBinder(typeCompileType);
         }
         ColumnTypeBinder converterBinder = getAllColumnBinders(converter.from)
                 .stream()
@@ -159,7 +166,8 @@ public class TypeBinders {
             return null;
         }
 
-        return new CompositeTypeBinder(type, converterBinder,
+        return new CompositeTypeBinder(
+                typeCompileType, converterBinder,
                 null, converter);
     }
 
@@ -255,105 +263,186 @@ public class TypeBinders {
         });
     }
 
-    public QueryParameterBinder findQueryParameterBinder(TypeMirror typeMirror) {
-        if (typeMirror == null) {
-            throw new IllegalArgumentException("TypeMirror cannot be null");
+    public QueryParameterBinder findQueryParameterBinder(TypeCompileType typeCompileType) {
+        if (typeCompileType == null) {
+            throw new IllegalArgumentException("TypeCompileType cannot be null");
         }
-        if (TypeUtil.isCollection(mEnv, typeMirror)) {
-            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(
-                    TypeUtil.getGenericTypes(typeMirror).get(0)
-            );
-            StatementBinder binder = findStatementBinder(typeArg, null);
-            if (binder != null) {
-                return new CollectionQueryParameterBinder(binder);
-            }
-            return null;
+        QueryParameterBinder collectionBinder =
+                tryFindQueryParamBinderCollection(typeCompileType);
+        if (collectionBinder != null) {
+            return collectionBinder;
         }
-        if (TypeUtil.isArray(typeMirror) &&
-                TypeUtil.getArrayElementType(typeMirror).getKind() != TypeKind.BYTE) {
-            TypeMirror componentType = TypeUtil.getArrayElementType(typeMirror);
-            StatementBinder binder = findStatementBinder(componentType, null);
-            if (binder != null) {
-                return new ArrayQueryParameterBinder(binder);
-            }
-            return null;
+        QueryParameterBinder arrayBinder =
+                tryFindQueryParamBinderArray(typeCompileType);
+        if (arrayBinder != null) {
+            return arrayBinder;
         }
-        StatementBinder binder = findStatementBinder(typeMirror, null);
+        SQLDataType dataType = SQLDataTypeUtils
+                .recognizeSQLDataType(null, typeCompileType);
+        StatementBinder binder =
+                findStatementBinder(typeCompileType, dataType);
+
         if (binder != null) {
             return new BasicQueryParameterBinder(binder);
         }
         return null;
     }
 
-    public QueryResultBinder findQueryResultBinder(TypeMirror typeMirror) {
-        QueryResultConverter resultConverter = findQueryResultConverter(typeMirror);
+    private QueryParameterBinder tryFindQueryParamBinderCollection(
+            TypeCompileType typeCompileType) {
+        if (!TypeUtils.isCollection(mEnv, typeCompileType.getTypeMirror())) {
+            return null;
+        }
+        List<? extends TypeMirror> genericTypes =
+                TypeUtils.getGenericTypes(typeCompileType.getTypeMirror());
+        TypeMirror typeArg = TypeUtils.getExtendBoundOrSelf(
+                genericTypes.get(0));
+        TypeCompileType typeArgType = mEnv.getTypeCompileType(typeArg);
+
+        SQLDataType dataType =
+                SQLDataTypeUtils.recognizeSQLDataType(null, typeArgType);
+        StatementBinder binder = findStatementBinder(typeArgType, dataType);
+        if (binder != null) {
+            return new CollectionQueryParameterBinder(binder);
+        }
+        return null;
+    }
+
+    private QueryParameterBinder tryFindQueryParamBinderArray(
+            TypeCompileType typeCompileType) {
+        if (!TypeUtils.isArray(typeCompileType.getTypeMirror())) {
+            return null;
+        }
+        if (TypeUtils.getArrayElementType(typeCompileType.getTypeMirror()).getKind() == TypeKind.BYTE) {
+            return null;
+        }
+
+        TypeMirror componentType = TypeUtils
+                .getArrayElementType(typeCompileType.getTypeMirror());
+        TypeCompileType componentTypeCompileType =
+                mEnv.getTypeCompileType(componentType);
+        SQLDataType dataType =
+                SQLDataTypeUtils.recognizeSQLDataType(null, componentTypeCompileType);
+        StatementBinder binder = findStatementBinder(componentTypeCompileType, dataType);
+
+        if (binder != null) {
+            return new ArrayQueryParameterBinder(binder);
+        }
+        return null;
+    }
+
+
+    public QueryResultBinder findQueryResultBinder(TypeCompileType typeCompileType) {
+        QueryResultConverter resultConverter = findQueryResultConverter(typeCompileType);
         if (resultConverter == null) {
             return null;
         }
-        return new InstantQueryResultBinder(findQueryResultConverter(typeMirror));
+        return new InstantQueryResultBinder(findQueryResultConverter(typeCompileType));
     }
 
-    public QueryResultConverter findQueryResultConverter(TypeMirror typeMirror) {
-        if (typeMirror == null) {
-            throw new IllegalArgumentException("TypeMirror cannot be null");
+    public QueryResultConverter findQueryResultConverter(
+            TypeCompileType typeCompileType) {
+        if (typeCompileType == null) {
+            throw new IllegalArgumentException("TypeCompileType cannot be null");
         }
-        if (RawQueryResultConverter.isRaw(typeMirror, mEnv)) {
+        TypeMirror typeMirror = typeCompileType.getTypeMirror();
+        if (RawQueryResultConverter.isRaw(typeCompileType, mEnv)) {
             return RawQueryResultConverter.create(mEnv);
         }
-        if (TypeUtil.isArray(typeMirror) && TypeUtil.getArrayElementType(typeMirror).getKind() != TypeKind.BYTE) {
-            RowConverter converter = findRowConverter(TypeUtil.getArrayElementType(typeMirror));
-            if (converter != null) {
-                return new ArrayQueryResultConverter(converter);
-            }
+
+        RowConverter arrayConverter = tryFindRowConverterArrayType(typeCompileType);
+        if (arrayConverter != null) {
+            return new ArrayQueryResultConverter(arrayConverter);
         }
-        boolean isIterable = TypeUtil.isIterable(mEnv, typeMirror);
-        TypeElement element = ElementUtil.asTypeElement(typeMirror);
+
+        boolean isIterable = TypeUtils.isIterable(mEnv, typeMirror);
         if (isIterable) {
-            if (!ReturnTypes.isLegalCollectionReturnType(element)) {
-                throw new LightCompileException(CompileErrors.QUERY_UNKNOWN_RETURN_TYPE);
-            }
-            List<? extends TypeMirror> genericTypes = TypeUtil.getGenericTypes(typeMirror);
-            if (genericTypes == null || genericTypes.isEmpty()) {
-                throw new LightCompileException(CompileErrors.NOT_BOUND_GENERIC_TYPES);
-            }
-            TypeMirror typeArg = TypeUtil.getExtendBoundOrSelf(
-                    genericTypes.get(0)
-            );
-            RowConverter converter = findRowConverter(typeArg);
+            RowConverter converter = tryFindRowConverterIterator(typeCompileType);
             if (converter != null) {
-                return new ListQueryResultConverter(typeArg, converter);
+                return new ListQueryResultConverter(
+                        converter.getOutType(),
+                        converter
+                );
             }
         }
-        RowConverter converter = findRowConverter(typeMirror);
+        SQLDataType sqlDataType = SQLDataTypeUtils.recognizeSQLDataType(
+                null,
+                typeCompileType
+        );
+        RowConverter converter = findRowConverter(typeCompileType, sqlDataType);
         if (converter == null) {
             return null;
         }
         return new SingleEntityQueryResultConverter(converter);
     }
 
-    public RowConverter findRowConverter(TypeMirror type) {
-        if (TypeUtil.isError(type)) {
+    private RowConverter tryFindRowConverterArrayType(TypeCompileType typeCompileType) {
+        TypeMirror typeMirror = typeCompileType.getTypeMirror();
+        if (!TypeUtils.isArray(typeMirror)) {
             return null;
         }
-        ColumnValueReader reader = findColumnReader(type, null);
+        TypeMirror arrayType = TypeUtils.getArrayElementType(typeMirror);
+        if (arrayType.getKind() == TypeKind.BYTE) {
+            return null;
+        }
+        TypeCompileType arrayElementType =
+                mEnv.getTypeCompileType(arrayType);
+
+        SQLDataType preprocess = SQLDataTypeUtils.recognizeSQLDataType(
+                null,
+                arrayElementType
+        );
+        return findRowConverter(arrayElementType, preprocess);
+    }
+
+    private RowConverter tryFindRowConverterIterator(TypeCompileType typeCompileType) {
+        TypeElement element = typeCompileType.getElement();
+        TypeMirror typeMirror = typeCompileType.getTypeMirror();
+
+        if (!ReturnTypes.isLegalCollectionReturnType(element)) {
+            throw new LightCompileException(CompileErrors.QUERY_UNKNOWN_RETURN_TYPE);
+        }
+        List<? extends TypeMirror> genericTypes = TypeUtils.getGenericTypes(typeMirror);
+        if (genericTypes == null || genericTypes.isEmpty()) {
+            throw new LightCompileException(CompileErrors.NOT_BOUND_GENERIC_TYPES);
+        }
+        TypeMirror typeArg = TypeUtils.getExtendBoundOrSelf(
+                genericTypes.get(0)
+        );
+        TypeCompileType typeArgCompileType = mEnv
+                .getTypeCompileType(typeArg);
+
+        SQLDataType preprocess = SQLDataTypeUtils.recognizeSQLDataType(
+                null, typeArgCompileType);
+        return findRowConverter(typeArgCompileType, preprocess);
+    }
+
+    public RowConverter findRowConverter(TypeCompileType typeCompileType,
+                                         SQLDataType dataType) {
+        TypeMirror typeMirror = typeCompileType.getTypeMirror();
+        if (TypeUtils.isError(typeMirror)) {
+            return null;
+        }
+        ColumnValueReader reader = findColumnReader(typeCompileType, dataType);
         if (reader != null) {
             return new SingleColumnRowConverter(reader);
         }
-        if (mEnv.getTypeUtils().asElement(type) != null && !TypeUtil.isPrimitive(type)) {
-            TypeElement element = ElementUtil.asTypeElement(type);
+        if (typeCompileType.getElement() != null && !TypeUtils.isPrimitive(typeMirror)) {
             PojoProcessor processor = new PojoProcessor(
-                    new JavacTypeCompileType(type, element),
+                    typeCompileType,
                     mEnv
             );
             Pojo pojo = processor.process();
             // TODO: other check
-            return new PojoRowConverter(pojo, type);
+            return new PojoRowConverter(pojo, typeCompileType);
         }
         return null;
     }
 
 
-    private ColumnTypeBinder findColumnTypeBinder(TypeMirror type, SQLDataType dataType) {
+    private ColumnTypeBinder findColumnTypeBinder(TypeCompileType typeCompileType,
+                                                  SQLDataType dataType) {
+        TypeMirror type = typeCompileType.getTypeMirror();
         if (type.getKind() == TypeKind.ERROR) {
             return null;
         }
@@ -369,30 +458,31 @@ public class TypeBinders {
         return null;
     }
 
-    private ColumnTypeBinder findDefaultTypeBinder(TypeMirror type) {
+    private ColumnTypeBinder findDefaultTypeBinder(TypeCompileType type) {
         // here provides fallback builtin type binder, if any.
         // now here are just enum type.
         return findEnumColumnTypeBinder(type);
     }
 
-    private EnumColumnTypeBinder findEnumColumnTypeBinder(TypeMirror type) {
+    private EnumColumnTypeBinder findEnumColumnTypeBinder(TypeCompileType type) {
         if (!checkIfEnumType(type)) {
             return null;
         }
         return new EnumColumnTypeBinder(type);
     }
 
-    private boolean checkIfEnumType(TypeMirror type) {
-        if (TypeUtil.isPrimitive(type)) {
+    private boolean checkIfEnumType(TypeCompileType type) {
+        if (TypeUtils.isPrimitive(type.getTypeMirror())) {
             return false;
         }
-        TypeElement asElement = ElementUtil.asTypeElement(type);
-        return asElement != null && asElement.getKind() == ElementKind.ENUM;
+        return type.getElement() != null &&
+                type.getElement().getKind() == ElementKind.ENUM;
     }
 
     private List<ColumnTypeBinder> getAllColumnBinders(TypeMirror element) {
-        return mColumnTypeBinders.stream().filter(binder ->
-                        TypeUtil.equalTypeMirror(binder.type, element))
+        return mColumnTypeBinders.stream()
+                .filter(binder -> TypeUtils.equalTypeMirror(
+                        binder.type.getTypeMirror(), element))
                 .collect(Collectors.toList());
     }
 

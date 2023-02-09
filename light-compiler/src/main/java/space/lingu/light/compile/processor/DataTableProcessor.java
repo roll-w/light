@@ -20,7 +20,7 @@ import space.lingu.light.Configurations;
 import space.lingu.light.LightIgnore;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.Warnings;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.struct.Configurable;
@@ -144,7 +144,7 @@ public class DataTableProcessor implements Processor<DataTable> {
                             primaryKey.getDeclaredIn() == null) {
                         return false;
                     }
-                    return ElementUtil.equalTypeElement(
+                    return ElementUtils.equalTypeElement(
                             primaryKey.getDeclaredIn().getElement(),
                             typeCompileType.getElement()
                     );

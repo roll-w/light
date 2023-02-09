@@ -17,8 +17,7 @@
 package space.lingu.light.compile.coder;
 
 import space.lingu.light.SQLDataType;
-
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * bind value to a Statement
@@ -31,5 +30,5 @@ public interface StatementBinder {
     void bindToStatement(String stmtVarName, String indexVarName,
                          String valueVarName, GenerateCodeBlock block);
 
-    TypeMirror type();
+    TypeCompileType type();
 }

@@ -24,14 +24,13 @@ import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.writer.ClassWriter;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -44,12 +43,13 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
     private final TypeElement mElement;
     private final List<VariableElement> enumConstants;
 
-    public EnumColumnTypeBinder(TypeMirror type) {
+    public EnumColumnTypeBinder(TypeCompileType type) {
         super(type, SQLDataType.VARCHAR);
-        mElement = ElementUtil.asTypeElement(type);
-        if (mElement == null || mElement.getKind() != ElementKind.ENUM) {
+        if (type.getElement() == null ||
+                type.getElement().getKind() != ElementKind.ENUM) {
             throw new IllegalArgumentException("Not an enum kind.");
         }
+        mElement = type.getElement();
         enumConstants = getEnumConstants();
     }
 

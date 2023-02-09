@@ -22,6 +22,7 @@ import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
@@ -38,13 +39,18 @@ import java.util.List;
 public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
     private final PrimitiveColumnTypeBinder mBinder;
 
-    public BoxedPrimitiveColumnTypeBinder(TypeMirror type, PrimitiveColumnTypeBinder primitiveBinder) {
+    public BoxedPrimitiveColumnTypeBinder(TypeCompileType type,
+                                          PrimitiveColumnTypeBinder primitiveBinder) {
         super(type, primitiveBinder.getDataType());
         mBinder = primitiveBinder;
     }
 
-    private static TypeMirror getBoxedFromPrimitive(TypeMirror primitive, ProcessEnv env) {
-        return env.getTypeUtils().boxedClass((PrimitiveType) primitive).asType();
+    private static TypeCompileType getBoxedFromPrimitive(TypeCompileType primitive,
+                                                         ProcessEnv env) {
+        TypeMirror typeMirror =
+                env.getTypeUtils().boxedClass((PrimitiveType) primitive.getTypeMirror())
+                        .asType();
+        return env.getTypeCompileType(typeMirror);
     }
 
     public static List<BoxedPrimitiveColumnTypeBinder> create(List<PrimitiveColumnTypeBinder> primitiveBinders, ProcessEnv env) {

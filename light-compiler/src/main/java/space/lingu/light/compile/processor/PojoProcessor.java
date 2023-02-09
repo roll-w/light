@@ -21,10 +21,10 @@ import space.lingu.light.Embedded;
 import space.lingu.light.LightIgnore;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.Warnings;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.javac.types.JavacVariableCompileType;
 import space.lingu.light.compile.struct.*;
@@ -73,7 +73,7 @@ public class PojoProcessor implements Processor<Pojo> {
             }
             boolean hasColumn = e.getAnnotation(DataColumn.class) != null;
             boolean isIgnore = e.getAnnotation(LightIgnore.class) != null;
-            if (ElementUtil.isStatic(e)) {
+            if (ElementUtils.isStatic(e)) {
                 if (hasColumn && !isIgnore) {
                     mEnv.getLog().warn(Warnings.CANNOT_APPLY_TO_STATIC_FIELD, e);
                 }
@@ -91,7 +91,7 @@ public class PojoProcessor implements Processor<Pojo> {
                 VariableCompileType variableCompileType =
                         new JavacVariableCompileType(
                                 variableElement.asType(),
-                                variableElement
+                                variableElement, mEnv
                         );
                 Field field = new FieldProcessor(variableCompileType, mEnv).process();
                 fields.add(field);
@@ -205,7 +205,7 @@ public class PojoProcessor implements Processor<Pojo> {
     }
 
     private void setFieldGetterMethod(Field field, List<ExecutableElement> elements) {
-        if (ElementUtil.isPublic(field.getVariableCompileType().getElement())) {
+        if (ElementUtils.isPublic(field.getVariableCompileType().getElement())) {
             FieldGetter getter = new FieldGetter(field.getVariableCompileType(),
                     Field.CallType.FIELD, field.getName());
             field.setGetter(getter);
@@ -242,7 +242,7 @@ public class PojoProcessor implements Processor<Pojo> {
             return;
         }
 
-        if (ElementUtil.isPublic(field.getVariableCompileType().getElement())) {
+        if (ElementUtils.isPublic(field.getVariableCompileType().getElement())) {
             FieldSetter setter = new FieldSetter(field.getVariableCompileType(),
                     Field.CallType.FIELD, field.getName());
             field.setSetter(setter);
@@ -255,7 +255,7 @@ public class PojoProcessor implements Processor<Pojo> {
                         executableElement -> candidates.contains(
                                 executableElement.getSimpleName().toString()) &&
                                 executableElement.getParameters().size() == 1 &&
-                                TypeUtil.equalTypeMirror(
+                                TypeUtils.equalTypeMirror(
                                         executableElement.getParameters().get(0).asType(),
                                         field.getVariableCompileType().getTypeMirror()
                                 )

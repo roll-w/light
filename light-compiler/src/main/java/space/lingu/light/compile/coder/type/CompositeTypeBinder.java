@@ -21,8 +21,7 @@ import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
-
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * @author RollW
@@ -33,7 +32,8 @@ public class CompositeTypeBinder extends ColumnTypeBinder
     private final TypeConverter stmtConverter;
     private final TypeConverter readConverter;
 
-    public CompositeTypeBinder(TypeMirror type, ColumnTypeBinder binder,
+    public CompositeTypeBinder(TypeCompileType type,
+                               ColumnTypeBinder binder,
                                TypeConverter inConverter,
                                TypeConverter outConverter) {
         super(type, binder.getDataType());
@@ -52,7 +52,9 @@ public class CompositeTypeBinder extends ColumnTypeBinder
         }
         final String tempVar = block.getTempVar();
         block.builder().addStatement("final $T $L",
-                TypeName.get(binder.type()), tempVar);
+                binder.type().toTypeName(),
+                tempVar);
+
         binder.readFromResultSet(tempVar, resultSetName, indexName, block);
         readConverter.convert(tempVar, outVarName, block);
     }

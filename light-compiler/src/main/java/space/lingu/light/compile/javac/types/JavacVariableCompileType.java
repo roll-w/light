@@ -16,7 +16,8 @@
 
 package space.lingu.light.compile.javac.types;
 
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
+import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.javac.VariableCompileType;
 
@@ -25,6 +26,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
+import java.util.Objects;
 
 /**
  * @author RollW
@@ -35,13 +37,15 @@ public class JavacVariableCompileType implements VariableCompileType {
     private final TypeCompileType type;
 
     public JavacVariableCompileType(TypeMirror typeMirror,
-                                    VariableElement element) {
+                                    VariableElement element,
+                                    ProcessEnv processEnv) {
         this.typeMirror = typeMirror;
         this.element = element;
 
         TypeMirror varMirror = element.asType();
-        TypeElement varTypeElement = ElementUtil.asTypeElement(varMirror);
-        this.type = new JavacTypeCompileType(varMirror, varTypeElement);
+        TypeElement varTypeElement = ElementUtils.asTypeElement(varMirror);
+        this.type = new JavacTypeCompileType(
+                varMirror, varTypeElement, processEnv);
     }
 
     @Override
@@ -85,6 +89,19 @@ public class JavacVariableCompileType implements VariableCompileType {
     @Override
     public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType) {
         return element.getAnnotationsByType(annotationType);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VariableCompileType)) return false;
+        VariableCompileType that = (VariableCompileType) o;
+        return Objects.equals(typeMirror, that.getTypeMirror()) && Objects.equals(element, that.getElement());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(typeMirror, element);
     }
 
     @Override

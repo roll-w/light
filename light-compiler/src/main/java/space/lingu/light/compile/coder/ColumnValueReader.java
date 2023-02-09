@@ -17,8 +17,7 @@
 package space.lingu.light.compile.coder;
 
 import space.lingu.light.SQLDataType;
-
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * Read value from {@code ResultSet}.
@@ -31,5 +30,5 @@ public interface ColumnValueReader {
     void readFromResultSet(String outVarName, String resultSetName,
                          String indexName, GenerateCodeBlock block);
 
-    TypeMirror type();
+    TypeCompileType type();
 }

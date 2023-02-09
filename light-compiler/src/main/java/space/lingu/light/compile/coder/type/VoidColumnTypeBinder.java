@@ -18,6 +18,7 @@ package space.lingu.light.compile.coder.type;
 
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.javac.types.JavacTypeCompileType;
 
 /**
  * Returns void
@@ -26,7 +27,7 @@ import space.lingu.light.compile.coder.GenerateCodeBlock;
  */
 public class VoidColumnTypeBinder extends ColumnTypeBinder {
     public VoidColumnTypeBinder() {
-        super(null, null);
+        super(JavacTypeCompileType.invalid(), null);
     }
 
     @Override

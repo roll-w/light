@@ -17,16 +17,15 @@
 package space.lingu.light.compile.coder.custom.row;
 
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * @author RollW
  */
 public abstract class RowConverter {
-    protected final TypeMirror outType;
+    protected final TypeCompileType outType;
 
-    protected RowConverter(TypeMirror outType) {
+    protected RowConverter(TypeCompileType outType) {
         this.outType = outType;
     }
 
@@ -36,7 +35,7 @@ public abstract class RowConverter {
 
     public abstract void onResultSetFinish(GenerateCodeBlock block);
 
-    public TypeMirror getOutType() {
+    public TypeCompileType getOutType() {
         return outType;
     }
 }

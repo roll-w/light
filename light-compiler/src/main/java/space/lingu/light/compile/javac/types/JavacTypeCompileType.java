@@ -18,13 +18,27 @@ package space.lingu.light.compile.javac.types;
 
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.javac.TypeUtils;
 
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author RollW
@@ -32,11 +46,14 @@ import java.util.List;
 public class JavacTypeCompileType implements TypeCompileType {
     private final TypeMirror typeMirror;
     private final TypeElement element;
+    private final ProcessEnv processEnv;
 
     public JavacTypeCompileType(TypeMirror typeMirror,
-                                TypeElement element) {
+                                TypeElement element,
+                                ProcessEnv processEnv) {
         this.typeMirror = typeMirror;
         this.element = element;
+        this.processEnv = processEnv;
     }
 
     @Override
@@ -77,18 +94,155 @@ public class JavacTypeCompileType implements TypeCompileType {
 
     @Override
     public TypeName toTypeName() {
+        if (typeMirror == null) {
+            return null;
+        }
         return TypeName.get(typeMirror);
     }
 
     @Override
     public List<MethodCompileType> getDeclaredMethods() {
         // TODO:
-        return null;
+        if (element == null) {
+            return Collections.emptyList();
+        }
+        return getAllMethods(element);
     }
 
     @Override
     public List<MethodCompileType> getMethods() {
+        if (element == null) {
+            return Collections.emptyList();
+        }
+        List<MethodCompileType> declaredMethods = new ArrayList<>(getDeclaredMethods());
+        List<MethodCompileType> superMethods =
+                getSuperClassesMethods(declaredMethods);
+        declaredMethods.addAll(superMethods);
         return null;
+    }
+
+    private List<MethodCompileType> getAllMethods(TypeElement element) {
+        List<? extends Element> enclosedElements = element.getEnclosedElements();
+        List<MethodCompileType> methodElements = new ArrayList<>();
+
+        for (Element e : enclosedElements) {
+            if (e.getKind() != ElementKind.METHOD) {
+                continue;
+            }
+            ExecutableElement methodElement = (ExecutableElement) e;
+            TypeMirror enclosingElementMirror = methodElement.getEnclosingElement().asType();
+            if (!(enclosingElementMirror instanceof DeclaredType)) {
+                continue;
+            }
+            ExecutableType executableType = TypeUtils.asExecutable(methodElement.asType());
+            MethodCompileType methodCompileType = new JavacMethodCompileType(
+                    executableType, methodElement,
+                    this, processEnv);
+            methodElements.add(methodCompileType);
+        }
+        return methodElements;
+    }
+
+    private List<MethodCompileType> deduplicateMethods(List<MethodCompileType> methods) {
+        Set<String> methodSignatures = new HashSet<>();
+        List<MethodCompileType> result = new ArrayList<>();
+        for (MethodCompileType methodCompileType : methods) {
+            String signature = methodCompileType.getSignature();
+            if (methodSignatures.contains(signature)) {
+                continue;
+            }
+            result.add(methodCompileType);
+            methodSignatures.add(signature);
+        }
+        return result;
+    }
+
+
+    private List<MethodCompileType> getSuperClassesMethods(
+            List<MethodCompileType> methodsIn) {
+        List<TypeMirror> superClasses = getAllSuperClassesAndInterfaces(
+                this.getElement());
+        return getUnimplementedMethods(methodsIn, superClasses);
+    }
+
+    private List<MethodCompileType> getUnimplementedMethods(
+            List<MethodCompileType> implementedMethods,
+            List<TypeMirror> superClasses) {
+        List<MethodCompileType> unimplementedMethods = new ArrayList<>();
+        DeclaredType declaredType = (DeclaredType) this.getElement().asType();
+
+        for (TypeMirror superClass : superClasses) {
+            DeclaredType superDeclaredType = (DeclaredType) superClass;
+            TypeElement superElement = (TypeElement) superDeclaredType.asElement();
+            List<MethodCompileType> superMethods = getAllMethods(superElement);
+            List<MethodCompileType> extracted = extractUnimplementedMethods(
+                    implementedMethods,
+                    declaredType,
+                    superMethods);
+            unimplementedMethods.addAll(extracted);
+        }
+        return unimplementedMethods;
+    }
+
+    private List<MethodCompileType> extractUnimplementedMethods(
+            List<MethodCompileType> implementedMethods,
+            DeclaredType declaredType,
+            List<MethodCompileType> superMethods) {
+        List<MethodCompileType> unimplementedMethods = new ArrayList<>();
+        for (MethodCompileType superMethod : superMethods) {
+            ExecutableType executableType = (ExecutableType)
+                    processEnv.getTypeUtils().asMemberOf(declaredType, superMethod.getElement());
+            if (isMethodImplemented(implementedMethods, superMethod)) {
+                continue;
+            }
+            MethodCompileType methodCompileType =
+                    new JavacMethodCompileType(
+                            executableType,
+                            superMethod.getElement(),
+                            this,
+                            processEnv
+                    );
+            unimplementedMethods.add(methodCompileType);
+        }
+        return unimplementedMethods;
+    }
+
+    private boolean isMethodImplemented(List<MethodCompileType> implementedMethods,
+                                        MethodCompileType superMethod) {
+        for (MethodCompileType implementedMethod : implementedMethods) {
+            if (processEnv.getElementUtils().overrides(
+                    superMethod.getElement(),
+                    implementedMethod.getElement(),
+                    this.getElement())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<TypeMirror> getAllSuperClassesAndInterfaces(TypeElement element) {
+        List<TypeMirror> superClasses = getInterfacesOrSuperClass(element);
+        if (superClasses.isEmpty()) {
+            return superClasses;
+        }
+        List<TypeMirror> res = new ArrayList<>(superClasses);
+        for (TypeMirror superClass : superClasses) {
+            res.addAll(getAllSuperClassesAndInterfaces(
+                    (TypeElement) ((DeclaredType) superClass)
+                            .asElement())
+            );
+        }
+        return res.stream().distinct().collect(Collectors.toList());
+    }
+
+    private List<TypeMirror> getInterfacesOrSuperClass(TypeElement element) {
+        List<TypeMirror> interfaces = new ArrayList<>();
+        TypeMirror superClass = element.getSuperclass();
+        if (superClass.getKind() != TypeKind.NONE) {
+            interfaces.add(superClass);
+        }
+        interfaces.addAll(element.getInterfaces());
+        return interfaces;
     }
 
     @Override
@@ -102,10 +256,28 @@ public class JavacTypeCompileType implements TypeCompileType {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TypeCompileType)) return false;
+        TypeCompileType that = (TypeCompileType) o;
+        return Objects.equals(typeMirror, that.getTypeMirror()) && Objects.equals(element, that.getElement());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(typeMirror, element);
+    }
+
+    @Override
     public String toString() {
         return "JavacTypeCompileType{" +
                 "typeMirror=" + typeMirror +
                 ", element=" + element +
                 '}';
+    }
+
+    public static TypeCompileType invalid() {
+        return new JavacTypeCompileType(null,
+                null, null);
     }
 }

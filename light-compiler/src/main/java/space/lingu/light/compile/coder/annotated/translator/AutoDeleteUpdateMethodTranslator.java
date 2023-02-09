@@ -20,7 +20,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
 
@@ -103,7 +103,7 @@ public class AutoDeleteUpdateMethodTranslator {
     }
 
     protected static boolean isReturnVoid(TypeMirror returnType) {
-        return TypeUtil.isVoid(returnType);
+        return TypeUtils.isVoid(returnType);
     }
 
     protected static boolean isReturnNull(TypeMirror returnType) {
@@ -111,7 +111,7 @@ public class AutoDeleteUpdateMethodTranslator {
     }
 
     protected static boolean isReturnInt(TypeMirror returnType) {
-        return TypeUtil.isInt(returnType) ||
+        return TypeUtils.isInt(returnType) ||
                 TypeName.get(returnType).equals(TypeName.INT.box());
     }
 

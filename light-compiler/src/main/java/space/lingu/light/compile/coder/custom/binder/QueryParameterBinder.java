@@ -19,8 +19,7 @@ package space.lingu.light.compile.coder.custom.binder;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
-
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * @author RollW
@@ -33,7 +32,7 @@ public abstract class QueryParameterBinder implements StatementBinder {
     }
 
     @Override
-    public TypeMirror type() {
+    public TypeCompileType type() {
         return null;
     }
 

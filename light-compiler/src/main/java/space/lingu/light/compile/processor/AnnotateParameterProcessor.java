@@ -18,12 +18,11 @@ package space.lingu.light.compile.processor;
 
 import com.google.auto.common.MoreTypes;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 import space.lingu.light.compile.javac.VariableCompileType;
-import space.lingu.light.compile.javac.types.JavacTypeCompileType;
 import space.lingu.light.compile.struct.AnnotateParameter;
 import space.lingu.light.compile.writer.ClassWriter;
 import space.lingu.light.util.Pair;
@@ -77,7 +76,7 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
                 TypeMirror asMember = mEnv.getTypeUtils()
                         .asMemberOf(declaredType, e);
                 return getGenericTypes(
-                        TypeUtil.asExecutable(asMember).getReturnType()).get(0);
+                        TypeUtils.asExecutable(asMember).getReturnType()).get(0);
             }
         }
         mEnv.getLog().error(
@@ -86,37 +85,32 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
         return null;
     }
 
-    public static List<TypeCompileType> getGenericTypes(TypeMirror mirror) {
+    public List<TypeCompileType> getGenericTypes(TypeMirror mirror) {
         List<TypeCompileType> typeElementList = new ArrayList<>();
         List<? extends TypeMirror> typeMirrors = MoreTypes.asDeclared(mirror).getTypeArguments();
         typeMirrors.forEach(typeMirror -> {
-            TypeElement typeElement = ElementUtil.asTypeElement(typeMirror);
-            typeElementList.add(new JavacTypeCompileType(typeMirror, typeElement));
+            typeElementList.add(mEnv.getTypeCompileType(typeMirror));
         });
         return typeElementList;
     }
 
     private boolean isPublicMethod(Element e) {
-        return ElementUtil.isPublic(e) && !ElementUtil.isStatic(e) &&
+        return ElementUtils.isPublic(e) && !ElementUtils.isStatic(e) &&
                 e.getKind() == ElementKind.METHOD;
     }
 
     private Pair<TypeCompileType, Boolean> extractPojo(TypeMirror typeMirror) {
-        if (TypeUtil.isArray(typeMirror)) {
+        if (TypeUtils.isArray(typeMirror)) {
             // It must be able to convert to TypeElement,
             // or its parameter types do not follow the rules
-            TypeMirror innerMirror = TypeUtil.getArrayElementType(typeMirror);
-            TypeElement inner = ElementUtil.asTypeElement(TypeUtil.getArrayElementType(typeMirror));
-            TypeCompileType compileType = new JavacTypeCompileType(
-                    innerMirror,
-                    inner);
+            TypeMirror innerMirror = TypeUtils.getArrayElementType(typeMirror);
+            TypeCompileType compileType = mEnv.getTypeCompileType(innerMirror);
             return Pair.createPair(compileType, true);
         }
 
-        DeclaredType declaredType = TypeUtil.asDeclared(typeMirror);
+        DeclaredType declaredType = TypeUtils.asDeclared(typeMirror);
         if (declaredType.getTypeArguments() == null || declaredType.getTypeArguments().isEmpty()) {
-            TypeElement typeElement = ElementUtil.asTypeElement(typeMirror);
-            TypeCompileType compileType = new JavacTypeCompileType(typeMirror, typeElement);
+            TypeCompileType compileType = mEnv.getTypeCompileType(typeMirror);
 
             return Pair.createPair(compileType, false);
         }

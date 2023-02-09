@@ -19,12 +19,12 @@ package space.lingu.light.compile.coder.custom.row;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.compile.writer.FieldReadWriteWriter;
 import space.lingu.light.util.StringUtils;
 
-import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +36,7 @@ public class PojoRowConverter extends RowConverter {
     private final List<Field> usedFields = new ArrayList<>();
     private final List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
 
-    public PojoRowConverter(Pojo pojo, TypeMirror outType) {
+    public PojoRowConverter(Pojo pojo, TypeCompileType outType) {
         super(outType);
         mPojo = pojo;
         usedFields.addAll(mPojo.getFields().getFields());

@@ -19,7 +19,7 @@ package space.lingu.light.compile.processor;
 import space.lingu.light.compile.coder.annotated.binder.DirectTransactionMethodBinder;
 import space.lingu.light.compile.coder.annotated.binder.TransactionMethodBinder;
 import space.lingu.light.compile.coder.annotated.translator.TransactionMethodTranslator;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
@@ -67,10 +67,10 @@ public class TransactionMethodProcessor implements Processor<TransactionMethod> 
     private TransactionMethod.CallType getCallType() {
         ExecutableElement executableElement = methodCompileType.getElement();
         TypeElement typeElement = mContaining.getElement();
-        if (!ElementUtil.isDefault(executableElement)) {
+        if (!ElementUtils.isDefault(executableElement)) {
             return TransactionMethod.CallType.DIRECT;
         }
-        if (ElementUtil.isInterface(typeElement)) {
+        if (ElementUtils.isInterface(typeElement)) {
             return TransactionMethod.CallType.DEFAULT;
         }
         return TransactionMethod.CallType.INHERITED_DEFAULT;

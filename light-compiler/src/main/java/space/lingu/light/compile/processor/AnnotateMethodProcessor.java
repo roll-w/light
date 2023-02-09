@@ -21,7 +21,7 @@ import space.lingu.light.compile.javac.CompileType;
 import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.struct.AnnotateParameter;
 import space.lingu.light.compile.struct.DataTable;
@@ -81,7 +81,7 @@ public class AnnotateMethodProcessor {
 
             TypeCompileType entityType = param.getWrappedCompileType();
 
-            if (param.getWrappedCompileType() != null && TypeUtil.equalTypeMirror(
+            if (param.getWrappedCompileType() != null && TypeUtils.equalTypeMirror(
                     param.getCompileType().getType().getTypeMirror(),
                     param.getWrappedCompileType().getTypeMirror()
             )) {
@@ -114,10 +114,10 @@ public class AnnotateMethodProcessor {
 
     public static void checkUnbound(CompileType compileType, ProcessEnv env) {
         TypeMirror typeMirror = compileType.getTypeMirror();
-        if (!TypeUtil.isIterable(env, typeMirror)) {
+        if (!TypeUtils.isIterable(env, typeMirror)) {
             return;
         }
-        List<? extends TypeMirror> genericTypes = TypeUtil.getGenericTypes(typeMirror);
+        List<? extends TypeMirror> genericTypes = TypeUtils.getGenericTypes(typeMirror);
         if (genericTypes == null || genericTypes.isEmpty()) {
             env.getLog().error(
                     CompileErrors.NOT_BOUND_GENERIC_TYPES,

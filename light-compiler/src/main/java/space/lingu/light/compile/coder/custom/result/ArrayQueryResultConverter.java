@@ -22,7 +22,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class ArrayQueryResultConverter extends QueryResultConverter {
     public ArrayQueryResultConverter(RowConverter converter) {
         super(Collections.singletonList(converter));
         this.converter = converter;
-        this.type = converter.getOutType();
+        this.type = converter.getOutType().getTypeMirror();
         // type here is not the array's original type.
         // e.g. given long[], here the type is long.
     }
@@ -52,10 +52,10 @@ public class ArrayQueryResultConverter extends QueryResultConverter {
         final String tempContainerName = block.getTempVar("_arrayType");
         final String tempArrayListName = block.getTempVar("_arrayList");
 
-        if (TypeUtil.isArray(type)) {
+        if (TypeUtils.isArray(type)) {
             // 2 dimensions array
             // In fact, the support is not very good, and it is now in an invalid state.
-            TypeName ejectContainerType = TypeName.get(TypeUtil.getArrayElementType(type));
+            TypeName ejectContainerType = TypeName.get(TypeUtils.getArrayElementType(type));
             ParameterizedTypeName arrayListType = ParameterizedTypeName.get(
                     ClassName.get(ArrayList.class), ejectContainerType.box());
             block.builder()

@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author RollW
  */
-public class TypeUtil {
+public class TypeUtils {
     public static boolean isAssignedFrom(Types util, TypeMirror f, TypeMirror s) {
         return util.isAssignable(util.erasure(f), s);
     }
@@ -68,7 +68,7 @@ public class TypeUtil {
 
     public static boolean isCollection(ProcessEnv env, TypeMirror typeMirror) {
         TypeMirror erasure = env.getTypeUtils().erasure(typeMirror);
-        return TypeUtil.isAssignedFrom(
+        return TypeUtils.isAssignedFrom(
                 env.getTypeUtils(),
                 erasure,
                 env.getElementUtils().getTypeElement("java.util.Collection").asType()
@@ -122,7 +122,7 @@ public class TypeUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return ElementUtil.equalTypeElement(ElementUtil.asTypeElement(m1), ElementUtil.asTypeElement(m2));
+        return ElementUtils.equalTypeElement(ElementUtils.asTypeElement(m1), ElementUtils.asTypeElement(m2));
     }
 
     public static List<? extends TypeMirror> getGenericTypes(TypeMirror mirror) {
@@ -158,7 +158,7 @@ public class TypeUtil {
 
     public static boolean isIterable(ProcessEnv env, TypeMirror typeMirror) {
         TypeMirror erasure = env.getTypeUtils().erasure(typeMirror);
-        return TypeUtil.isAssignedFrom(
+        return TypeUtils.isAssignedFrom(
                 env.getTypeUtils(),
                 erasure,
                 env.getElementUtils().getTypeElement("java.lang.Iterable").asType()
@@ -166,7 +166,7 @@ public class TypeUtil {
     }
 
 
-    private TypeUtil() {
+    private TypeUtils() {
     }
 
 

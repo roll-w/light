@@ -19,7 +19,7 @@ package space.lingu.light.compile.coder.annotated.binder;
 import com.squareup.javapoet.ClassName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.annotated.translator.TransactionMethodTranslator;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
@@ -36,7 +36,7 @@ public class DirectTransactionMethodBinder extends TransactionMethodBinder {
     public void writeBlock(TypeMirror returnType, List<String> params,
                            ClassName dao, ClassName daoImpl, GenerateCodeBlock block) {
         final String resultVar;
-        boolean returnsValue = !TypeUtil.isVoid(returnType);
+        boolean returnsValue = !TypeUtils.isVoid(returnType);
         if (returnsValue) {
             resultVar = block.getTempVar("_result");
         }  else {

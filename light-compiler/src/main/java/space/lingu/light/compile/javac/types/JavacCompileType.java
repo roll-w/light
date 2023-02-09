@@ -22,6 +22,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
+import java.util.Objects;
 
 /**
  * @author RollW
@@ -72,5 +73,18 @@ public class JavacCompileType implements CompileType {
     @Override
     public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType) {
         return element.getAnnotationsByType(annotationType);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JavacCompileType that = (JavacCompileType) o;
+        return Objects.equals(typeMirror, that.typeMirror) && Objects.equals(element, that.element);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(typeMirror, element);
     }
 }

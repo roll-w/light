@@ -16,8 +16,9 @@
 
 package space.lingu.light.compile.parser;
 
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.javac.types.JavacTypeCompileType;
@@ -45,11 +46,14 @@ public class SQLParser {
     private final String sql;
     private final MethodCompileType methodCompileType;
     private final List<String> expressions;
+    private final ProcessEnv mEnv;
 
-    public SQLParser(String sql, MethodCompileType methodCompileType) {
+    public SQLParser(String sql, MethodCompileType methodCompileType,
+                     ProcessEnv processEnv) {
         this.sql = sql;
         this.methodCompileType = methodCompileType;
         this.expressions = new SQLExpressionParser(sql).getExpressions();
+        this.mEnv = processEnv;
     }
 
     public List<String> expressions() {
@@ -118,7 +122,7 @@ public class SQLParser {
                     return null;
                 }
                 iter = mirror;
-                TypeElement element = ElementUtil.asTypeElement(iter);
+                TypeElement element = ElementUtils.asTypeElement(iter);
                 if (element == null) {
                     break;
                 }
@@ -130,7 +134,8 @@ public class SQLParser {
         }
         return new JavacTypeCompileType(
                 iter,
-                ElementUtil.asTypeElement(iter)
+                ElementUtils.asTypeElement(iter),
+                mEnv
         );
     }
 
@@ -138,7 +143,7 @@ public class SQLParser {
         // call getEnclosedElements on VariableElement will get an empty list.
         // But we want to get all members of this type.
         TypeElement typeElement =
-                ElementUtil.asTypeElement(element.asType());
+                ElementUtils.asTypeElement(element.asType());
         if (typeElement != null) {
             return getAllEnclosedElements(typeElement);
         }
@@ -162,7 +167,7 @@ public class SQLParser {
         }
         interfaces.addAll(element.getInterfaces());
         return interfaces.stream()
-                .map(ElementUtil::asTypeElement)
+                .map(ElementUtils::asTypeElement)
                 .collect(Collectors.toList());
     }
 

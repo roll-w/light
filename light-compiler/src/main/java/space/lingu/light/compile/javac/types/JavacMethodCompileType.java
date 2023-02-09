@@ -16,8 +16,9 @@
 
 package space.lingu.light.compile.javac.types;
 
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.MethodCompileType;
+import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.javac.VariableCompileType;
 
@@ -30,6 +31,7 @@ import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
@@ -45,7 +47,8 @@ public class JavacMethodCompileType implements MethodCompileType {
 
     public JavacMethodCompileType(ExecutableType typeMirror,
                                   ExecutableElement element,
-                                  TypeCompileType declaringType) {
+                                  TypeCompileType declaringType,
+                                  ProcessEnv processEnv) {
         this.typeMirror = typeMirror;
         this.element = element;
         this.declaringType = declaringType;
@@ -56,16 +59,17 @@ public class JavacMethodCompileType implements MethodCompileType {
         List<? extends TypeMirror> parameterTypes = typeMirror.getParameterTypes();
         for (int i = 0; i < typeMirror.getParameterTypes().size(); i++) {
             VariableElement variableElement = variableElements.get(i);
-            TypeMirror asType = variableElement.asType();
             TypeMirror parameterType = parameterTypes.get(i);
             parameters.add(new JavacVariableCompileType(
                     parameterType,
-                    variableElement
+                    variableElement,
+                    processEnv
             ));
         }
         returnType = new JavacTypeCompileType(
                 typeMirror.getReturnType(),
-                ElementUtil.asTypeElement(typeMirror.getReturnType())
+                ElementUtils.asTypeElement(typeMirror.getReturnType()),
+                processEnv
         );
     }
 
@@ -128,6 +132,19 @@ public class JavacMethodCompileType implements MethodCompileType {
     @Override
     public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType) {
         return element.getAnnotationsByType(annotationType);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MethodCompileType)) return false;
+        MethodCompileType that = (MethodCompileType) o;
+        return Objects.equals(typeMirror, that.getTypeMirror()) && Objects.equals(element, that.getElement());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(typeMirror, element, declaringType, parameters, returnType);
     }
 
     @Override

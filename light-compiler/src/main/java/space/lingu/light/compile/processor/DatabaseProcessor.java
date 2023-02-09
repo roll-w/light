@@ -22,7 +22,7 @@ import space.lingu.light.Dao;
 import space.lingu.light.DataConverters;
 import space.lingu.light.LightInfo;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
@@ -111,7 +111,7 @@ public class DatabaseProcessor implements Processor<Database> {
         TypeElement typeElement = mEnv.getElementUtils()
                 .getTypeElement(LightInfo.class.getCanonicalName());
         TypeMirror typeMirror = typeElement.asType();
-        return new JavacTypeCompileType(typeMirror, typeElement);
+        return new JavacTypeCompileType(typeMirror, typeElement, mEnv);
     }
 
     private List<DataTable> processDataTables(List<? extends TypeMirror> mirrors) {
@@ -120,7 +120,7 @@ public class DatabaseProcessor implements Processor<Database> {
         }
         List<DataTable> dataTableList = new ArrayList<>();
         mirrors.forEach(typeMirror -> {
-            TypeElement element = ElementUtil.asTypeElement(typeMirror);
+            TypeElement element = ElementUtils.asTypeElement(typeMirror);
             if (element == null) {
                 mEnv.getLog().error(
                         CompileErrors.DATA_TABLE_NOT_CLASS,
@@ -128,7 +128,7 @@ public class DatabaseProcessor implements Processor<Database> {
                 return;
             }
             TypeCompileType typeCompileType =
-                    new JavacTypeCompileType(typeMirror, element);
+                    new JavacTypeCompileType(typeMirror, element, mEnv);
             DataTableProcessor processor =  new DataTableProcessor(
                     typeCompileType, mEnv);
             dataTableList.add(processor.process());
@@ -169,7 +169,7 @@ public class DatabaseProcessor implements Processor<Database> {
                 getConvertersClasses(dataConvertersAnno);
 
         convertersClassMirrors.forEach(typeMirror -> {
-            TypeElement convertersElement = ElementUtil.asTypeElement(typeMirror);
+            TypeElement convertersElement = ElementUtils.asTypeElement(typeMirror);
             if (convertersElement == null) {
                 mEnv.getLog().error(
                         CompileErrors.ILLEGAL_DATA_CONVERTERS_CLASS,
@@ -179,7 +179,8 @@ public class DatabaseProcessor implements Processor<Database> {
             }
             TypeCompileType typeCompileType = new JavacTypeCompileType(
                     typeMirror,
-                    convertersElement
+                    convertersElement,
+                    mEnv
             );
 
             convertersElement.getEnclosedElements().forEach(enclosedElement -> {
@@ -195,7 +196,8 @@ public class DatabaseProcessor implements Processor<Database> {
                     MethodCompileType methodCompileType = new JavacMethodCompileType(
                             executableType,
                             element,
-                            typeCompileType
+                            typeCompileType,
+                            mEnv
                     );
                     Processor<DataConverter> converterProcessor =
                             new DataConverterProcessor(methodCompileType,
@@ -214,7 +216,8 @@ public class DatabaseProcessor implements Processor<Database> {
         checkRepeatedInternal(dataConverters, DataConverter::getToType);
     }
 
-    private void checkRepeatedInternal(List<DataConverter> dataConverters, Function<DataConverter, TypeCompileType> classifier) {
+    private void checkRepeatedInternal(List<DataConverter> dataConverters,
+                                       Function<DataConverter, TypeCompileType> classifier) {
         dataConverters
                 .stream()
                 .collect(Collectors.groupingBy(classifier,
@@ -223,20 +226,22 @@ public class DatabaseProcessor implements Processor<Database> {
                     if (converters.size() <= 1) {
                         return;
                     }
-                    converters.forEach(dataConverter -> {
-                        List<DataConverter> conflicts = converters.stream()
-                                .filter(converter -> converter != dataConverter &&
-                                        equalsConverter(converter, dataConverter))
-                                .collect(Collectors.toList());
-                        if (conflicts.isEmpty()) {
-                            return;
-                        }
-                        mEnv.getLog().error(
-                                CompileErrors.repeatedDataConverters(conflicts),
-                                dataConverter.getElement()
-                        );
-                    });
+                    converters.forEach(dataConverter -> checkConverterConflicts(converters, dataConverter));
                 });
+    }
+
+    private void checkConverterConflicts(List<DataConverter> converters, DataConverter dataConverter) {
+        List<DataConverter> conflicts = converters.stream()
+                .filter(converter -> converter != dataConverter &&
+                        equalsConverter(converter, dataConverter))
+                .collect(Collectors.toList());
+        if (conflicts.isEmpty()) {
+            return;
+        }
+        mEnv.getLog().error(
+                CompileErrors.repeatedDataConverters(conflicts),
+                dataConverter.getElement()
+        );
     }
 
     private boolean equalsConverter(DataConverter converter1, DataConverter converter2) {
@@ -254,7 +259,7 @@ public class DatabaseProcessor implements Processor<Database> {
         // TODO: supports methods in interfaces and abstract classes
 
         for (Element e : enclosedElements) {
-            if (e.getKind() != ElementKind.METHOD || !ElementUtil.isAbstract(e)) {
+            if (e.getKind() != ElementKind.METHOD || !ElementUtils.isAbstract(e)) {
                 continue;
             }
 
@@ -271,7 +276,8 @@ public class DatabaseProcessor implements Processor<Database> {
             }
             TypeCompileType typeCompileType = new JavacTypeCompileType(
                     method.getReturnType(),
-                    returnType
+                    returnType,
+                    mEnv
             );
             DaoProcessor daoProcessor = new DaoProcessor(
                     typeCompileType,

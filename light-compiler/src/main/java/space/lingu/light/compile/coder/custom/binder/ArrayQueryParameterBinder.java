@@ -36,7 +36,8 @@ public class ArrayQueryParameterBinder extends QueryParameterBinder {
     public void bindToStatement(String stmtVarName, String indexVarName, String valueVarName, GenerateCodeBlock block) {
         final String iterVar = block.getTempVar("_item");
         block.builder().beginControlFlow("for ($T $L : $L)",
-                TypeName.get(binder.type()), iterVar, valueVarName);
+                binder.type().toTypeName(),
+                iterVar, valueVarName);
         binder.bindToStatement(stmtVarName, indexVarName, iterVar, block);
         block.builder().addStatement("$L++", indexVarName)
                 .endControlFlow();

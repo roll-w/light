@@ -24,10 +24,10 @@ import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 import space.lingu.light.compile.struct.*;
 import space.lingu.light.handler.SQLExpressionParser;
 import space.lingu.light.util.Pair;
@@ -84,7 +84,7 @@ public class DaoWriter extends ClassWriter {
 
         Configurations configurations = mDao.getConfigurations();
 
-        if (ElementUtil.isInterface(mDao.getTypeCompileType().getElement())) {
+        if (ElementUtils.isInterface(mDao.getTypeCompileType().getElement())) {
             builder.addSuperinterface(mDao.getTypeCompileType().toTypeName())
                     .addMethod(createConstructor(dbParam,
                             autoMethodPairs,
@@ -119,7 +119,7 @@ public class DaoWriter extends ClassWriter {
     private boolean checkConnectionGetterInterface(Dao dao) {
         for (TypeMirror anInterface : dao.getTypeCompileType()
                 .getElement().getInterfaces()) {
-            TypeElement element = ElementUtil.asTypeElement(anInterface);
+            TypeElement element = ElementUtils.asTypeElement(anInterface);
             if (element != null && element.getQualifiedName()
                     .contentEquals(DaoConnectionGetter.class.getCanonicalName())) {
                 return true;
@@ -175,8 +175,8 @@ public class DaoWriter extends ClassWriter {
                 );
             }
             for (VariableElement param : params) {
-                if (!ElementUtil.equalTypeElement(lightDatabaseElement,
-                        ElementUtil.asTypeElement(param.asType()))) {
+                if (!ElementUtils.equalTypeElement(lightDatabaseElement,
+                        ElementUtils.asTypeElement(param.asType()))) {
                     mEnv.getLog().error(
                             CompileErrors.DAO_CONSTRUCTOR_PARAM_TYPE,
                             param
@@ -406,7 +406,7 @@ public class DaoWriter extends ClassWriter {
 
         method.getResultBinder()
                 .writeBlock(field.name, connVar, stmtVar, true,
-                        !TypeUtil.isVoid(method.getReturnType().getTypeMirror()),
+                        !TypeUtils.isVoid(method.getReturnType().getTypeMirror()),
                         method.isTransaction(), block);
         return block.generate();
     }

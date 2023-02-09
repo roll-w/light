@@ -18,7 +18,7 @@ package space.lingu.light.compile;
 
 import com.google.auto.service.AutoService;
 import space.lingu.light.LightDatabase;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.JavacBaseProcessor;
 import space.lingu.light.compile.processor.DatabaseProcessor;
 import space.lingu.light.compile.processor.Processor;
@@ -55,7 +55,7 @@ public class LightProcessor extends JavacBaseProcessor {
                     );
                 }
 
-                if (!ElementUtil.isAbstract(classElement)) {
+                if (!ElementUtils.isAbstract(classElement)) {
                     getEnv().getLog().error(
                             CompileErrors.DATABASE_NOT_ABSTRACT_CLASS,
                             classElement

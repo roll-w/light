@@ -20,7 +20,9 @@ import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
@@ -28,7 +30,7 @@ import javax.lang.model.type.TypeMirror;
  * @author RollW
  */
 public class ByteArrayColumnTypeBinder extends ColumnTypeBinder {
-    public ByteArrayColumnTypeBinder(TypeMirror type) {
+    public ByteArrayColumnTypeBinder(TypeCompileType type) {
         super(type, SQLDataType.BINARY);
     }
 
@@ -55,8 +57,9 @@ public class ByteArrayColumnTypeBinder extends ColumnTypeBinder {
 
     public static ByteArrayColumnTypeBinder create(ProcessEnv env) {
         TypeMirror byteType = env.getTypeUtils().getPrimitiveType(TypeKind.BYTE);
-        return new ByteArrayColumnTypeBinder(
-                env.getTypeUtils().getArrayType(byteType));
+        ArrayType arrayType = env.getTypeUtils().getArrayType(byteType);
+        TypeCompileType type = env.getTypeCompileType(arrayType);
+        return new ByteArrayColumnTypeBinder(type);
     }
 
 }

@@ -19,8 +19,8 @@ package space.lingu.light.compile.coder;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.SQLDataType;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.type.TypeMirror;
 import java.sql.SQLException;
 import java.sql.Types;
 
@@ -31,20 +31,19 @@ import java.sql.Types;
  */
 @SuppressWarnings("all")
 public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueReader {
-    protected final TypeMirror type;
+    protected final TypeCompileType type;
     protected final SQLDataType dataType;
     protected final TypeName typeName;
 
-    public ColumnTypeBinder(TypeMirror type, SQLDataType dataType) {
+    public ColumnTypeBinder(TypeCompileType type,
+                            SQLDataType dataType) {
         this.type = type;
         this.dataType = dataType;
-        typeName = type == null
-                ? null
-                : TypeName.get(type);
+        typeName = type.toTypeName();
     }
 
     @Override
-    public TypeMirror type() {
+    public TypeCompileType type() {
         return type;
     }
 

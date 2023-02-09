@@ -22,8 +22,8 @@ import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.type.TypeMirror;
 import java.math.BigDecimal;
 
 /**
@@ -32,7 +32,7 @@ import java.math.BigDecimal;
  * @author RollW
  */
 public class BigDecimalColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
-    public BigDecimalColumnTypeBinder(TypeMirror type) {
+    public BigDecimalColumnTypeBinder(TypeCompileType type) {
         super(type, SQLDataType.DECIMAL);
     }
 
@@ -54,9 +54,7 @@ public class BigDecimalColumnTypeBinder extends ColumnTypeBinder implements Stat
 
     public static BigDecimalColumnTypeBinder create(ProcessEnv env) {
         return new BigDecimalColumnTypeBinder(
-                env.getElementUtils()
-                        .getTypeElement("java.math.BigDecimal")
-                        .asType()
+                env.getTypeCompileType(BigDecimal.class)
         );
     }
 }

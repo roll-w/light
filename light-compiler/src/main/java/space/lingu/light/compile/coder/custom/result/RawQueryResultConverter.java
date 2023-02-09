@@ -20,8 +20,9 @@ import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.custom.row.NoOpRowConverter;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.type.TypeMirror;
+import java.sql.ResultSet;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -50,24 +51,26 @@ public class RawQueryResultConverter extends QueryResultConverter {
         return INSTANCE;
     }
 
-    private static TypeMirror RESULT_SET_MIRROR;
+    private static TypeCompileType RESULT_SET_TYPE;
 
     public static NoOpRowConverter createNoOpConverter(ProcessEnv env) {
-        if (RESULT_SET_MIRROR == null) {
-            RESULT_SET_MIRROR = env.getElementUtils()
-                    .getTypeElement(JavaPoetClass.JdbcNames.RESULT_SET.canonicalName())
-                    .asType();
-        }
-        return new NoOpRowConverter(RESULT_SET_MIRROR);
+        initResultSetMirror(env);
+        return new NoOpRowConverter(RESULT_SET_TYPE);
     }
 
-    public static boolean isRaw(TypeMirror typeMirror, ProcessEnv env) {
-        if (RESULT_SET_MIRROR == null) {
-            RESULT_SET_MIRROR = env.getElementUtils()
-                    .getTypeElement(JavaPoetClass.JdbcNames.RESULT_SET.canonicalName())
-                    .asType();
+    private static void initResultSetMirror(ProcessEnv env) {
+        if (RESULT_SET_TYPE == null) {
+            RESULT_SET_TYPE = env.getTypeCompileType(ResultSet.class);
         }
-        return Objects.equals(typeMirror, RESULT_SET_MIRROR);
+    }
+
+    public static boolean isRaw(TypeCompileType type,
+                                ProcessEnv env) {
+        initResultSetMirror(env);
+        return Objects.equals(
+                type.getTypeMirror(),
+                RESULT_SET_TYPE.getTypeMirror()
+        );
     }
 
 }

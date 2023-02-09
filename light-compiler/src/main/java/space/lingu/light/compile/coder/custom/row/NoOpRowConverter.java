@@ -17,15 +17,14 @@
 package space.lingu.light.compile.coder.custom.row;
 
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * @author RollW
  */
 public class NoOpRowConverter extends RowConverter {
 
-    public NoOpRowConverter(TypeMirror outType) {
+    public NoOpRowConverter(TypeCompileType outType) {
         super(outType);
     }
 

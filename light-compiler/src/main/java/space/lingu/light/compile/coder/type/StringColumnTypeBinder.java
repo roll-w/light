@@ -22,8 +22,7 @@ import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
-
-import javax.lang.model.type.TypeMirror;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
  * Column type binder for {@link String}.
@@ -31,7 +30,7 @@ import javax.lang.model.type.TypeMirror;
  * @author RollW
  */
 public class StringColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
-    public StringColumnTypeBinder(TypeMirror type) {
+    public StringColumnTypeBinder(TypeCompileType type) {
         super(type, SQLDataType.VARCHAR);
     }
 
@@ -53,9 +52,7 @@ public class StringColumnTypeBinder extends ColumnTypeBinder implements Statemen
 
     public static StringColumnTypeBinder create(ProcessEnv env) {
         return new StringColumnTypeBinder(
-                env.getElementUtils()
-                        .getTypeElement("java.lang.String")
-                        .asType()
+                env.getTypeCompileType(String.class)
         );
     }
 }

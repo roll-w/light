@@ -35,7 +35,7 @@ import java.util.Objects;
 /**
  * @author RollW
  */
-public class ElementUtil {
+public class ElementUtils {
     public static boolean equalTypeElement(TypeElement f, TypeElement s) {
         if (f == null || s == null) return false;
         if (f == s) return true;
@@ -143,7 +143,7 @@ public class ElementUtil {
     }
 
     public static boolean canConvertToTypeElement(TypeMirror mirror) {
-        return !TypeUtil.isPrimitive(mirror);
+        return !TypeUtils.isPrimitive(mirror);
     }
 
     public static TypeElement asTypeElement(TypeMirror mirror) {
@@ -164,6 +164,6 @@ public class ElementUtil {
     }
 
 
-    private ElementUtil() {
+    private ElementUtils() {
     }
 }

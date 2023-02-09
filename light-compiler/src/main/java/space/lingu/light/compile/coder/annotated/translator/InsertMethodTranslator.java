@@ -19,9 +19,9 @@ package space.lingu.light.compile.coder.annotated.translator;
 import com.squareup.javapoet.*;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.ProcessEnv;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 import space.lingu.light.compile.processor.ReturnTypes;
 import space.lingu.light.compile.struct.Parameter;
 import space.lingu.light.util.Pair;
@@ -104,23 +104,23 @@ public class InsertMethodTranslator {
                 return InsertType.VOID;
             }
             if (typeMirror.getKind() == TypeKind.ARRAY) {
-                TypeMirror arrayType = TypeUtil.getArrayElementType(typeMirror);
-                if (TypeUtil.isLong(arrayType)) {
+                TypeMirror arrayType = TypeUtils.getArrayElementType(typeMirror);
+                if (TypeUtils.isLong(arrayType)) {
                     return InsertType.ID_ARRAY;
                 }
-                if (ElementUtil.isLongBoxed(ElementUtil.asTypeElement(arrayType))) {
+                if (ElementUtils.isLongBoxed(ElementUtils.asTypeElement(arrayType))) {
                     return InsertType.ID_ARRAY_BOXED;
                 }
             }
             return null;
         }
 
-        if (ElementUtil.isLong(typeElement)) {
+        if (ElementUtils.isLong(typeElement)) {
             return InsertType.SINGLE_ID;
         }
 
         if (ReturnTypes.isLegalCollectionReturnType(typeElement)) {
-            if (ElementUtil.isLong(ElementUtil.getGenericElements(typeMirror).get(0))) {
+            if (ElementUtils.isLong(ElementUtils.getGenericElements(typeMirror).get(0))) {
                 return InsertType.ID_LIST;
             }
         }

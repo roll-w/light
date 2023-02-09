@@ -22,6 +22,7 @@ import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -54,9 +55,9 @@ public class DateTypeBinder extends ColumnTypeBinder {
 
     private final Type type;
 
-    public DateTypeBinder(TypeMirror typeMirror,
+    public DateTypeBinder(TypeCompileType typeCompileType,
                           Type type) {
-        super(typeMirror, type.getConvert().dataType);
+        super(typeCompileType, type.getConvert().dataType);
         this.type = type;
     }
 
@@ -124,7 +125,8 @@ public class DateTypeBinder extends ColumnTypeBinder {
         List<DateTypeBinder> typeBinders = new ArrayList<>();
         for (Type type : Type.values()) {
             TypeMirror typeMirror = from(type.clazzType, env);
-            DateTypeBinder binder = new DateTypeBinder(typeMirror, type);
+            TypeCompileType typeCompileType = env.getTypeCompileType(typeMirror);
+            DateTypeBinder binder = new DateTypeBinder(typeCompileType, type);
             typeBinders.add(binder);
         }
         return typeBinders;

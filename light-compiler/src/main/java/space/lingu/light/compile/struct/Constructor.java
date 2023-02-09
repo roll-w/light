@@ -18,7 +18,7 @@ package space.lingu.light.compile.struct;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -55,7 +55,7 @@ public class Constructor {
         elements.forEach(e -> {
             // compare name and typeMirror
             if (e.getSimpleName().contentEquals(field.getName()) &&
-                    TypeUtil.equalTypeMirror(e.asType(),
+                    TypeUtils.equalTypeMirror(e.asType(),
                             field.getVariableCompileType().getTypeMirror())) {
                 flag.set(true);
             }

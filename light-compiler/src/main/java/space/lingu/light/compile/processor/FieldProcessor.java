@@ -16,8 +16,6 @@
 
 package space.lingu.light.compile.processor;
 
-import com.squareup.javapoet.ArrayTypeName;
-import com.squareup.javapoet.TypeName;
 import space.lingu.light.Configurations;
 import space.lingu.light.DataColumn;
 import space.lingu.light.SQLDataType;
@@ -30,8 +28,6 @@ import space.lingu.light.compile.struct.Configurable;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Nullability;
 import space.lingu.light.util.StringUtils;
-
-import javax.lang.model.type.TypeMirror;
 
 /**
  * @author RollW
@@ -65,14 +61,16 @@ public class FieldProcessor implements Processor<Field> {
                 ? Nullability.NULLABLE
                 : Nullability.NONNULL;
 
-        SQLDataType preprocessType = recognizeSQLDataType(
+        SQLDataType preprocessType = SQLDataTypeUtils.recognizeSQLDataType(
                 dataColumn.dataType(),
-                variableCompileType);
+                variableCompileType
+        );
 
         Configurations configurations = Configurable.createFrom(dataColumn.configuration(), variableCompileType);
 
-        ColumnValueReader reader = mEnv.getBinders()
-                .findColumnReader(variableCompileType.getTypeMirror(), preprocessType);
+        ColumnValueReader reader = mEnv.getBinders().findColumnReader(
+                variableCompileType.getType(),
+                preprocessType);
         if (reader == null) {
             mEnv.getLog().error(
                     CompileErrors.unknownInType(
@@ -84,7 +82,7 @@ public class FieldProcessor implements Processor<Field> {
         SQLDataType finalType = reader.getDataType();
         StatementBinder binder = mEnv.getBinders()
                 .findStatementBinder(
-                        variableCompileType.getTypeMirror(),
+                        variableCompileType.getType(),
                         finalType
                 );
         if (binder == null) {
@@ -113,59 +111,8 @@ public class FieldProcessor implements Processor<Field> {
 
     private String getColumnName() {
         if (StringUtils.isEmpty(dataColumn.name())) {
-          return variableCompileType.getName();
+            return variableCompileType.getName();
         }
         return dataColumn.name();
     }
-
-    private SQLDataType recognizeSQLDataType(SQLDataType sqlDataType, VariableCompileType variableCompileType) {
-        if (sqlDataType != null && sqlDataType != SQLDataType.UNDEFINED) {
-            return sqlDataType;
-        }
-        TypeMirror type = variableCompileType.getTypeMirror();
-        TypeName typeName = TypeName.get(type);
-        if (isEqualBothBox(typeName, TypeName.INT)) {
-            return SQLDataType.INT;
-        }
-        if (isEqualBothBox(typeName, TypeName.SHORT)) {
-            return SQLDataType.INT;
-        }
-        if (isEqualBothBox(typeName, TypeName.LONG)) {
-            return SQLDataType.LONG;
-        }
-        if (isEqualBothBox(typeName, TypeName.BYTE)) {
-            return SQLDataType.INT;
-        }
-        if (isEqualBothBox(typeName, TypeName.CHAR)) {
-            return SQLDataType.CHAR;
-        }
-        if (isEqualBothBox(typeName, TypeName.DOUBLE)) {
-            return SQLDataType.DOUBLE;
-        }
-        if (isEqualBothBox(typeName, TypeName.FLOAT)) {
-            return SQLDataType.FLOAT;
-        }
-        if (isEqualBothBox(typeName, TypeName.BOOLEAN)) {
-            return SQLDataType.BOOLEAN;
-        }
-        if (isEqualArray(typeName, TypeName.BYTE)) {
-            return SQLDataType.BINARY;
-        }
-        if (STRING.equals(typeName)) {
-            return SQLDataType.VARCHAR;
-        }
-        return SQLDataType.UNDEFINED;
-    }
-
-    private static final TypeName STRING = TypeName.get(String.class);
-
-    private static boolean isEqualBothBox(TypeName value, TypeName type) {
-        return value.equals(type) || value.equals(type.box());
-    }
-
-    @SuppressWarnings("all")
-    private static boolean isEqualArray(TypeName value, TypeName type) {
-        return value.equals(ArrayTypeName.of(type));
-    }
-
 }

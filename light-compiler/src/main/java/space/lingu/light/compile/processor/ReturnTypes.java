@@ -16,7 +16,7 @@
 
 package space.lingu.light.compile.processor;
 
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 
 import javax.lang.model.element.TypeElement;
 
@@ -26,13 +26,13 @@ import javax.lang.model.element.TypeElement;
 public class ReturnTypes {
     // List, Collection, Iterable
     public static boolean isLegalCollectionReturnType(TypeElement typeElement) {
-        if (ElementUtil.isList(typeElement)) {
+        if (ElementUtils.isList(typeElement)) {
             return true;
         }
-        if (ElementUtil.isCollection(typeElement)) {
+        if (ElementUtils.isCollection(typeElement)) {
             return true;
         }
-        return ElementUtil.isIterable(typeElement);
+        return ElementUtils.isIterable(typeElement);
     }
 
     private ReturnTypes() {

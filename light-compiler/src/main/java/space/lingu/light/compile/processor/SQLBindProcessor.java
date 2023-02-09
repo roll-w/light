@@ -46,7 +46,7 @@ public class SQLBindProcessor implements Processor<List<ExpressionBind>> {
 
     @Override
     public List<ExpressionBind> process() {
-        SQLParser parser = new SQLParser(sql, methodCompileType);
+        SQLParser parser = new SQLParser(sql, methodCompileType, mEnv);
         List<String> expressions = parser.expressions();
         List<ExpressionBind> binds = new ArrayList<>();
         expressions.forEach(expression -> {
@@ -57,8 +57,9 @@ public class SQLBindProcessor implements Processor<List<ExpressionBind>> {
                         methodCompileType
                 );
             }
-            QueryParameterBinder binder = mEnv.getBinders().findQueryParameterBinder(
-                    compileType.getTypeMirror());
+
+            QueryParameterBinder binder = mEnv.getBinders()
+                    .findQueryParameterBinder(compileType);
             if (binder == null) {
                 mEnv.getLog().error(
                         CompileErrors.QUERY_UNKNOWN_PARAM + " In type of '" + expression + "'.",

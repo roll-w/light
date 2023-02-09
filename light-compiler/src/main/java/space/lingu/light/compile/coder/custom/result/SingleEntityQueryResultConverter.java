@@ -16,11 +16,10 @@
 
 package space.lingu.light.compile.coder.custom.result;
 
-import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
+import space.lingu.light.compile.javac.TypeCompileType;
 
-import javax.lang.model.type.TypeMirror;
 import java.util.Collections;
 
 /**
@@ -39,17 +38,18 @@ public class SingleEntityQueryResultConverter extends QueryResultConverter {
     @Override
     public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
         mConverter.onResultSetReady(resultSetName, block);
-        block.builder().addStatement("final $T $L", TypeName.get(mConverter.getOutType()), outVarName)
+        block.builder().addStatement("final $T $L", mConverter.getOutType().toTypeName(), outVarName)
                 .beginControlFlow("if ($L.next())", resultSetName);
         mConverter.convert(outVarName, resultSetName, block);
         block.builder().nextControlFlow("else")
-                .addStatement("$L = $L", outVarName, getDefaultValue(mConverter.getOutType()))
+                .addStatement("$L = $L", outVarName,
+                        getDefaultValue(mConverter.getOutType()))
                 .endControlFlow();
         mConverter.onResultSetFinish(block);
     }
 
-    private String getDefaultValue(TypeMirror typeMirror) {
-        switch (typeMirror.getKind()) {
+    private String getDefaultValue(TypeCompileType typeCompileType) {
+        switch (typeCompileType.getTypeMirror().getKind()) {
             case BOOLEAN:
                 return "false";
             case LONG:

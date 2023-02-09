@@ -24,11 +24,11 @@ import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
+import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.struct.ParseDataType;
 import space.lingu.light.util.StringUtils;
 
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -45,7 +45,8 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
     protected final String mSetter;
     protected final String mDefaultValue;
 
-    public PrimitiveColumnTypeBinder(TypeMirror type, String stmtSetter,
+    public PrimitiveColumnTypeBinder(TypeCompileType type,
+                                     String stmtSetter,
                                      String resSetGetter,
                                      SQLDataType dataType,
                                      String defaultValue) {
@@ -151,10 +152,8 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
             this.defaultValue = defaultValue;
         }
 
-        TypeMirror getType(ProcessEnv env) {
-            return env
-                    .getTypeUtils()
-                    .getPrimitiveType(typeKind);
+        TypeCompileType getType(ProcessEnv env) {
+            return env.getTypeCompileType(typeKind);
         }
     }
 

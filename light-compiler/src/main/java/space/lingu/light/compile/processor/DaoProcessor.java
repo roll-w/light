@@ -25,11 +25,11 @@ import space.lingu.light.Query;
 import space.lingu.light.Transaction;
 import space.lingu.light.Update;
 import space.lingu.light.compile.CompileErrors;
-import space.lingu.light.compile.javac.ElementUtil;
+import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
-import space.lingu.light.compile.javac.TypeUtil;
+import space.lingu.light.compile.javac.TypeUtils;
 import space.lingu.light.compile.javac.types.JavacMethodCompileType;
 import space.lingu.light.compile.struct.Dao;
 import space.lingu.light.compile.struct.DeleteMethod;
@@ -81,7 +81,7 @@ public class DaoProcessor implements Processor<Dao> {
 
     @Override
     public Dao process() {
-        final String packageName = ElementUtil
+        final String packageName = ElementUtils
                 .getPackage(typeCompileType.getElement())
                 .getQualifiedName()
                 .toString();
@@ -157,12 +157,12 @@ public class DaoProcessor implements Processor<Dao> {
                 }
             }
             if (isInterface) {
-                if (!ElementUtil.isDefault(methodCompileType.getElement())) {
+                if (!ElementUtils.isDefault(methodCompileType.getElement())) {
                     mEnv.getLog().error(CompileErrors.TRANSACTION_METHOD_NOT_DEFAULT, methodCompileType);
                     return;
                 }
             } else {
-                if (ElementUtil.isAbstract(methodCompileType.getElement())) {
+                if (ElementUtils.isAbstract(methodCompileType.getElement())) {
                     mEnv.getLog().error(CompileErrors.TRANSACTION_METHOD_ABSTRACT, methodCompileType);
                     return;
                 }
@@ -175,8 +175,8 @@ public class DaoProcessor implements Processor<Dao> {
                                         Map<Class<? extends Annotation>, List<MethodCompileType>> methods,
                                         boolean isInterface) {
         allMethods.forEach(method -> {
-            if ((isInterface && !ElementUtil.isDefault(method.getElement())) ||
-                    ElementUtil.isAbstract(method.getElement())) {
+            if ((isInterface && !ElementUtils.isDefault(method.getElement())) ||
+                    ElementUtils.isAbstract(method.getElement())) {
                 AtomicBoolean annotatedFlag = new AtomicBoolean(false);
                 sHandleAnnotations.forEach(anno -> {
                     if (method.getAnnotation(anno) != null) {
@@ -245,6 +245,8 @@ public class DaoProcessor implements Processor<Dao> {
         return processor.process();
     }
 
+    // TODO: remove methods below
+
     private List<MethodCompileType> getAllMethods(TypeElement element) {
         List<? extends Element> enclosedElements = element.getEnclosedElements();
         List<MethodCompileType> methodElements = new ArrayList<>();
@@ -258,10 +260,10 @@ public class DaoProcessor implements Processor<Dao> {
             if (!(enclosingElementMirror instanceof DeclaredType)) {
                 continue;
             }
-            ExecutableType executableType = TypeUtil.asExecutable(methodElement.asType());
+            ExecutableType executableType = TypeUtils.asExecutable(methodElement.asType());
             MethodCompileType methodCompileType = new JavacMethodCompileType(
                     executableType, methodElement,
-                    this.typeCompileType);
+                    this.typeCompileType, mEnv);
             methodElements.add(methodCompileType);
         }
         return methodElements;
@@ -323,7 +325,7 @@ public class DaoProcessor implements Processor<Dao> {
                     new JavacMethodCompileType(
                             executableType,
                             superMethod.getElement(),
-                            this.typeCompileType
+                            this.typeCompileType, mEnv
                     );
             unimplementedMethods.add(methodCompileType);
         }
