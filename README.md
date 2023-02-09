@@ -1,4 +1,5 @@
 # Light
+
 [![Maven Central][mcBadge]][mcLink] [![License][liBadge]][liLink]
 
 A simple and lightweight relational database development module.
@@ -10,7 +11,9 @@ JDK 1.8 or higher.
 ## Getting Started
 
 To add dependencies on Light using Maven, use the following:
+
 ```xml
+
 <dependencies>
     <!-- Code Generator Module -->
     <dependency>
@@ -19,7 +22,7 @@ To add dependencies on Light using Maven, use the following:
         <version>0.4.2</version>
         <scope>provided</scope>
     </dependency>
-    
+
     <!-- Runtime Core Module -->
     <dependency>
         <groupId>space.lingu.light</groupId>
@@ -28,11 +31,13 @@ To add dependencies on Light using Maven, use the following:
     </dependency>
 </dependencies>
 ```
-Or using Gradle: 
+
+Or using Gradle:
+
 ```groovy
 dependencies {
     compileOnly("space.lingu.light:light-compiler:0.4.2")
-  
+
     implementation("space.lingu.light:light-core:0.4.2")
 }
 ```
@@ -49,6 +54,7 @@ Here defines a `User` table.
 Each instance of `User` represents a column in the data table.
 
 ```java
+
 @DataTable
 public class User {
     @PrimaryKey
@@ -69,7 +75,7 @@ Light uses the class name as the table name unless you specify the table name ma
 
 In this case, the table name is _User_.
 
-Similar rules apply to column names. Light uses the field name as the column name 
+Similar rules apply to column names. Light uses the field name as the column name
 unless you specify the column name manually.
 
 ### Create a Data Access Object (DAO)
@@ -79,6 +85,7 @@ To access the data in the database, you need to create a DAO.
 Here is a simple example for the `User` table.
 
 ```java
+
 @Dao
 public interface UserDao {
     @Insert
@@ -86,10 +93,10 @@ public interface UserDao {
 
     @Update
     void update(User... users);
-    
+
     @Delete
     void delete(User user);
-    
+
     @Query("SELECT * FROM User")
     List<User> get();
 
@@ -98,17 +105,67 @@ public interface UserDao {
 }
 ```
 
-The `@Dao` annotation indicates that this is a DAO, 
+The `@Dao` annotation indicates that this is a DAO,
 and the DAO class needs to be an interface or abstract class.
 
 ### Create a database
 
+Define your database class, it needs to be an abstract class 
+and extends `LightDatabase`.
+
 ```java
-@Database(version = 1, tables = {User.class})
+@Database(name = "example", version = 1, tables = {User.class})
 public abstract class ExampleDatabase extends LightDatabase {
     public abstract UserDao getUserDao();
 }
 ```
+
+When connecting to the database, Light will try to create database.
+But if database is already specified in the jdbc URL,
+this step will be skipped.
+
+### Set up Connection URL
+
+When connecting to the database, you need to specify the connection URL
+and also the jdbc driver class name.
+
+Here we use the MySQL database as an example.
+
+```properties
+light.data.url=jdbc:mysql://localhost:3306/
+light.data.jdbcName=com.mysql.cj.jdbc.Driver
+# Set your username and password if needed
+light.data.username=root
+light.data.password=123456
+```
+
+Or you can replace `data` with your database name, in this case is `example`.
+
+### Last Step, Get ready to go!
+
+To get the DAO instance, you need to build the database class instance.
+
+Define in somewhere of your code:
+
+```java
+
+@Configuration
+public class DatabaseConfiguration {
+    public static LampDatabase buildDatabase() {
+        return Light.databaseBuilder(ExampleDatabase.class, MySQLDialectProvider.class)
+                // This connection pool implementation is low performance and is used only as a test.
+                // Can be replaced with Hikari Connection Pool, etc.
+                .setConnectionPool(DisposableConnectionPool.class)
+                // Optional, use light-core-logger-slf4j/LightSlf4jLogger as logger
+                .setLogger(LightSlf4jLogger.createLogger(ExampleDatabase.class))
+                .build();
+    }
+}
+```
+
+Note: `DialectProvider` and `ConnectionPool` are must be specified.
+
+We suggest you to use a singleton pattern to save the database instance.
 
 ## License
 
@@ -129,6 +186,9 @@ public abstract class ExampleDatabase extends LightDatabase {
 ```
 
 [liBadge]: https://img.shields.io/github/license/Roll-W/light?color=569cd6&style=flat-square
+
 [liLink]: https://github.com/Roll-W/light/blob/master/LICENSE
+
 [mcBadge]: https://img.shields.io/maven-central/v/space.lingu.light/light-parent?style=flat-square
+
 [mcLink]: https://search.maven.org/search?q=g:space.lingu.light
