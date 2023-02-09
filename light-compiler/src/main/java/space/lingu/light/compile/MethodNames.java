@@ -21,7 +21,7 @@ import space.lingu.light.handler.SQLHandler;
 import space.lingu.light.sql.SQLEscaper;
 import space.lingu.light.struct.StructUtil;
 import space.lingu.light.struct.Table;
-import space.lingu.light.util.ResultSetUtil;
+import space.lingu.light.util.ResultSetUtils;
 
 import java.sql.ResultSet;
 import java.util.List;
@@ -48,13 +48,13 @@ public final class MethodNames {
     public static final String sRegisterAllTables = "registerAllTables";
 
     /**
-     * {@link ResultSetUtil#getColumnIndexSwallow(ResultSet, String, SQLEscaper)}
+     * {@link ResultSetUtils#getColumnIndexSwallow(ResultSet, String, SQLEscaper)}
      * <p>
-     * {@link ResultSetUtil#getColumnIndexSwallow(ResultSet, String)}
+     * {@link ResultSetUtils#getColumnIndexSwallow(ResultSet, String)}
      */
     public static final String sGetColumnIndexSwallow = "getColumnIndexSwallow";
     /**
-     * {@link ResultSetUtil#getColumnIndexOrThrow(ResultSet, String)}}
+     * {@link ResultSetUtils#getColumnIndexOrThrow(ResultSet, String)}}
      */
     public static final String sGetColumnIndexOrThrow = "getColumnIndexOrThrow";
 

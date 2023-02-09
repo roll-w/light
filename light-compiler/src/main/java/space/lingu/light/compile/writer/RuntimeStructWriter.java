@@ -30,7 +30,7 @@ import space.lingu.light.struct.Table;
 import space.lingu.light.struct.TableColumn;
 import space.lingu.light.struct.TableIndex;
 import space.lingu.light.struct.TablePrimaryKey;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,9 +61,9 @@ public class RuntimeStructWriter {
      */
     public String writeDataTable(GenerateCodeBlock block, String databaseConfVarName) {
         String classSimpleName = ((ClassName) mTable.getTypeName()).simpleName();
-        final String tableVarName = block.getTempVar("_tableOf" + StringUtil.firstUpperCase(classSimpleName));
-        final String columnListVarName = block.getTempVar("_columnListOf" + StringUtil.firstUpperCase(classSimpleName));
-        final String indexListVarName = block.getTempVar("_indexListOf" + StringUtil.firstUpperCase(classSimpleName));
+        final String tableVarName = block.getTempVar("_tableOf" + StringUtils.firstUpperCase(classSimpleName));
+        final String columnListVarName = block.getTempVar("_columnListOf" + StringUtils.firstUpperCase(classSimpleName));
+        final String indexListVarName = block.getTempVar("_indexListOf" + StringUtils.firstUpperCase(classSimpleName));
         TypeName columnListType = ParameterizedTypeName
                 .get(ClassName.get(List.class), ClassName.get(TableColumn.class));
         TypeName columnArrayListType = createArrayListType(TableColumn.class);
@@ -111,13 +111,13 @@ public class RuntimeStructWriter {
     private void writeTableColumn(GenerateCodeBlock block, Field field,
                                   String listVarName,
                                   String tableConfVarName) {
-        final String tableColumnVarName = block.getTempVar("_tableColumn" + StringUtil.firstUpperCase(field.getName()));
+        final String tableColumnVarName = block.getTempVar("_tableColumn" + StringUtils.firstUpperCase(field.getName()));
         boolean autoGen = false;
         if (mTable.getPrimaryKey().getFields().hasField(field)) {
             autoGen = mTable.getPrimaryKey().isAutoGenerate();
         }
         String fieldConfVarName = writeConfigurationsAndFork(field,
-                "ColumnOf" + StringUtil.firstUpperCase(field.getName()),
+                "ColumnOf" + StringUtils.firstUpperCase(field.getName()),
                 tableConfVarName,
                 block);
         block.builder()

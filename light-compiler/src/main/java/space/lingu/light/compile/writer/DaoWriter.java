@@ -31,7 +31,7 @@ import space.lingu.light.compile.javac.TypeUtil;
 import space.lingu.light.compile.struct.*;
 import space.lingu.light.handler.SQLExpressionParser;
 import space.lingu.light.util.Pair;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
@@ -415,7 +415,7 @@ public class DaoWriter extends ClassWriter {
         StringBuilder builder = new StringBuilder();
         parameters.forEach(parameter -> {
             builder.append("__")
-                    .append(StringUtil.firstUpperCase(parameter.getName()))
+                    .append(StringUtils.firstUpperCase(parameter.getName()))
                     .append("_")
                     .append(typeMirrorToFieldName(parameter.getCompileType().getTypeMirror()));
         });
@@ -454,7 +454,7 @@ public class DaoWriter extends ClassWriter {
         private final String sql;
 
         private QueryHandlerField(QueryMethod method) {
-            super("queryHandlerOf" + StringUtil
+            super("queryHandlerOf" + StringUtils
                             .firstUpperCase(method.getMethodCompileType().getSimpleName().toString())
                             + identifierParamNameAndType(method.getParameters()),
                     JavaPoetClass.SQL_HANDLER);
@@ -477,7 +477,7 @@ public class DaoWriter extends ClassWriter {
 
         private CustomDeleteMethodField(DeleteMethod method) {
             super("customDeleteHandlerOf" +
-                            StringUtil.firstUpperCase(
+                            StringUtils.firstUpperCase(
                                     method.getMethodCompileType().getSimpleName().toString()) +
                             identifierParamNameAndType(method.getParameters()),
                     JavaPoetClass.SQL_HANDLER);

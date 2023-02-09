@@ -27,8 +27,8 @@ import space.lingu.light.handler.InsertHandler;
 import space.lingu.light.handler.SQLHandler;
 import space.lingu.light.struct.StructUtil;
 import space.lingu.light.util.DateTimeUtils;
-import space.lingu.light.util.ResultSetUtil;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.ResultSetUtils;
+import space.lingu.light.util.StringUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -54,9 +54,9 @@ public class JavaPoetClass {
     public static final ClassName CONFIGURATION = ClassName.get(Configurations.Configuration.class);
 
     public static class UtilNames {
-        public static final ClassName STRING_UTIL = ClassName.get(StringUtil.class);
+        public static final ClassName STRING_UTIL = ClassName.get(StringUtils.class);
         public static final ClassName STRUCT_UTIL = ClassName.get(StructUtil.class);
-        public static final ClassName RESULT_SET_UTIL = ClassName.get(ResultSetUtil.class);
+        public static final ClassName RESULT_SET_UTIL = ClassName.get(ResultSetUtils.class);
         public static final ClassName DATE_TIME_UTIL = ClassName.get(DateTimeUtils.class);
 
         private UtilNames() {

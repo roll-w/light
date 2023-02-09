@@ -22,7 +22,7 @@ import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.compile.writer.FieldReadWriteWriter;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class PojoRowConverter extends RowConverter {
     public void onResultSetReady(String resultSetName, GenerateCodeBlock block) {
         usedFields.forEach(field -> {
             final String numberVar = block.getTempVar("_resultSetIndexOf" +
-                    StringUtil.firstUpperCase(field.getName()));
+                    StringUtils.firstUpperCase(field.getName()));
             block.builder().addStatement("final $T $L = $T.getColumnIndexSwallow($L, $S)",
                     TypeName.INT, numberVar, JavaPoetClass.UtilNames.RESULT_SET_UTIL,
                     resultSetName, field.getColumnName());

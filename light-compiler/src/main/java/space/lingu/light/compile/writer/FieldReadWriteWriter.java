@@ -21,7 +21,7 @@ import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.struct.Constructor;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Pojo;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -123,7 +123,7 @@ public class FieldReadWriteWriter {
                 break;
             }
             case METHOD: {
-                String tempVar = block.getTempVar("_tmp" + StringUtil.firstUpperCase(field.getName()));
+                String tempVar = block.getTempVar("_tmp" + StringUtils.firstUpperCase(field.getName()));
                 block.builder().addStatement("final $T $L",
                         field.getSetter()
                                 .getVariableCompileType().getType()
@@ -141,7 +141,7 @@ public class FieldReadWriteWriter {
     }
 
     private String readIntoTempVar(String resSetName, TypeName typeName, GenerateCodeBlock block) {
-        final String tmpVar = block.getTempVar("_tmp" + StringUtil.firstUpperCase(field.getName()));
+        final String tmpVar = block.getTempVar("_tmp" + StringUtils.firstUpperCase(field.getName()));
         block.builder().addStatement("final $T $L", typeName, tmpVar);
         field.getColumnValueReader().readFromResultSet(tmpVar, resSetName, indexVar, block);
         return tmpVar;

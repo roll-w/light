@@ -22,7 +22,7 @@ import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.javac.types.JavacTypeCompileType;
 import space.lingu.light.handler.SQLExpressionParser;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -57,7 +57,7 @@ public class SQLParser {
     }
 
     private VariableCompileType findParameter(String expression) {
-        if (StringUtil.isEmpty(expression)) {
+        if (StringUtils.isEmpty(expression)) {
             return null;
         }
         if (!expression.contains(".")) {

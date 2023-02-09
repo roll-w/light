@@ -25,7 +25,7 @@ import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.struct.ParseDataType;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -56,7 +56,7 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
     }
 
     private String cast() {
-        if (mGetter.equals("get" + StringUtil.firstUpperCase(typeName.toString()))) {
+        if (mGetter.equals("get" + StringUtils.firstUpperCase(typeName.toString()))) {
             return "";
         }
 

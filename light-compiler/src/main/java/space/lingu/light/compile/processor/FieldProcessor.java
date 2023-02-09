@@ -29,7 +29,7 @@ import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.struct.Configurable;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Nullability;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import javax.lang.model.type.TypeMirror;
 
@@ -51,7 +51,7 @@ public class FieldProcessor implements Processor<Field> {
     @Override
     public Field process() {
         final String columnName = getColumnName();
-        if (StringUtil.isEmpty(columnName)) {
+        if (StringUtils.isEmpty(columnName)) {
             // should not happen
             throw new IllegalArgumentException("Field cannot have an empty column name.");
         }
@@ -112,7 +112,7 @@ public class FieldProcessor implements Processor<Field> {
     }
 
     private String getColumnName() {
-        if (StringUtil.isEmpty(dataColumn.name())) {
+        if (StringUtils.isEmpty(dataColumn.name())) {
           return variableCompileType.getName();
         }
         return dataColumn.name();

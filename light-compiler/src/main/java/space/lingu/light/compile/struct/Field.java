@@ -23,7 +23,7 @@ import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.StatementBinder;
 import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.javac.VariableCompileType;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import javax.lang.model.type.TypeKind;
 import java.util.Arrays;
@@ -36,10 +36,10 @@ import java.util.stream.Collectors;
 
 /**
  * Field - DataColumn
+ *
  * @author RollW
  */
 public class Field implements Configurable {
-    // TODO: makes all properties final.
     private final VariableCompileType variableCompileType;
     private final String name;
     private final String columnName;
@@ -89,7 +89,7 @@ public class Field implements Configurable {
             result.add(name.substring(1));
         }
         if (name.startsWith("m") || Character.isUpperCase(name.charAt(1))) {
-            result.add(StringUtil.firstLowerCase(name.substring(1)));
+            result.add(StringUtils.firstLowerCase(name.substring(1)));
         }
 
         if (isBooleanType()) {
@@ -103,10 +103,10 @@ public class Field implements Configurable {
 
     private static String tryBooleanGetter(String name) {
         if (name.length() > 2 && name.startsWith("is") && Character.isUpperCase(name.charAt(2))) {
-            return StringUtil.firstLowerCase(name.substring(2));
+            return StringUtils.firstLowerCase(name.substring(2));
         }
         if (name.length() > 3 && name.startsWith("has") && Character.isUpperCase(name.charAt(3))) {
-            return StringUtil.firstLowerCase(name.substring(3));
+            return StringUtils.firstLowerCase(name.substring(3));
         }
         return null;
     }
@@ -114,7 +114,7 @@ public class Field implements Configurable {
     public Set<String> setterNameCandidate() {
         final Set<String> setterNames = new HashSet<>();
         getPossibleCandidateName().forEach(s ->
-                setterNames.add("set" + StringUtil.firstUpperCase(s)));
+                setterNames.add("set" + StringUtils.firstUpperCase(s)));
         return setterNames;
     }
 
@@ -122,11 +122,11 @@ public class Field implements Configurable {
         final Set<String> getterNames = new HashSet<>();
         getPossibleCandidateName().forEach(s -> {
             getterNames.add(s);
-            getterNames.add("get" + StringUtil.firstUpperCase(s));
+            getterNames.add("get" + StringUtils.firstUpperCase(s));
             if (isBooleanType()) {
                 getterNames.addAll(Arrays.asList(
-                        "is" + StringUtil.firstUpperCase(s),
-                        "has" + StringUtil.firstUpperCase(s))
+                        "is" + StringUtils.firstUpperCase(s),
+                        "has" + StringUtils.firstUpperCase(s))
                 );
             }
         });

@@ -29,7 +29,7 @@ import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Index;
 import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.compile.struct.PrimaryKey;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -238,7 +238,7 @@ public class DataTableProcessor implements Processor<DataTable> {
     private String generateIndexName(String defaultName,
                                      String tableName,
                                      List<String> columnNames) {
-        if (!StringUtil.isEmpty(defaultName)) {
+        if (!StringUtils.isEmpty(defaultName)) {
             return defaultName;
         }
         StringJoiner columns = new StringJoiner("_");

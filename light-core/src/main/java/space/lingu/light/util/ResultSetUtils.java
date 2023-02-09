@@ -27,7 +27,7 @@ import java.sql.SQLException;
  *
  * @author RollW
  */
-public final class ResultSetUtil {
+public final class ResultSetUtils {
 
     public static int getColumnIndexOrThrow(ResultSet set, String name) {
         try {
@@ -85,7 +85,7 @@ public final class ResultSetUtil {
         return -1;
     }
 
-    private ResultSetUtil() {
+    private ResultSetUtils() {
     }
 
 }

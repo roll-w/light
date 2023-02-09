@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 更新方法处理器
- *
  * @author RollW
  */
 public class UpdateMethodProcessor implements Processor<UpdateMethod> {
