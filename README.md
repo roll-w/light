@@ -148,18 +148,14 @@ To get the DAO instance, you need to build the database class instance.
 Define in somewhere of your code:
 
 ```java
-
-@Configuration
-public class DatabaseConfiguration {
-    public static LampDatabase buildDatabase() {
-        return Light.databaseBuilder(ExampleDatabase.class, MySQLDialectProvider.class)
-                // This connection pool implementation is low performance and is used only as a test.
-                // Can be replaced with Hikari Connection Pool, etc.
-                .setConnectionPool(DisposableConnectionPool.class)
-                // Optional, use light-core-logger-slf4j/LightSlf4jLogger as logger
-                .setLogger(LightSlf4jLogger.createLogger(ExampleDatabase.class))
-                .build();
-    }
+public static ExampleDatabase buildDatabase() {
+    return Light.databaseBuilder(ExampleDatabase.class, MySQLDialectProvider.class)
+            // This connection pool implementation is low performance and is used only as a test.
+            // Can be replaced with Hikari Connection Pool, etc.
+            .setConnectionPool(DisposableConnectionPool.class)
+            // Optional, use light-core-logger-slf4j/LightSlf4jLogger as logger
+            .setLogger(LightSlf4jLogger.createLogger(ExampleDatabase.class))
+            .build();
 }
 ```
 
