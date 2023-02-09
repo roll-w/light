@@ -24,16 +24,26 @@ import java.util.List;
  * @author RollW
  */
 public class DatabaseInfo {
+    /**
+     * Note: name here (@Database) probably not equals to actual
+     * connected database name.
+     */
     private final String name;
+    private final Configurations configurations;
     private List<Table> tables;
-    private Configurations configurations;
 
-    public DatabaseInfo(String name) {
+
+    public DatabaseInfo(String name,
+                        Configurations configurations) {
         this.name = name;
+        this.configurations = configurations;
     }
 
     public String getName() {
         return name;
     }
 
+    public Configurations getConfigurations() {
+        return configurations;
+    }
 }

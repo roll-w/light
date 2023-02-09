@@ -20,7 +20,7 @@ import space.lingu.light.DatasourceConfig;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.connect.BaseConnectionPool;
 import space.lingu.light.connect.ConnectionPool;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -58,8 +58,8 @@ public class DisposableConnectionPool extends BaseConnectionPool implements Conn
         } catch (ClassNotFoundException e) {
             throw new LightRuntimeException("Jdbc driver class not found, please check properties.", e);
         }
-        if (StringUtil.isEmpty(mDatasourceConfig.getPassword()) ||
-                StringUtil.isEmpty(mDatasourceConfig.getUsername())) {
+        if (StringUtils.isEmpty(mDatasourceConfig.getPassword()) ||
+                StringUtils.isEmpty(mDatasourceConfig.getUsername())) {
             try {
                 return DriverManager.getConnection(mDatasourceConfig.getUrl());
             } catch (SQLException e) {

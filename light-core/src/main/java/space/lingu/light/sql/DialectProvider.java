@@ -72,21 +72,15 @@ public interface DialectProvider extends SQLEscaper {
      */
     String drop(DatabaseInfo databaseInfo);
 
-    /**
-     * Use database.
-     *
-     * @param databaseName name of database
-     * @return use database statement
-     */
-    String useDatabase(String databaseName);
+    default String initDatabaseEnvironment(DatabaseInfo databaseInfo) {
+        return null;
+    }
 
-    /**
-     * Use database.
-     *
-     * @param databaseInfo {@link DatabaseInfo}
-     * @return drop database statement
-     */
-    String use(DatabaseInfo databaseInfo);
+    default String initConnectionEnvironment(DatabaseInfo databaseInfo) {
+        return null;
+    }
+
+    String getJdbcUrl(String originalJdbcUrl, DatabaseInfo databaseInfo);
 
     /**
      * Get the {@link SQLGenerator} of the database.

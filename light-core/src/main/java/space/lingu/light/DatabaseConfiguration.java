@@ -23,24 +23,31 @@ import space.lingu.light.sql.DialectProvider;
  * @author RollW
  */
 public class DatabaseConfiguration {
+    /**
+     * Note: name here (@Database) probably not equals to actual
+     * connected database name.
+     */
     public final String name;
     public final DatasourceConfig datasourceConfig;
     public final ConnectionPool connectionPool;
     public final DialectProvider dialectProvider;
     public final LightLogger logger;
     public final LightDatabase.MigrationContainer migrationContainer;
+    public final Configurations databaseConfigurations;
 
     public DatabaseConfiguration(String name,
                                  DatasourceConfig datasourceConfig,
                                  ConnectionPool connectionPool,
                                  DialectProvider dialectProvider,
                                  LightLogger logger,
-                                 LightDatabase.MigrationContainer migrationContainer) {
+                                 LightDatabase.MigrationContainer migrationContainer,
+                                 Configurations databaseConfigurations) {
         this.name = name;
         this.datasourceConfig = datasourceConfig;
         this.connectionPool = connectionPool;
         this.dialectProvider = dialectProvider;
         this.logger = logger;
         this.migrationContainer = migrationContainer;
+        this.databaseConfigurations = databaseConfigurations;
     }
 }

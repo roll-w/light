@@ -21,7 +21,7 @@ import space.lingu.light.LightExperimentalApi;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.connect.BaseConnectionPool;
 import space.lingu.light.connect.ConnectionPool;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.PooledConnection;
@@ -49,8 +49,8 @@ public class JdbcDataSourceConnectionPool extends BaseConnectionPool implements 
 
     @Override
     public void setDataSourceConfig(DatasourceConfig config) {
-        if (StringUtil.isEmpty(config.getUsername()) ||
-                StringUtil.isEmpty(config.getPassword())) {
+        if (StringUtils.isEmpty(config.getUsername()) ||
+                StringUtils.isEmpty(config.getPassword())) {
             return;
         }
         try {

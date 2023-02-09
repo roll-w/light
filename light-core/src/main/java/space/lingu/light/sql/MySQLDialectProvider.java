@@ -18,7 +18,7 @@ package space.lingu.light.sql;
 
 import space.lingu.light.*;
 import space.lingu.light.struct.*;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import java.util.StringJoiner;
 
@@ -90,7 +90,7 @@ public class MySQLDialectProvider extends GeneralDialectProvider
         builder.append(" ENGINE=").append(engine)
                 .append(" ")
                 .append("DEFAULT CHARSET=").append(charset);
-        if (!StringUtil.isEmpty(collate)) {
+        if (!StringUtils.isEmpty(collate)) {
             builder.append(" COLLATE=").append(collate);
         }
 
@@ -151,7 +151,7 @@ public class MySQLDialectProvider extends GeneralDialectProvider
         }
         String type = configurations.findConfigurationValue(
                 LightConfiguration.KEY_COLUMN_TYPE);
-        if (!StringUtil.isEmpty(type)) {
+        if (!StringUtils.isEmpty(type)) {
             return type;
         }
 
@@ -204,11 +204,6 @@ public class MySQLDialectProvider extends GeneralDialectProvider
     }
 
     @Override
-    public String useDatabase(String databaseName) {
-        return "USE " + escapeParam(databaseName);
-    }
-
-    @Override
     public String drop(Table table) {
         return "DROP TABLE IF EXISTS " + escapeParam(table.getName());
     }
@@ -219,8 +214,12 @@ public class MySQLDialectProvider extends GeneralDialectProvider
     }
 
     @Override
-    public String use(DatabaseInfo databaseInfo) {
-        return useDatabase(databaseInfo.getName());
+    public String getJdbcUrl(String originalJdbcUrl,
+                             DatabaseInfo databaseInfo) {
+        if (originalJdbcUrl.endsWith("/")) {
+            return originalJdbcUrl + databaseInfo.getName();
+        }
+        return originalJdbcUrl + "/" + databaseInfo.getName();
     }
 
     @Override
@@ -232,8 +231,8 @@ public class MySQLDialectProvider extends GeneralDialectProvider
 
     @Override
     public String insert(String tableName, OnConflictStrategy onConflict, String... valueArgs) {
-        if (StringUtil.isEmpty(tableName)) {
-            return null;
+        if (StringUtils.isEmpty(tableName)) {
+            throw new IllegalArgumentException("Table name is empty.");
         }
         String start;
         switch (onConflict) {

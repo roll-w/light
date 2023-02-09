@@ -21,7 +21,7 @@ import space.lingu.light.struct.DatabaseInfo;
 import space.lingu.light.struct.Table;
 import space.lingu.light.struct.TableColumn;
 import space.lingu.light.struct.TableIndex;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import java.util.StringJoiner;
 
@@ -93,7 +93,7 @@ public class SQLiteDialectProvider extends GeneralDialectProvider
         }
         String type = configurations.findConfigurationValue(
                 LightConfiguration.KEY_COLUMN_TYPE);
-        if (!StringUtil.isEmpty(type)) {
+        if (!StringUtils.isEmpty(type)) {
             return type;
         }
 
@@ -183,14 +183,9 @@ public class SQLiteDialectProvider extends GeneralDialectProvider
     }
 
     @Override
-    public String useDatabase(String databaseName) {
-        // the same reason.
-        return null;
-    }
-
-    @Override
-    public String use(DatabaseInfo databaseInfo) {
-        return null;
+    public String getJdbcUrl(String originalJdbcUrl,
+                             DatabaseInfo databaseInfo) {
+        return originalJdbcUrl;
     }
 
     @Override

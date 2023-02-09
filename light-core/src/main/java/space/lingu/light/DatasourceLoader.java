@@ -16,7 +16,7 @@
 
 package space.lingu.light;
 
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -61,6 +61,8 @@ public class DatasourceLoader {
             properties.load(propInput);
         } catch (IOException e) {
             throw new LightRuntimeException("Load data properties failed", e);
+        } finally {
+            closeQuietly(propInput);
         }
 
         Enumeration<?> enumeration = properties.propertyNames();
@@ -140,10 +142,10 @@ public class DatasourceLoader {
 
     private String listEmptyPropertiesKeys(String url, String jdbcName) {
         StringJoiner joiner = new StringJoiner(",\n");
-        if (StringUtil.isEmpty(url)) {
+        if (StringUtils.isEmpty(url)) {
             joiner.add(PropertiesKeys.getActualUrlKey(mName));
         }
-        if (StringUtil.isEmpty(jdbcName)) {
+        if (StringUtils.isEmpty(jdbcName)) {
             joiner.add(PropertiesKeys.getActualJdbcNameKey(mName));
         }
         return joiner.toString();
@@ -155,7 +157,7 @@ public class DatasourceLoader {
         final String username = properties.getProperty(PropertiesKeys.getActualUsernameKey(name));
         final String password = properties.getProperty(PropertiesKeys.getActualPasswordKey(name));
 
-        if (StringUtil.isEmpty(url) || StringUtil.isEmpty(jdbcName)) {
+        if (StringUtils.isEmpty(url) || StringUtils.isEmpty(jdbcName)) {
             throw new IllegalPropertiesException(LightErrors.errorConfigRequiredKeyEmpty(
                     listEmptyPropertiesKeys(url, jdbcName)),
                     mPath);
@@ -164,4 +166,13 @@ public class DatasourceLoader {
         return new DatasourceConfig(url, jdbcName, username, password);
     }
 
+    private static void closeQuietly(InputStream inputStream) {
+        if (inputStream != null) {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
 }

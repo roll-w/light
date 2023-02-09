@@ -44,18 +44,32 @@ public class HikariConnectionPool extends BaseConnectionPool {
     @Override
     public void setDataSourceConfig(DatasourceConfig config) {
         if (source != null) {
-            return;
+            source.close();
         }
+        if (logger != null) {
+            logger.debug("Set up HikariCP connection pool: " + config);
+        }
+
         HikariConfig hikariConfig = new HikariConfig();
+        preSetupHikariConfig(hikariConfig, config);
+        source = new HikariDataSource(hikariConfig);
+    }
+
+    private void preSetupHikariConfig(HikariConfig hikariConfig,
+                                      DatasourceConfig config) {
+        hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
+        hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
+        hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         setupHikariConfig(hikariConfig);
 
         hikariConfig.setUsername(config.getUsername());
         hikariConfig.setJdbcUrl(config.getUrl());
         hikariConfig.setPassword(config.getPassword());
-        hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
-        hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
-        hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        source = new HikariDataSource(hikariConfig);
+        hikariConfig.setDriverClassName(config.getJdbcName());
+    }
+
+    private void resetDataSource(DatasourceConfig config) {
+        preSetupHikariConfig(source, config);
     }
 
     @Override

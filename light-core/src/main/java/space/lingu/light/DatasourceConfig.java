@@ -53,6 +53,10 @@ public class DatasourceConfig {
         return jdbcName;
     }
 
+    public DatasourceConfig fork(String url) {
+        return new DatasourceConfig(url, jdbcName, username, password);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -75,7 +79,7 @@ public class DatasourceConfig {
                 "url='" + url + '\'' +
                 "jdbcName='" + jdbcName + '\'' +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
+                ", password=*" +
                 '}';
     }
 }

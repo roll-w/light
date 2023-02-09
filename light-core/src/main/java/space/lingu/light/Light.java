@@ -55,14 +55,6 @@ public final class Light {
         }
     }
 
-
-    public static <T extends ConnectionPool> T createConnectionPoolInstance(final Class<T> clazz,
-                                                                            DatasourceConfig config) {
-        T conn = createConnectionPoolInstance(clazz);
-        conn.setDataSourceConfig(config);
-        return conn;
-    }
-
     public static <T extends ConnectionPool> T createConnectionPoolInstance(final Class<T> clazz) {
         T pool;
         try {

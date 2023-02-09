@@ -52,5 +52,12 @@ public @interface Database {
 
     Class<?>[] tables();
 
+    /**
+     * Database configurations.
+     *
+     * @return Database configurations
+     * @deprecated use {@link  LightConfiguration} directly annotate on class to instead
+     */
+    @Deprecated
     LightConfiguration[] configuration() default {};
 }

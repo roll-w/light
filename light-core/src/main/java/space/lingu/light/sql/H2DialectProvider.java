@@ -33,12 +33,13 @@ public class H2DialectProvider extends MySQLDialectProvider {
     }
 
     @Override
-    public String useDatabase(String databaseName) {
+    public String initDatabaseEnvironment(DatabaseInfo databaseInfo) {
         return "SET MODE MYSQL";
     }
 
     @Override
-    public String use(DatabaseInfo databaseInfo) {
-        return useDatabase(databaseInfo.getName());
+    public String getJdbcUrl(String originalJdbcUrl,
+                             DatabaseInfo databaseInfo) {
+        return originalJdbcUrl;
     }
 }

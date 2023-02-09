@@ -17,6 +17,7 @@
 package space.lingu.light.handler;
 
 import space.lingu.light.LightDatabase;
+import space.lingu.light.LightLogger;
 import space.lingu.light.ManagedConnection;
 
 import java.sql.PreparedStatement;
@@ -50,10 +51,22 @@ public abstract class Handler<T> {
     protected abstract String createQuery();
 
     protected PreparedStatement acquire(ManagedConnection connection) {
-        return connection.acquire(createQuery());
+        String sql = createQuery();
+        printDebug("Execute: " + sql);
+        return connection.acquire(sql);
     }
 
     protected PreparedStatement acquireReturnsGenerateKey(ManagedConnection connection) {
-        return connection.acquire(createQuery(), true);
+        String sql = createQuery();
+        printDebug("Execute: " + sql);
+        return connection.acquire(sql, true);
+    }
+
+    private void printDebug(String s) {
+        LightLogger logger = database.getLogger();
+        if (logger == null) {
+            return;
+        }
+        logger.debug(s);
     }
 }

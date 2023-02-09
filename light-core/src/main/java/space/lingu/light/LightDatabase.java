@@ -22,6 +22,7 @@ import space.lingu.light.log.JdkDefaultLogger;
 import space.lingu.light.sql.DialectProvider;
 import space.lingu.light.struct.DatabaseInfo;
 import space.lingu.light.struct.Table;
+import space.lingu.light.util.StringUtils;
 
 import java.sql.*;
 import java.util.*;
@@ -77,20 +78,50 @@ public abstract class LightDatabase {
 
     protected void init(DatabaseConfiguration conf) {
         registerAllTables();
+        DatasourceConfig rawConfig = conf.datasourceConfig;
 
         this.mName = conf.name;
-        this.mSourceConfig = conf.datasourceConfig;
+        this.mSourceConfig = rawConfig;
         if (conf.logger != null) {
             this.mLogger = conf.logger;
         }
         this.mDialectProvider = conf.dialectProvider;
-        conf.connectionPool.setDataSourceConfig(mSourceConfig);
-        this.mConnectionPool = conf.connectionPool;
-        mDatabaseInfo = new DatabaseInfo(mName);
 
-        createDatabase(mDatabaseInfo);
+        ConnectionPool connectionPool = conf.connectionPool;
+        connectionPool.setLogger(mLogger);
+        connectionPool.setDataSourceConfig(mSourceConfig);
+        this.mConnectionPool = connectionPool;
+
+        mDatabaseInfo = new DatabaseInfo(mName, conf.databaseConfigurations);
+
+        if (!checkContainsDatabase()) {
+            createDatabase(mDatabaseInfo);
+            String url = mDialectProvider.getJdbcUrl(
+                    rawConfig.getUrl(),
+                    mDatabaseInfo
+            );
+            mLogger.debug("Database created, new url: " + url);
+            DatasourceConfig newConfig = rawConfig.fork(url);
+            mSourceConfig = newConfig;
+            connectionPool.setDataSourceConfig(newConfig);
+        }
+
+        initDatabaseEnv(mDatabaseInfo);
+
         createTables();
         createIndices();
+    }
+
+    private boolean checkContainsDatabase() {
+        Connection rawConnection = rawConnection();
+        try {
+            String catalog = rawConnection.getCatalog();
+            return !StringUtils.isEmpty(catalog);
+        } catch (SQLException e) {
+            throw new LightRuntimeException(e);
+        } finally {
+            releaseConnection(rawConnection);
+        }
     }
 
     protected void registerAllTables() {
@@ -101,7 +132,16 @@ public abstract class LightDatabase {
         if (sql == null) {
             return;
         }
-        executeRaw(sql, rawConnection());
+
+        executeRaw(rawConnection(), sql);
+    }
+
+    private void initDatabaseEnv(DatabaseInfo info) {
+        String initEnv = mDialectProvider.initDatabaseEnvironment(info);
+        if (initEnv == null) {
+            return;
+        }
+        executeRaw(rawConnection(), initEnv);
     }
 
     private void createTables() {
@@ -117,9 +157,8 @@ public abstract class LightDatabase {
                 .collect(Collectors.toList());
         for (String statement : statements) {
             if (mLogger != null) {
-                mLogger.debug("execute create table statement, statement: " + statement);
+                mLogger.debug("Execute create table statement, statement: " + statement);
             }
-
             executeRawSqlWithNoReturn(statement);
         }
     }
@@ -138,7 +177,7 @@ public abstract class LightDatabase {
                 .collect(ArrayList::new, ArrayList::addAll, ArrayList::addAll);
         for (String statement : statements) {
             if (mLogger != null) {
-                mLogger.debug("execute create index statement, statement: " + statement);
+                mLogger.debug("Execute create index statement, statement: " + statement);
             }
             try {
                 executeRawSqlWithNoReturn(statement);
@@ -161,18 +200,24 @@ public abstract class LightDatabase {
             return;
         }
         Connection conn = requireConnection();
-        executeRaw(sql, conn);
+        executeRaw(conn, sql);
     }
 
-    public void executeRaw(String sql, Connection conn) {
-        if (sql == null) {
+    private void executeRaw(Connection conn, String... sqls) {
+        if (sqls == null || sqls.length == 0) {
             releaseConnection(conn);
             return;
         }
-        PreparedStatement stmt = resolveStatement(sql, conn, false);
         try {
-            stmt.execute();
-            stmt.close();
+            for (String sql : sqls) {
+                if (sql == null || sql.isEmpty()) {
+                    continue;
+                }
+                PreparedStatement stmt =
+                        resolveStatement(sql, conn, false);
+                stmt.execute();
+                stmt.close();
+            }
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         } finally {
@@ -186,22 +231,19 @@ public abstract class LightDatabase {
     }
 
     public Connection requireConnection() throws LightRuntimeException {
-        Connection connection = rawConnection();
-        if (mName == null) {
-            return connection;
-        }
-        String stmt = getDialectProvider().useDatabase(mName);
-        if (stmt == null) {
-            return connection;
+        Connection rawConnection = rawConnection();
+        String initEnvConn = getDialectProvider().initConnectionEnvironment(mDatabaseInfo);
+        if (initEnvConn == null) {
+            return rawConnection;
         }
         try {
-            PreparedStatement useStmt = connection.prepareStatement(stmt);
-            useStmt.execute();
-            useStmt.close();
+            PreparedStatement initStmt = rawConnection.prepareStatement(initEnvConn);
+            initStmt.execute();
+            initStmt.close();
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
-        return connection;
+        return rawConnection;
     }
 
     public ManagedConnection requireManagedConnection() throws LightRuntimeException {
@@ -465,24 +507,54 @@ public abstract class LightDatabase {
             return this;
         }
 
-        private void generateConfig() {
-            if (mConfig != null) return;
-            if (database.datasourceConfig().isEmpty()) {
-                mConfig = new DatasourceLoader().load();
-            } else {
-                mConfig = new DatasourceLoader(database.datasourceConfig(), database.name()).load();
+        private DatasourceConfig generateConfig() {
+            if (mConfig != null) {
+                return mConfig;
             }
+
+            if (database.datasourceConfig().isEmpty()) {
+                return new DatasourceLoader().load();
+            }
+            return new DatasourceLoader(
+                    database.datasourceConfig(),
+                    database.name()).load();
         }
 
         private DatabaseConfiguration createConf() {
-            generateConfig();
+            if (mProvider == null) {
+                throw new IllegalStateException("DialectProvider cannot be null!");
+            }
+            DatasourceConfig config = generateConfig();
+            Configurations configurations = getConfigurations();
             return new DatabaseConfiguration(
                     mName,
-                    mConfig,
+                    config,
                     mConnectionPool,
                     mProvider,
                     mLogger,
-                    mMigrationContainer);
+                    mMigrationContainer,
+                    configurations
+            );
+        }
+
+        private Configurations getConfigurations() {
+            Database database = mDatabaseClass.getAnnotation(Database.class);
+            List<LightConfiguration> lightConfigurations = new ArrayList<>();
+            LightConfiguration[] databaseConfigurations = database.configuration();
+            lightConfigurations.addAll(Arrays.asList(databaseConfigurations));
+            LightConfiguration configuration = mDatabaseClass.getAnnotation(LightConfiguration.class);
+            if (configuration != null) {
+                lightConfigurations.add(configuration);
+            }
+            LightConfigurations annotation = mDatabaseClass.getAnnotation(LightConfigurations.class);
+            if (annotation != null) {
+                lightConfigurations.addAll(Arrays.asList(annotation.value()));
+            }
+            List<Configurations.Configuration> configurations = lightConfigurations
+                    .stream()
+                    .map(Configurations.Configuration::create)
+                    .collect(Collectors.toList());
+            return Configurations.createFrom(configurations);
         }
 
         public T build() {

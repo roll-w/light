@@ -160,5 +160,15 @@ public final class Configurations {
         public int hashCode() {
             return Objects.hash(key, value);
         }
+
+        public static Configuration create(String key, String value) {
+            return new Configuration(key, value);
+        }
+
+        public static Configuration create(LightConfiguration configuration) {
+            return new Configuration(configuration.key(), configuration.value());
+        }
     }
+
+
 }

@@ -16,7 +16,7 @@
 
 package space.lingu.light.sql;
 
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 /**
  * Escapes parameters in SQL statement.
@@ -44,7 +44,7 @@ public interface SQLEscaper {
      * @throws IllegalArgumentException when param is null or empty, we throw an exception.
      */
     default String escapeParam(String param) throws IllegalArgumentException {
-        if (StringUtil.isEmpty(param)) {
+        if (StringUtils.isEmpty(param)) {
             throw new IllegalArgumentException("Parameter cannot be empty.");
         }
         if (param.startsWith(BACK_QUOTE) && param.endsWith(BACK_QUOTE)) {

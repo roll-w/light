@@ -17,7 +17,7 @@
 package space.lingu.light.sql;
 
 import space.lingu.light.OnConflictStrategy;
-import space.lingu.light.util.StringUtil;
+import space.lingu.light.util.StringUtils;
 
 import java.util.StringJoiner;
 
@@ -44,7 +44,7 @@ public class AsciiSQLGenerator implements SQLGenerator {
     }
 
     protected String buildInsertWithStart(String tableName, String start, String... valueArgs) {
-        if (StringUtil.isEmpty(tableName)) {
+        if (StringUtils.isEmpty(tableName)) {
             return null;
         }
         StringBuilder builder = new StringBuilder(start)
@@ -78,7 +78,7 @@ public class AsciiSQLGenerator implements SQLGenerator {
     @Override
     public String delete(String tableName, String... conditions) {
         // DELETE FROM `tableName` WHERE `condition1` =? AND `condition2` =?
-        if (StringUtil.isEmpty(tableName)) {
+        if (StringUtils.isEmpty(tableName)) {
             return null;
         }
         StringBuilder builder = new StringBuilder("DELETE FROM ")
@@ -111,7 +111,7 @@ public class AsciiSQLGenerator implements SQLGenerator {
     }
 
     protected String buildUpdateWithStart(String tableName, String start, String[] whereConditions, String[] valueArgs) {
-        if (StringUtil.isEmpty(tableName) || whereConditions == null
+        if (StringUtils.isEmpty(tableName) || whereConditions == null
                 || valueArgs == null) {
             return null;
         }
