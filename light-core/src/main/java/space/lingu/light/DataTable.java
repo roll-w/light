@@ -66,6 +66,8 @@ public @interface DataTable {
      * the configuration here will be overwritten.
      *
      * @return {@link LightConfiguration}
+     * @deprecated use {@link  LightConfiguration} directly annotate on class to instead.
      */
+    @Deprecated
     LightConfiguration[] configuration() default {};
 }

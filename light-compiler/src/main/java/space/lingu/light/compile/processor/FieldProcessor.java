@@ -66,7 +66,10 @@ public class FieldProcessor implements Processor<Field> {
                 variableCompileType
         );
 
-        Configurations configurations = Configurable.createFrom(dataColumn.configuration(), variableCompileType);
+        Configurations configurations = Configurable.createFrom(
+                dataColumn.configuration(),
+                variableCompileType
+        );
 
         ColumnValueReader reader = mEnv.getBinders().findColumnReader(
                 variableCompileType.getType(),

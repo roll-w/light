@@ -77,7 +77,10 @@ public class DataTableProcessor implements Processor<DataTable> {
                 typeCompileType.getAnnotation(LightIgnore.class) == null) {
             mEnv.getLog().warn(Warnings.PRIMARY_KEY_NOT_FOUND, typeCompileType);
         }
-        Configurations configurations = Configurable.createFrom(anno.configuration(), typeCompileType);
+        Configurations configurations = Configurable.createFrom(
+                anno.configuration(),
+                typeCompileType
+        );
         List<Index> indices = processIndices(tableName, pojo.getFields());
         return new DataTable(
                 typeCompileType,

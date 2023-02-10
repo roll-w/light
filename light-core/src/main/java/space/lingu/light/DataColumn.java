@@ -62,6 +62,7 @@ public @interface DataColumn {
      *
      * @return configurations of the column
      */
+    @Deprecated
     LightConfiguration[] configuration() default {};
 
     /**

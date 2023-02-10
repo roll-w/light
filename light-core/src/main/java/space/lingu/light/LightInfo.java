@@ -19,17 +19,15 @@ package space.lingu.light;
 import java.util.List;
 
 /**
- * database info create by light.
+ * Database info create by Light.
  * <p>
  * Also, this is also used as an example of annotation.
  *
  * @author RollW
  */
-@DataTable(tableName = "__light_info_table", configuration = {
-        @LightConfiguration(
-                key = LightConfiguration.KEY_VARCHAR_LENGTH,
-                value = "100")
-})
+@DataTable(name = "__light_info_table")
+@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH,
+        value = "100")
 @LightExperimentalApi
 public class LightInfo {
     public static final String sTableName = "__light_info_table";

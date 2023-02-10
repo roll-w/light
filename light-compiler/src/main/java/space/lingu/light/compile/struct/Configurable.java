@@ -34,20 +34,9 @@ public interface Configurable {
         return Configurations.empty();
     }
 
-    static Configurations createFrom(LightConfiguration[] initial, CompileType compileType) {
-        Configurations configurations = Configurable.createFrom(initial);
-        LightConfiguration lightConfigurationAnno = compileType.getAnnotation(LightConfiguration.class);
-        if (lightConfigurationAnno != null) {
-            configurations = configurations.plus(
-                    Configurations.createFrom(lightConfigurationAnno)
-            );
-        }
-        LightConfigurations lightConfigurationsAnno = compileType.getAnnotation(LightConfigurations.class);
-        if (lightConfigurationsAnno != null) {
-            Configurations fromRepeatableAnno = Configurable.createFrom(lightConfigurationsAnno.value());
-            return configurations.plus(fromRepeatableAnno);
-        }
-        return configurations;
+    static Configurations createFrom(LightConfiguration[] initial,
+                                     CompileType compileType) {
+        return createFrom(initial, compileType.getElement());
     }
 
     static Configurations createFrom(LightConfiguration[] initial, Element element) {
