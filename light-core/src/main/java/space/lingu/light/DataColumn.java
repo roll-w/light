@@ -69,7 +69,7 @@ public @interface DataColumn {
      * <ul>
      *      <li>{@link #NO_DEFAULT_VALUE} means no default value.</li>
      *      <li>{@link #DEFAULT_VALUE_NULL} means defaults null.</li>
-     *      <li>Otherwise the really default value.</li>
+     *      <li>Otherwise the real default value.</li>
      * </ul>
      *
      * @return default value of the column
@@ -78,7 +78,7 @@ public @interface DataColumn {
 
     /**
      * Set the data type of the column.
-     * Set to {@link SQLDataType#UNDEFINED} to let the program infer
+     * Set to {@link SQLDataType#UNDEFINED} to let the program infer.
      *
      * @return data type of the column
      */

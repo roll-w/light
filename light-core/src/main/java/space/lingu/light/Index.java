@@ -19,13 +19,13 @@ package space.lingu.light;
 import java.lang.annotation.*;
 
 /**
- * Index.
+ * Declare an index.
  *
  * @author RollW
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value = {})
+@Target({})
 public @interface Index {
     /**
      * Columns included in the index.
@@ -58,7 +58,6 @@ public @interface Index {
      * @return is unique
      */
     boolean unique() default false;
-
 
     LightConfiguration[] configurations() default {};
 }

@@ -68,6 +68,9 @@ public enum SQLDataType {
     TIME,
     /**
      * Timestamp. May not be supported by all databases.
+     * <p>
+     * Light supports convert long/Long type to timestamp by
+     * indicating {@link DataColumn#dataType()}.
      */
     TIMESTAMP,
     /**
