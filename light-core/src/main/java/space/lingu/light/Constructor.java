@@ -28,7 +28,6 @@ import java.lang.annotation.Target;
  *
  * @author RollW
  */
-@LightExperimentalApi
 @Documented
 @Target({ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)

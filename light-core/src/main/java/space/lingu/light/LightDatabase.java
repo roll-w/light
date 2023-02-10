@@ -539,9 +539,10 @@ public abstract class LightDatabase {
 
         private Configurations getConfigurations() {
             Database database = mDatabaseClass.getAnnotation(Database.class);
-            List<LightConfiguration> lightConfigurations = new ArrayList<>();
             LightConfiguration[] databaseConfigurations = database.configuration();
-            lightConfigurations.addAll(Arrays.asList(databaseConfigurations));
+            List<LightConfiguration> lightConfigurations = new ArrayList<>(
+                    Arrays.asList(databaseConfigurations)
+            );
             LightConfiguration configuration = mDatabaseClass.getAnnotation(LightConfiguration.class);
             if (configuration != null) {
                 lightConfigurations.add(configuration);
