@@ -19,7 +19,7 @@ To add dependencies on Light using Maven, use the following:
     <dependency>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-compiler</artifactId>
-        <version>0.4.2</version>
+        <version>0.4.3</version>
         <scope>provided</scope>
     </dependency>
 
@@ -27,7 +27,7 @@ To add dependencies on Light using Maven, use the following:
     <dependency>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-core</artifactId>
-        <version>0.4.2</version>
+        <version>0.4.3</version>
     </dependency>
 </dependencies>
 ```
@@ -36,9 +36,9 @@ Or using Gradle:
 
 ```groovy
 dependencies {
-    compileOnly("space.lingu.light:light-compiler:0.4.2")
+    compileOnly("space.lingu.light:light-compiler:0.4.3")
 
-    implementation("space.lingu.light:light-core:0.4.2")
+    implementation("space.lingu.light:light-core:0.4.3")
 }
 ```
 
@@ -124,7 +124,7 @@ When connecting to the database, Light will try to create database.
 But if database is already specified in the jdbc URL,
 this step will be skipped.
 
-### Set up Connection URL
+### Set up connection URL
 
 When connecting to the database, you need to specify the connection URL
 and also the jdbc driver class name.
@@ -141,7 +141,7 @@ light.data.password=123456
 
 Or you can replace `data` with your database name, in this case is `example`.
 
-### Last Step, Get ready to go!
+### Last step, get ready to go!
 
 To get the DAO instance, you need to build the database class instance.
 
