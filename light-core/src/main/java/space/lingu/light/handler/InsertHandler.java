@@ -45,7 +45,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             conn.beginTransaction();
             stmt.execute();
         } catch (SQLException e) {
-            printError(e);
+            conn.rollback();
             throw new LightRuntimeException(e);
         } finally {
             conn.commit();
@@ -81,10 +81,9 @@ public abstract class InsertHandler<T> extends Handler<T> {
             }
 
         } catch (SQLException e) {
-            printError(e);
+            conn.rollback();
             throw new LightRuntimeException(e);
         } finally {
-            conn.commit();
             conn.close();
         }
     }
@@ -104,7 +103,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             }
             set.close();
         } catch (SQLException e) {
-            printError(e);
+            conn.rollback();
             throw new LightRuntimeException(e);
         } finally {
             conn.close();
@@ -133,7 +132,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             }
             return result;
         } catch (SQLException e) {
-            printError(e);
+            conn.rollback();
             throw new LightRuntimeException(e);
         } finally {
             conn.close();
@@ -147,7 +146,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             List<Long> result = iterableBind(entities, conn, stmt);
             return convert(result);
         } catch (SQLException e) {
-            printError(e);
+            conn.rollback();
             throw new LightRuntimeException(e);
         } finally {
             conn.close();
@@ -179,7 +178,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             }
             return result;
         } catch (SQLException e) {
-            printError(e);
+            conn.rollback();
             throw new LightRuntimeException(e);
         } finally {
             conn.close();
@@ -193,7 +192,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
             List<Long> result = iterableBind(entities, conn, stmt);
             return result.toArray(new Long[0]);
         } catch (SQLException e) {
-            printError(e);
+            conn.rollback();
             throw new LightRuntimeException(e);
         } finally {
             conn.close();
@@ -232,10 +231,6 @@ public abstract class InsertHandler<T> extends Handler<T> {
 
     public final List<Long> insertAndReturnIdsList(Iterable<? extends T> entities) {
         return new ArrayList<>(Arrays.asList(insertAndReturnIdsArrayBox(entities)));
-    }
-
-    private void printError(Throwable throwable) {
-        database.getLogger().error("An error occurred while insert to database.", throwable);
     }
 
     private static long[] convert(List<Long> longList) {

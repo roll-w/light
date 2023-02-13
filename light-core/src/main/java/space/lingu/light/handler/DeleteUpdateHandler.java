@@ -47,7 +47,7 @@ public abstract class DeleteUpdateHandler<T> extends Handler<T> {
             conn.beginTransaction();
             return stmt.executeUpdate();
         } catch (SQLException e) {
-            printError(e);
+            conn.rollback();
             throw new LightRuntimeException(e);
         } finally {
             conn.commit();
@@ -72,18 +72,10 @@ public abstract class DeleteUpdateHandler<T> extends Handler<T> {
             }
             return count;
         } catch (SQLException e) {
-            printError(e);
+            conn.rollback();
             throw new LightRuntimeException(e);
         } finally {
             conn.close();
         }
     }
-
-    private void printError(Throwable throwable) {
-        if (database.getLogger() == null) {
-            return;
-        }
-        database.getLogger().error("An error occurred while execute delete or update.", throwable);
-    }
-
 }
