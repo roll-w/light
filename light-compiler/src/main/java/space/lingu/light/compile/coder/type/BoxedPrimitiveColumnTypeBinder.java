@@ -70,7 +70,8 @@ public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements 
                 .beginControlFlow("if ($L < 0)", indexName)
                 .addStatement("$L = null", outVarName)
                 .nextControlFlow("else");
-        mBinder.readFromResultSet(outVarName, resultSetName, indexName, block);
+        mBinder.readFromResultSet(outVarName,
+                resultSetName, indexName, block, false, true);
         block.builder().endControlFlow();
     }
 

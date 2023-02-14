@@ -57,22 +57,51 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
     }
 
     private String cast() {
-        if (mGetter.equals("get" + StringUtils.firstUpperCase(typeName.toString()))) {
+        if (mGetter.equals("get" +
+                StringUtils.firstUpperCase(typeName.toString()))) {
             return "";
         }
 
+        return forceCast();
+    }
+
+    private String forceCast() {
         return "(" + typeName + ") ";
     }
 
     @Override
-    public void readFromResultSet(String outVarName, String resultSetName, String indexName, GenerateCodeBlock block) {
-        block.builder()
-                .beginControlFlow("if ($L < 0)", indexName)
-                .addStatement("$L = $L", outVarName, mDefaultValue)
-                .nextControlFlow("else")
-                .addStatement("$L = $L$L.$L($L)", outVarName, cast(), resultSetName,
-                        mGetter, indexName)
-                .endControlFlow();
+    public void readFromResultSet(String outVarName,
+                                  String resultSetName,
+                                  String indexName,
+                                  GenerateCodeBlock block) {
+        readFromResultSet(outVarName, resultSetName, indexName, block,
+                true, false);
+    }
+
+    protected void readFromResultSet(String outVarName,
+                                     String resultSetName,
+                                     String indexName,
+                                     GenerateCodeBlock block,
+                                     boolean checkColumn,
+                                     boolean allowBoxedValue) {
+        if (checkColumn) {
+            block.builder()
+                    .beginControlFlow("if ($L < 0)", indexName)
+                    .addStatement("$L = $L", outVarName, mDefaultValue)
+                    .nextControlFlow("else");
+        }
+        if (!allowBoxedValue) {
+            block.builder().addStatement("$L = $L$L.$L($L)",
+                    outVarName, cast(), resultSetName,
+                    mGetter, indexName);
+        } else {
+            block.builder().addStatement("$L = $L$L.getObject($L)",
+                    outVarName, forceCast(), resultSetName, indexName);
+        }
+
+        if (checkColumn) {
+            block.builder().endControlFlow();
+        }
     }
 
     @Override
