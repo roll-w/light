@@ -172,6 +172,7 @@ public class PojoProcessor implements Processor<Pojo> {
 
     private Constructor checkConstructorParams(ExecutableElement constructorMethod,
                                                Field.Fields fields) {
+        // TODO: check constructor parameter assignable from field type
         List<Field> constructorParams = new ArrayList<>();
         Set<Field> usedFields = new HashSet<>();
         for (VariableElement e : constructorMethod.getParameters()) {

@@ -101,7 +101,8 @@ public class TypeBinders {
         loadAllKnownTypes();
     }
 
-    private final Map<SQLDataType, List<TypeMirror>> mKnownTypes = new HashMap<>();
+    private final Map<SQLDataType, List<TypeMirror>> mKnownTypes =
+            new HashMap<>();
 
     private void loadInKnownTypes(List<ColumnTypeBinder> binders) {
         for (ColumnTypeBinder binder : binders) {

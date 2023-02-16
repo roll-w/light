@@ -94,11 +94,14 @@ public class FieldProcessor implements Processor<Field> {
                     variableCompileType
             );
         }
-        if (finalType != binder.getDataType()) {
+        if (!assignableSQLDataType(finalType, binder.getDataType())) {
             mEnv.getLog().error(
                     CompileErrors.typeMismatch(finalType, binder.getDataType()),
                     variableCompileType
             );
+        }
+        if (assignableSQLDataType(preprocessType, finalType)) {
+            finalType = preprocessType;
         }
 
         // TODO: embedded type
@@ -117,5 +120,29 @@ public class FieldProcessor implements Processor<Field> {
             return variableCompileType.getName();
         }
         return dataColumn.name();
+    }
+
+    private boolean assignableSQLDataType(SQLDataType pre, SQLDataType finalType) {
+        if (pre == finalType) {
+            return true;
+        }
+        switch (pre) {
+            case VARCHAR:
+            case CHARS:
+            case TEXT:
+            case LONGTEXT:
+                return finalType == SQLDataType.VARCHAR;
+            case TINYINT:
+            case SMALLINT:
+                return finalType == SQLDataType.INT ||
+                        finalType == SQLDataType.TINYINT ||
+                        finalType == SQLDataType.SMALLINT;
+            case REAL:
+            case FLOAT:
+                return finalType == SQLDataType.FLOAT ||
+                        finalType == SQLDataType.REAL;
+            default:
+                return false;
+        }
     }
 }

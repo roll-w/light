@@ -17,6 +17,7 @@
 package space.lingu.light.compile.coder.type;
 
 
+import com.squareup.javapoet.TypeName;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.SQLDataType;
 import space.lingu.light.compile.coder.ColumnTypeBinder;
@@ -41,9 +42,10 @@ import java.util.Map;
  * @author RollW
  */
 public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
-    protected final String mGetter;
-    protected final String mSetter;
-    protected final String mDefaultValue;
+    private final String mGetter;
+    private final String mSetter;
+    private final String mDefaultValue;
+    private final TypeName boxedName;
 
     public PrimitiveColumnTypeBinder(TypeCompileType type,
                                      String stmtSetter,
@@ -54,19 +56,21 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
         mGetter = resSetGetter;
         mSetter = stmtSetter;
         mDefaultValue = defaultValue;
+        boxedName = typeName.box();
     }
 
-    private String cast() {
+    private String cast(boolean primitive) {
         if (mGetter.equals("get" +
                 StringUtils.firstUpperCase(typeName.toString()))) {
             return "";
         }
 
-        return forceCast();
+        return forceCast(primitive);
     }
 
-    private String forceCast() {
-        return "(" + typeName + ") ";
+    private String forceCast(boolean primitive) {
+        if (primitive) return "(" + typeName + ") ";
+        return "(" + boxedName + ") ";
     }
 
     @Override
@@ -92,11 +96,11 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
         }
         if (!allowBoxedValue) {
             block.builder().addStatement("$L = $L$L.$L($L)",
-                    outVarName, cast(), resultSetName,
+                    outVarName, cast(true), resultSetName,
                     mGetter, indexName);
         } else {
             block.builder().addStatement("$L = $L$L.getObject($L)",
-                    outVarName, forceCast(), resultSetName, indexName);
+                    outVarName, forceCast(false), resultSetName, indexName);
         }
 
         if (checkColumn) {
