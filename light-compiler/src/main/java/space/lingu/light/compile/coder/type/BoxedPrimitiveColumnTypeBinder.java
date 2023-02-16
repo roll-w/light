@@ -53,7 +53,9 @@ public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements 
         return env.getTypeCompileType(typeMirror);
     }
 
-    public static List<BoxedPrimitiveColumnTypeBinder> create(List<PrimitiveColumnTypeBinder> primitiveBinders, ProcessEnv env) {
+    public static List<BoxedPrimitiveColumnTypeBinder> create(
+            List<PrimitiveColumnTypeBinder> primitiveBinders,
+            ProcessEnv env) {
         List<BoxedPrimitiveColumnTypeBinder> binders = new ArrayList<>();
         primitiveBinders.forEach(binder ->
                 binders.add(new BoxedPrimitiveColumnTypeBinder(
@@ -70,8 +72,18 @@ public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements 
                 .beginControlFlow("if ($L < 0)", indexName)
                 .addStatement("$L = null", outVarName)
                 .nextControlFlow("else");
-        mBinder.readFromResultSet(outVarName,
-                resultSetName, indexName, block, false, true);
+        String readVarName = block.getTempVar("_checkNullOf" +
+                outVarName);
+        block.builder().addStatement("$T $L", typeName,
+                readVarName);
+        mBinder.readFromResultSet(readVarName,
+                resultSetName, indexName, block,
+                false, false);
+        block.builder()
+                .beginControlFlow("if ($L.wasNull())", resultSetName)
+                .addStatement("$L = null", readVarName)
+                .endControlFlow();
+        block.builder().addStatement("$L = $L", outVarName, readVarName);
         block.builder().endControlFlow();
     }
 

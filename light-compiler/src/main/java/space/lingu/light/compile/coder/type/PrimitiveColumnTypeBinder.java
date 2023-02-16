@@ -99,8 +99,8 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
                     outVarName, cast(true), resultSetName,
                     mGetter, indexName);
         } else {
-            block.builder().addStatement("$L = $L$L.getObject($L)",
-                    outVarName, forceCast(false), resultSetName, indexName);
+            block.builder().addStatement("$L = $L.getObject($L, $T.class)",
+                    outVarName, resultSetName, indexName, boxedName);
         }
 
         if (checkColumn) {
