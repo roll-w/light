@@ -16,11 +16,14 @@
 
 package space.lingu.light;
 
+import space.lingu.light.connect.LightProxyConnection;
+import space.lingu.light.connect.StatementReg;
 import space.lingu.light.util.RuntimeCloseable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,25 +33,28 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author RollW
  */
 @SuppressWarnings({"unused"})
-public class ManagedConnection implements RuntimeCloseable {
+public class ManagedConnection implements RuntimeCloseable, StatementReg {
     private static final byte[] DUMMY = new byte[0];
 
     private final LightDatabase database;
-    private final Connection connection;
+    private final LightProxyConnection connection;
     private final LightDatabase.Metadata metadata;
-    private final Map<PreparedStatement, byte[]> statements = new ConcurrentHashMap<>();
+    private final Map<Statement, byte[]> statements = new ConcurrentHashMap<>();
 
     public ManagedConnection(LightDatabase database) {
         this.database = database;
-        this.connection = database.requireConnection();
+        this.connection = new LightProxyConnection(
+                this,
+                database.requireConnection()
+        );
         this.metadata = database.getMetadata();
     }
 
     public PreparedStatement acquire(String sql, boolean returnsGeneratedKey) {
-        PreparedStatement stmt =
-                database.resolveStatement(sql, connection, returnsGeneratedKey);
-        statements.put(stmt, DUMMY);
-        return stmt;
+        return database.resolveStatement(
+                sql, connection,
+                returnsGeneratedKey
+        );
     }
 
     public PreparedStatement acquire(String sql) {
@@ -69,7 +75,6 @@ public class ManagedConnection implements RuntimeCloseable {
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
-        statements.put(stmt, DUMMY);
         return stmt;
     }
 
@@ -85,7 +90,6 @@ public class ManagedConnection implements RuntimeCloseable {
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
-        statements.put(stmt, DUMMY);
         return stmt;
     }
 
@@ -101,7 +105,6 @@ public class ManagedConnection implements RuntimeCloseable {
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
-        statements.put(stmt, DUMMY);
         return stmt;
     }
 
@@ -119,7 +122,6 @@ public class ManagedConnection implements RuntimeCloseable {
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
-        statements.put(stmt, DUMMY);
         return stmt;
     }
 
@@ -136,7 +138,6 @@ public class ManagedConnection implements RuntimeCloseable {
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
-        statements.put(stmt, DUMMY);
         return stmt;
     }
 
@@ -148,8 +149,9 @@ public class ManagedConnection implements RuntimeCloseable {
      * Get the raw connection, but notice that you should not manually close it.
      * <p>
      * If you want open a {@link PreparedStatement}, you should use {@link #acquire(String)}
-     * or other similar methods provided by this class instead. {@link PreparedStatement}
-     * that you open manually will not be managed.
+     * or other similar methods provided by this class instead.
+     * <p>
+     * All {@link Statement}s created from this instance will be managed.
      *
      * @return the raw {@link Connection}
      */
@@ -216,16 +218,17 @@ public class ManagedConnection implements RuntimeCloseable {
 
     /**
      * Release the connection, will also close all
-     * {@link PreparedStatement}s on the connection.
+     * {@link Statement}s on the connection.
      *
      * @throws LightRuntimeException if release connection failed.
      */
     @Override
     public void close() throws LightRuntimeException {
-        for (PreparedStatement preparedStatement : statements.keySet()) {
+        for (Statement statement : statements.keySet()) {
             try {
-                preparedStatement.close();
+                statement.close();
             } catch (SQLException ignored) {
+                // ignored
             }
         }
         database.releaseConnection(connection);
@@ -236,7 +239,7 @@ public class ManagedConnection implements RuntimeCloseable {
      *
      * @throws LightRuntimeException if release statement failed.
      */
-    public void release(PreparedStatement statement) throws LightRuntimeException {
+    public void release(Statement statement) throws LightRuntimeException {
         try {
             statements.remove(statement);
             statement.close();
@@ -262,5 +265,10 @@ public class ManagedConnection implements RuntimeCloseable {
 
     private boolean notSupportTransaction() {
         return !metadata.supportsTransaction;
+    }
+
+    @Override
+    public void registerStatement(Statement stmt) {
+        statements.put(stmt, DUMMY);
     }
 }
