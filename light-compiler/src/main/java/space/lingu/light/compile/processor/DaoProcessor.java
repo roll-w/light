@@ -175,23 +175,33 @@ public class DaoProcessor implements Processor<Dao> {
                                         Map<Class<? extends Annotation>, List<MethodCompileType>> methods,
                                         boolean isInterface) {
         allMethods.forEach(method -> {
-            if ((isInterface && !ElementUtils.isDefault(method.getElement())) ||
-                    ElementUtils.isAbstract(method.getElement())) {
-                AtomicBoolean annotatedFlag = new AtomicBoolean(false);
-                sHandleAnnotations.forEach(anno -> {
-                    if (method.getAnnotation(anno) != null) {
-                        methods.get(anno).add(method);
-                        annotatedFlag.set(true);
-                    }
-                });
-                if (!annotatedFlag.get()) {
-                    mEnv.getLog().error(
-                            CompileErrors.DAO_INVALID_ABSTRACT_METHOD,
-                            method
-                    );
+            if (!isAbstractMethod(method, isInterface)) {
+                return;
+            }
+            AtomicBoolean annotatedFlag = new AtomicBoolean(false);
+            sHandleAnnotations.forEach(anno -> {
+                if (method.getAnnotation(anno) != null) {
+                    methods.get(anno).add(method);
+                    annotatedFlag.set(true);
                 }
+            });
+            if (!annotatedFlag.get()) {
+                mEnv.getLog().error(
+                        CompileErrors.DAO_INVALID_ABSTRACT_METHOD,
+                        method
+                );
             }
         });
+    }
+
+    private boolean isAbstractMethod(MethodCompileType method, boolean isInterface) {
+        if (!isInterface) {
+            return ElementUtils.isAbstract(method.getElement());
+        }
+        if (ElementUtils.isPrivate(method.getElement())) {
+            return false;
+        }
+        return !ElementUtils.isDefault(method.getElement());
     }
 
     private static final class Methods {
