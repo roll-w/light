@@ -100,13 +100,25 @@ public interface UserDao {
     @Query("SELECT * FROM User")
     List<User> get();
 
-    @Query("SELECT * FROM User WHERE uid IN {ids}")
+    @Query("SELECT * FROM User WHERE uid IN ({ids})")
     List<User> getByIds(int[] ids);
 }
 ```
 
 The `@Dao` annotation indicates that this is a DAO,
 and the DAO class needs to be an interface or abstract class.
+
+By use the `{}` to specify the SQL parameter, 
+Light will automatically replace the parameter with the corresponding value.
+
+What's more, you can write a simple expression in the `{}`. Such as:
+
+```java
+@Query("SELECT * FROM User WHERE first_name = {user.getFirstName()} AND last_name = {user.getLastName()}")
+List<User> getByName(User user);
+```
+
+> Currently, Light only supports field access and parameterless method calls in the expression.
 
 ### Create a database
 
