@@ -62,11 +62,11 @@ public class UpdateHandlerWriter {
         String paramsVar = queryBlock.getTempVar("_values");
 
         FieldSpec primaryKeysField = FieldSpec.builder(stringArray,
-                        primaryKeysVar, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                        primaryKeysVar, Modifier.PRIVATE, Modifier.FINAL)
                 .initializer("new String[]{$L}", keys.toString())
                 .build();
         FieldSpec paramsField = FieldSpec.builder(stringArray,
-                        paramsVar, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                        paramsVar, Modifier.PRIVATE, Modifier.FINAL)
                 .addModifiers()
                 .initializer("new String[]{$L}", params.toString())
                 .build();
