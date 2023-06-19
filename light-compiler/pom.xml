@@ -22,7 +22,7 @@
     <parent>
         <groupId>space.lingu.light</groupId>
         <artifactId>light-parent</artifactId>
-        <version>0.4.5</version>
+        <version>0.4.6</version>
         <relativePath>../light-parent</relativePath>
     </parent>
 
@@ -46,6 +46,11 @@
             <groupId>com.google.auto.service</groupId>
             <artifactId>auto-service</artifactId>
             <version>1.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>space.lingu.fiesta</groupId>
+            <artifactId>fiesta-annotations</artifactId>
         </dependency>
 
         <dependency>
