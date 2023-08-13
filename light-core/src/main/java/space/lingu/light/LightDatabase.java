@@ -26,6 +26,7 @@ import space.lingu.light.util.StringUtils;
 
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -213,8 +214,7 @@ public abstract class LightDatabase {
                 if (sql == null || sql.isEmpty()) {
                     continue;
                 }
-                PreparedStatement stmt =
-                        resolveStatement(sql, conn, false);
+                PreparedStatement stmt = conn.prepareStatement(sql);
                 stmt.execute();
                 stmt.close();
             }
@@ -265,6 +265,7 @@ public abstract class LightDatabase {
         return mDialectProvider;
     }
 
+    @Deprecated
     public PreparedStatement resolveStatement(String sql, Connection connection, boolean returnsGeneratedKey) {
         PreparedStatement stmt;
         if (connection == null) {
@@ -298,7 +299,7 @@ public abstract class LightDatabase {
     }
 
     private final Map<String, Table> mTableStructCache =
-            Collections.synchronizedMap(new HashMap<>());
+            new ConcurrentHashMap<>();
 
     protected void registerTable(Table table) {
         if (table == null) {

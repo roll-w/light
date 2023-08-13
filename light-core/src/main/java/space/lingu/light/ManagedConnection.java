@@ -16,12 +16,14 @@
 
 package space.lingu.light;
 
+import space.lingu.light.connect.ConnectionWrapped;
 import space.lingu.light.connect.LightProxyConnection;
 import space.lingu.light.connect.StatementReg;
 import space.lingu.light.util.RuntimeCloseable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
@@ -29,11 +31,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represent a connection and managed by Light.
+ * Holds a raw connection of jdbc.
  *
  * @author RollW
  */
 @SuppressWarnings({"unused"})
-public class ManagedConnection implements RuntimeCloseable, StatementReg {
+public class ManagedConnection implements RuntimeCloseable, StatementReg, ConnectionWrapped {
     private static final byte[] DUMMY = new byte[0];
 
     private final LightDatabase database;
@@ -51,17 +54,29 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg {
     }
 
     public PreparedStatement acquire(String sql, boolean returnsGeneratedKey) {
-        return database.resolveStatement(
-                sql, connection,
-                returnsGeneratedKey
-        );
+        try {
+            if (returnsGeneratedKey) {
+                return connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            }
+            return connection.prepareStatement(
+                    sql,
+                    ResultSet.TYPE_FORWARD_ONLY,
+                    ResultSet.CONCUR_READ_ONLY
+            );
+        } catch (SQLException e) {
+            throw new LightRuntimeException(e);
+        }
     }
 
     public PreparedStatement acquire(String sql) {
         return acquire(sql, false);
     }
 
-    // Connection api
+    /*
+     * Connection methods, here we just call the raw connection methods,
+     * but catch the SQLException and throw LightRuntimeException.
+     */
+
 
     /**
      * See {@link Connection#prepareStatement(String, int)}
@@ -147,9 +162,6 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg {
 
     /**
      * Get the raw connection, but notice that you should not manually close it.
-     * <p>
-     * If you want open a {@link PreparedStatement}, you should use {@link #acquire(String)}
-     * or other similar methods provided by this class instead.
      * <p>
      * All {@link Statement}s created from this instance will be managed.
      *
@@ -270,5 +282,10 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg {
     @Override
     public void registerStatement(Statement stmt) {
         statements.put(stmt, DUMMY);
+    }
+
+    @Override
+    public ManagedConnection getMangedConnection() {
+        return this;
     }
 }
