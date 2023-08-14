@@ -40,7 +40,7 @@ import java.util.concurrent.Executor;
 /**
  * @author RollW
  */
-public class LightProxyConnection implements Connection {
+public class LightProxyConnection implements Connection, ConnectionWrapped {
     private final ManagedConnection connection;
     private final Connection delegate;
 
@@ -49,6 +49,7 @@ public class LightProxyConnection implements Connection {
         this.delegate = delegate;
     }
 
+    @Override
     public ManagedConnection getMangedConnection() {
         return connection;
     }

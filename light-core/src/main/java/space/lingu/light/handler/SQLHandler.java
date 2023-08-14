@@ -18,9 +18,15 @@ package space.lingu.light.handler;
 
 import space.lingu.light.LightDatabase;
 import space.lingu.light.ManagedConnection;
+import space.lingu.light.util.ResultSetUtils;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Internal API. Handle custom SQL expression.
@@ -28,12 +34,25 @@ import java.util.List;
  * @author RollW
  */
 public class SQLHandler {
-    public final String sql;
-    protected final LightDatabase mDatabase;
+    private final String sql;
+    private final LightDatabase mDatabase;
+    private final Map<String, ColumnIndex> mColumnIndexMap;
 
     public SQLHandler(LightDatabase database, String sql) {
+        this(database, sql, Collections.emptyList());
+    }
+
+    public SQLHandler(LightDatabase database, String sql,
+                      ColumnIndex... initialIndexes) {
+        this(database, sql, Arrays.asList(initialIndexes));
+    }
+
+    public SQLHandler(LightDatabase database, String sql,
+                      List<ColumnIndex> initialIndexes) {
         this.sql = sql;
         this.mDatabase = database;
+        this.mColumnIndexMap = new ConcurrentHashMap<>();
+        initialIndexes.forEach(index -> mColumnIndexMap.put(index.getName(), index));
     }
 
     protected String replaceWithPlaceholders(int[] args) {
@@ -62,26 +81,71 @@ public class SQLHandler {
         return builder.toString();
     }
 
-    private int nextStart(int index, String unescaped, List<SQLExpressionParser.Detail> details) {
+    private int nextStart(int index, String unescaped,
+                          List<SQLExpressionParser.Detail> details) {
         if (index + 1 >= details.size()) {
             return unescaped.length();
         }
         return details.get(index + 1).start;
     }
 
-    protected LightDatabase getDatabase() {
+    public LightDatabase getDatabase() {
         return mDatabase;
+    }
+
+    public String getSql() {
+        return sql;
     }
 
     public ManagedConnection newConnection() {
         return mDatabase.requireManagedConnection();
     }
 
+    /**
+     * Acquire a prepared statement with args.
+     *
+     * @param args number of template parameters in parameter order
+     */
     public PreparedStatement acquire(ManagedConnection connection, int[] args) {
         return connection.acquire(replaceWithPlaceholders(args), false);
     }
 
     public void release(ManagedConnection connection) {
         connection.close();
+    }
+
+    /**
+     * Get column index by name.
+     *
+     * @param name column name
+     * @return the index of column, -1 if not found.
+     */
+    public int getColumnIndex(ResultSet resultSet, String name) {
+        ColumnIndex columnIndex = mColumnIndexMap.get(name);
+        if (columnIndex != null) {
+            return columnIndex.getIndex();
+        }
+        int index = ResultSetUtils.getColumnIndexSwallow(resultSet, name);
+        ColumnIndex newIndex = new ColumnIndex(index, name);
+        mColumnIndexMap.put(name, newIndex);
+        return index;
+    }
+
+    public static final class ColumnIndex {
+        private final int index;
+        private final String name;
+
+        ColumnIndex(int index, String name) {
+            this.index = index;
+            this.name = name;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 }
