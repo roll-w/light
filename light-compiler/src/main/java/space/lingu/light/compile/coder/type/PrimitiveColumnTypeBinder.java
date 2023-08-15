@@ -60,6 +60,7 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
     }
 
     private String cast(boolean primitive) {
+        // TODO: add a getterOfField method
         if (mGetter.equals("get" +
                 StringUtils.firstUpperCase(typeName.toString()))) {
             return "";
@@ -69,7 +70,9 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
     }
 
     private String forceCast(boolean primitive) {
-        if (primitive) return "(" + typeName + ") ";
+        if (primitive) {
+            return "(" + typeName + ") ";
+        }
         return "(" + boxedName + ") ";
     }
 

@@ -43,12 +43,12 @@ public abstract class TypeConverter {
     }
 
     public final void convert(String inVarName, String outVarName,
-                        GenerateCodeBlock block) {
+                              GenerateCodeBlock block) {
         doConvert(inVarName, outVarName, block);
     }
 
     public final String convert(String inVarName,
-                          GenerateCodeBlock block) {
+                                GenerateCodeBlock block) {
         return doConvert(inVarName, block);
     }
 }
