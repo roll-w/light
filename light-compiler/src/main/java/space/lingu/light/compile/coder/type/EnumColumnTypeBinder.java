@@ -69,13 +69,18 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
                                   String indexName,
                                   GenerateCodeBlock block) {
         MethodSpec stringToEnumMethod = stringToEnumMethod(block);
-        block.builder()
-                .beginControlFlow("if ($L < 0)", indexName)
-                .addStatement("$L = null", outVarName)
-                .nextControlFlow("else")
-                .addStatement("$L = $N($L.getString($L))",
-                        outVarName, stringToEnumMethod, resultSetName, indexName)
-                .endControlFlow();
+        boolean needCheckIndex = IndexHelper.isNeedCheckIndex(indexName);
+        if (needCheckIndex) {
+            block.builder()
+                    .beginControlFlow("if ($L < 0)", indexName)
+                    .addStatement("$L = null", outVarName)
+                    .nextControlFlow("else");
+        }
+        block.builder().addStatement("$L = $N($L.getString($L))",
+                        outVarName, stringToEnumMethod, resultSetName, indexName);
+        if (needCheckIndex) {
+            block.builder().endControlFlow();
+        }
     }
 
     @Override

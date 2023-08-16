@@ -68,10 +68,13 @@ public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements 
     @Override
     public void readFromResultSet(String outVarName, String resultSetName,
                                   String indexName, GenerateCodeBlock block) {
-        block.builder()
-                .beginControlFlow("if ($L < 0)", indexName)
-                .addStatement("$L = null", outVarName)
-                .nextControlFlow("else");
+        boolean needCheckIndex = IndexHelper.isNeedCheckIndex(indexName);
+        if (needCheckIndex) {
+            block.builder()
+                    .beginControlFlow("if ($L < 0)", indexName)
+                    .addStatement("$L = null", outVarName)
+                    .nextControlFlow("else");
+        }
         String readVarName = block.getTempVar("_checkNullOf" +
                 outVarName);
         block.builder().addStatement("$T $L", typeName,
@@ -84,7 +87,9 @@ public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements 
                 .addStatement("$L = null", readVarName)
                 .endControlFlow();
         block.builder().addStatement("$L = $L", outVarName, readVarName);
-        block.builder().endControlFlow();
+        if (needCheckIndex) {
+            block.builder().endControlFlow();
+        }
     }
 
     @Override

@@ -74,20 +74,25 @@ public class DateTypeBinder extends ColumnTypeBinder {
             );
             return;
         }
-
+        boolean needCheckIndex = IndexHelper.isNeedCheckIndex(indexName);
         String readVar = block.getTempVar("_readDateOrTime");
         block.builder()
-                .addStatement("final $T $L", type.convert.clazzType, readVar)
-                .beginControlFlow("if ($L < 0)", indexName)
-                .addStatement("$L = $L", readVar, null)
-                .nextControlFlow("else")
-                .addStatement("$L = $L.$L($L)",
-                        readVar, resultSetName,
-                        type.convert.readMethodName, indexName)
-                .endControlFlow()
-                .addStatement("$L = $T.$L($L)",
-                        outVarName, JavaPoetClass.UtilNames.DATE_TIME_UTIL,
-                        type.toMethodName, readVar);
+                .addStatement("final $T $L", type.convert.clazzType, readVar);
+        if (needCheckIndex) {
+            block.builder().beginControlFlow("if ($L < 0)", indexName)
+                    .addStatement("$L = $L", readVar, null)
+                    .nextControlFlow("else");
+        }
+
+        block.builder().addStatement("$L = $L.$L($L)",
+                readVar, resultSetName,
+                type.convert.readMethodName, indexName);
+        if (needCheckIndex) {
+            block.builder().endControlFlow();
+        }
+        block.builder().addStatement("$L = $T.$L($L)",
+                outVarName, JavaPoetClass.UtilNames.DATE_TIME_UTIL,
+                type.toMethodName, readVar);
 
     }
 

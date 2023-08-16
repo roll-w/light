@@ -91,7 +91,9 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
                                      GenerateCodeBlock block,
                                      boolean checkColumn,
                                      boolean allowBoxedValue) {
-        if (checkColumn) {
+        int index = parseIndex(indexName);
+        boolean check = checkColumn && index < 0;
+        if (check) {
             block.builder()
                     .beginControlFlow("if ($L < 0)", indexName)
                     .addStatement("$L = $L", outVarName, mDefaultValue)
@@ -106,7 +108,7 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
                     outVarName, resultSetName, indexName, boxedName);
         }
 
-        if (checkColumn) {
+        if (check) {
             block.builder().endControlFlow();
         }
     }
@@ -119,6 +121,14 @@ public class PrimitiveColumnTypeBinder extends ColumnTypeBinder implements State
                 .nextControlFlow("catch ($T e)", SQLException.class)
                 .addStatement("throw new $T(e)", LightRuntimeException.class)
                 .endControlFlow();
+    }
+
+    private static int parseIndex(String indexVarName) {
+        try {
+            return Integer.parseInt(indexVarName);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
     public static List<PrimitiveColumnTypeBinder> create(ProcessEnv env) {

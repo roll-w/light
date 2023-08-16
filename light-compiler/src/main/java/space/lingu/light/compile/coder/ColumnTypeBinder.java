@@ -56,6 +56,13 @@ public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueRe
                                            String indexName, String methodName,
                                            String defaultValue,
                                            GenerateCodeBlock block) {
+        int index = getIndexAsNumber(indexName);
+        if (index >= 0) {
+            block.builder()
+                    .addStatement("$L = $L.$L($L)",
+                            outVarName, resultSetName, methodName, indexName);
+            return;
+        }
         block.builder()
                 .beginControlFlow("if ($L < 0)", indexName)
                 .addStatement("$L = $L", outVarName, defaultValue)
@@ -64,6 +71,7 @@ public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueRe
                         outVarName, resultSetName, methodName, indexName)
                 .endControlFlow();
     }
+
 
     protected void bindToStatementWithNullable(String stmtVarName, String indexVarName,
                                                String valueVarName, String methodName, GenerateCodeBlock block) {
@@ -77,5 +85,13 @@ public abstract class ColumnTypeBinder implements StatementBinder, ColumnValueRe
                 .nextControlFlow("catch ($T e)", SQLException.class)
                 .addStatement("throw new $T(e)", LightRuntimeException.class)
                 .endControlFlow();
+    }
+
+    private int getIndexAsNumber(String indexVarName) {
+        try {
+            return Integer.parseInt(indexVarName);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 }

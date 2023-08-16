@@ -21,7 +21,9 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.JavaPoetClass;
+import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.struct.DataTable;
 
 import javax.lang.model.element.Modifier;
@@ -32,42 +34,48 @@ import java.util.List;
  * @author RollW
  */
 public class DataTableResultSetConverterWriter extends ClassWriter.SharedMethodSpec {
-    private final DataTable mTable;
+    private final QueryContext queryContext;
+    private final DataTable table;
 
-    public DataTableResultSetConverterWriter(DataTable table) {
+    public DataTableResultSetConverterWriter(QueryContext queryContext,
+                                             DataTable table) {
         super("entityResultSetConverter_" + table.getTypeName().toString());
-        // TODO
-        mTable = table;
+        // TODO:
+        this.queryContext = queryContext;
+        this.table = table;
     }
 
     @Override
     public String getUniqueKey() {
-        return "GenericEntityConverterOf-" + mTable.getTypeCompileType().getQualifiedName();
+        return "GenericEntityConverterOf-" + table.getTypeCompileType().getQualifiedName();
     }
 
     @Override
-    public void prepare(String methodName, ClassWriter writer, MethodSpec.Builder builder) {
+    public void prepare(String methodName, ClassWriter writer,
+                        MethodSpec.Builder builder) {
         ParameterSpec resSetParam = ParameterSpec
                 .builder(JavaPoetClass.JdbcNames.RESULT_SET, "resultSet")
                 .build();
         builder.addParameter(resSetParam)
                 .addModifiers(Modifier.PRIVATE)
-                .returns(mTable.getTypeName())
+                .returns(table.getTypeName())
                 .addCode(buildConvertMethodBody(writer, resSetParam));
     }
 
-    private CodeBlock buildConvertMethodBody(ClassWriter writer, ParameterSpec resultSetParam) {
+    private CodeBlock buildConvertMethodBody(ClassWriter writer,
+                                             ParameterSpec resultSetParam) {
         GenerateCodeBlock block = new GenerateCodeBlock(writer);
         String tableVar = block.getTempVar("_dataTable");
-        block.builder().addStatement("final $T $L", mTable.getTypeName(), tableVar);
+        block.builder().addStatement("final $T $L", table.getTypeName(), tableVar);
         List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
 
-        mTable.getFields().getFields().forEach(field -> {
-            String indexVar = block.getTempVar("_resultSetIndexOf" + mTable.getTypeCompileType().getSimpleName());
+        table.getFields().getFields().forEach(field -> {
+            String indexVar = block.getTempVar("_resultSetIndexOf" + table.getTypeCompileType().getSimpleName());
             block.builder()
-                    .addStatement("final $T $L = $T.getColumnIndexSwallow($N, $S)",
+                    .addStatement("final $T $L = $L.$T($N, $S)",
                             TypeName.INT, indexVar,
-                            JavaPoetClass.UtilNames.RESULT_SET_UTIL,
+                            queryContext.getHandlerVarName(),
+                            MethodNames.sGetColumnIndex,
                             resultSetParam,
                             field.getColumnName());
 
@@ -76,7 +84,7 @@ public class DataTableResultSetConverterWriter extends ClassWriter.SharedMethodS
             );
         });
 
-        FieldReadWriteWriter.readFromResultSet(tableVar, mTable,
+        FieldReadWriteWriter.readFromResultSet(tableVar, table,
                 resultSetParam.name, fieldWithNumberList, block);
 
         block.builder().addStatement("return $L", tableVar);
