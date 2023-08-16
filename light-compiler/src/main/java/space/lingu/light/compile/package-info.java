@@ -16,6 +16,10 @@
 
 /**
  * Code generation module.
+ * <p>
+ * For internal use only. There will be no advance notice
+ * for breaking changes or API changes, so do not use this
+ * module in your code.
  *
  * @author RollW
  */
