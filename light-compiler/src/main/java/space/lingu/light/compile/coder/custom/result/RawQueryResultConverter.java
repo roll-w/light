@@ -18,12 +18,12 @@ package space.lingu.light.compile.coder.custom.result;
 
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.coder.custom.row.NoOpRowConverter;
 import space.lingu.light.compile.javac.ProcessEnv;
 import space.lingu.light.compile.javac.TypeCompileType;
 
 import java.sql.ResultSet;
-import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -31,15 +31,18 @@ import java.util.Objects;
  *
  * @author RollW
  */
-public class RawQueryResultConverter extends QueryResultConverter {
+public class RawQueryResultConverter extends AbstractQueryResultConverter {
     protected RawQueryResultConverter(ProcessEnv env) {
-        super(Collections.singletonList(createNoOpConverter(env)));
+        super(createNoOpConverter(env));
     }
 
     @Override
-    public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
+    public void convert(QueryContext queryContext, GenerateCodeBlock block) {
         block.builder().addStatement("$T $L = $L",
-                JavaPoetClass.JdbcNames.RESULT_SET, outVarName, resultSetName);
+                JavaPoetClass.JdbcNames.RESULT_SET,
+                queryContext.getOutVarName(),
+                queryContext.getResultSetVarName()
+        );
     }
 
     private static RawQueryResultConverter INSTANCE;

@@ -21,42 +21,46 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
 import space.lingu.light.compile.javac.TypeCompileType;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * @author RollW
  */
-public class ListQueryResultConverter extends QueryResultConverter {
+public class ListQueryResultConverter extends AbstractQueryResultConverter {
     private final TypeCompileType mType;
     private final RowConverter mConverter;
 
     public ListQueryResultConverter(TypeCompileType type, RowConverter converter) {
-        super(Collections.singletonList(converter));
+        super(converter);
         mConverter = converter;
         mType = type;
     }
 
     @Override
-    public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
-        mConverter.onResultSetReady(resultSetName, block);
+    public void convert(QueryContext queryContext, GenerateCodeBlock block) {
+        mConverter.onResultSetReady(queryContext, block);
+
         TypeName listType = ParameterizedTypeName
                 .get(ClassName.get(List.class), mType.toTypeName());
         TypeName arrayListType = ParameterizedTypeName
                 .get(ClassName.get(ArrayList.class), mType.toTypeName());
         final String tempVar = block.getTempVar("_item");
-        block.builder().addStatement("final $T $L = new $T()", listType, outVarName, arrayListType)
+        block.builder().addStatement("final $T $L = new $T()", listType,
+                        queryContext.getOutVarName(), arrayListType)
                 .beginControlFlow("try")
-                .beginControlFlow("while ($L.next())", resultSetName)
+                .beginControlFlow("while ($L.next())", queryContext.getResultSetVarName())
                 .addStatement("final $T $L", mType.toTypeName(), tempVar);
 
-        mConverter.convert(tempVar, resultSetName, block);
-        block.builder().addStatement("$L.add($L)", outVarName, tempVar)
+        QueryContext scopeContext = queryContext.fork(tempVar);
+
+        mConverter.convert(scopeContext, block);
+        block.builder().addStatement("$L.add($L)", queryContext.getOutVarName(), tempVar)
                 .endControlFlow()
                 .nextControlFlow("catch ($T e)", SQLException.class)
                 .addStatement("throw new $T(e)", LightRuntimeException.class)

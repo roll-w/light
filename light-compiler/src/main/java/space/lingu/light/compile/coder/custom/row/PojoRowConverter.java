@@ -17,8 +17,9 @@
 package space.lingu.light.compile.coder.custom.row;
 
 import com.squareup.javapoet.TypeName;
-import space.lingu.light.compile.JavaPoetClass;
+import space.lingu.light.compile.MethodNames;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.struct.Field;
 import space.lingu.light.compile.struct.Pojo;
@@ -43,20 +44,27 @@ public class PojoRowConverter extends RowConverter {
     }
 
     @Override
-    public void onResultSetReady(String resultSetName, GenerateCodeBlock block) {
+    public void onResultSetReady(QueryContext queryContext,
+                                 GenerateCodeBlock block) {
         usedFields.forEach(field -> {
             final String numberVar = block.getTempVar("_resultSetIndexOf" +
                     StringUtils.firstUpperCase(field.getName()));
-            block.builder().addStatement("final $T $L = $T.getColumnIndexSwallow($L, $S)",
-                    TypeName.INT, numberVar, JavaPoetClass.UtilNames.RESULT_SET_UTIL,
-                    resultSetName, field.getColumnName());
+            block.builder().addStatement("final $T $L = $L.$L($L, $S)",
+                    TypeName.INT, numberVar, queryContext.getHandlerVarName(),
+                    MethodNames.sGetColumnIndex,
+                    queryContext.getResultSetVarName(), field.getColumnName());
             fieldWithNumberList.add(new FieldReadWriteWriter.FieldWithNumber(field, numberVar));
         });
     }
 
     @Override
-    public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
-        FieldReadWriteWriter.readFromResultSet(outVarName, mPojo, resultSetName, fieldWithNumberList, block);
+    public void convert(QueryContext queryContext, GenerateCodeBlock block) {
+        FieldReadWriteWriter.readFromResultSet(
+                queryContext.getOutVarName(), mPojo,
+                queryContext.getResultSetVarName(),
+                fieldWithNumberList,
+                block
+        );
     }
 
     @Override

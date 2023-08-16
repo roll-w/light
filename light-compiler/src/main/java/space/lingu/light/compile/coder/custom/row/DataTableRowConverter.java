@@ -18,6 +18,7 @@ package space.lingu.light.compile.coder.custom.row;
 
 import com.squareup.javapoet.MethodSpec;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.struct.DataTable;
 import space.lingu.light.compile.writer.DataTableResultSetConverterWriter;
 
@@ -34,14 +35,19 @@ public class DataTableRowConverter extends RowConverter {
     }
 
     @Override
-    public void onResultSetReady(String resultSetName, GenerateCodeBlock block) {
+    public void onResultSetReady(QueryContext queryContext,
+                                 GenerateCodeBlock block) {
         methodSpec = block.writer.getOrCreateMethod(
-                new DataTableResultSetConverterWriter(mTable));
+                new DataTableResultSetConverterWriter(queryContext, mTable)
+        );
     }
 
     @Override
-    public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
-        block.builder().addStatement("$L = $N($L)", outVarName, methodSpec, resultSetName);
+    public void convert(QueryContext queryContext, GenerateCodeBlock block) {
+        block.builder().addStatement("$L = $N($L)",
+                queryContext.getOutVarName(), methodSpec,
+                queryContext.getResultSetVarName()
+        );
     }
 
     @Override

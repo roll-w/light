@@ -18,6 +18,7 @@ package space.lingu.light.compile.coder.custom.row;
 
 import space.lingu.light.compile.coder.ColumnValueReader;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 
 /**
  * @author RollW
@@ -31,13 +32,18 @@ public class SingleColumnRowConverter extends RowConverter {
     }
 
     @Override
-    public void onResultSetReady(String resultSetName, GenerateCodeBlock block) {
+    public void onResultSetReady(QueryContext queryContext,
+                                 GenerateCodeBlock block) {
 
     }
 
     @Override
-    public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
-        reader.readFromResultSet(outVarName, resultSetName, "1", block);
+    public void convert(QueryContext queryContext, GenerateCodeBlock block) {
+        reader.readFromResultSet(
+                queryContext.getOutVarName(),
+                queryContext.getResultSetVarName(),
+                "1", block
+        );
     }
 
     @Override

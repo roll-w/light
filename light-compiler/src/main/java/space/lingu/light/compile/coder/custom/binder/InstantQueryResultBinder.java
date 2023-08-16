@@ -18,6 +18,7 @@ package space.lingu.light.compile.coder.custom.binder;
 
 import space.lingu.light.compile.JavaPoetClass;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.coder.custom.result.QueryResultConverter;
 
 /**
@@ -29,23 +30,29 @@ public class InstantQueryResultBinder extends QueryResultBinder {
     }
 
     @Override
-    public void writeBlock(String handlerName, String connVarName, String stmtVarName,
+    public void writeBlock(String handlerName, String connVarName,
+                           String stmtVarName,
                            boolean canReleaseSet, boolean isReturn,
                            boolean inTransaction,
                            GenerateCodeBlock block) {
         if (inTransaction) {
             block.builder().addStatement("$N.beginTransaction()", connVarName);
         }
+
         final String outVar = block.getTempVar("_result");
         final String setVar = block.getTempVar("_resultSet");
-
+        QueryContext queryContext = new QueryContext(
+                handlerName, connVarName,
+                stmtVarName, setVar,
+                outVar, canReleaseSet,
+                isReturn,
+                inTransaction
+        );
         block.builder().beginControlFlow("try ($T $L = $N.executeQuery())",
                 JavaPoetClass.JdbcNames.RESULT_SET, setVar, stmtVarName);
         if (isReturn) {
-            mConverter.convert(outVar, setVar, block);
+            mConverter.convert(queryContext, block);
         }
-        end(handlerName, connVarName, stmtVarName, outVar,
-                canReleaseSet, isReturn,
-                inTransaction, block);
+        end(queryContext, block);
     }
 }

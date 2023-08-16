@@ -18,6 +18,7 @@ package space.lingu.light.compile.coder.custom.binder;
 
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.coder.custom.result.QueryResultConverter;
 
 import java.sql.SQLException;
@@ -41,29 +42,24 @@ public abstract class QueryResultBinder {
                                     boolean inTransaction,
                                     GenerateCodeBlock block);
 
-    protected void end(String handlerName,
-                       String connVarName,
-                       String stmtVarName,
-                       String outVarName,
-                       boolean canReleaseSet,
-                       boolean isReturn,
-                       boolean inTransaction,
+    protected void end(QueryContext queryContext,
                        GenerateCodeBlock block) {
-        if (inTransaction) {
-            block.builder().addStatement("$N.commit()", connVarName);
+        if (queryContext.isInTransaction()) {
+            block.builder().addStatement("$N.commit()", queryContext.getConnVarName());
         }
-        if (isReturn) {
-            block.builder().addStatement("return $L", outVarName);
+        if (queryContext.isNeedsReturn()) {
+            block.builder().addStatement("return $L", queryContext.getOutVarName());
         }
         block.builder().nextControlFlow("catch ($T e)", SQLException.class);
-        if (inTransaction) {
-            block.builder().addStatement("$N.rollback()", connVarName);
+        if (queryContext.isInTransaction()) {
+            block.builder().addStatement("$N.rollback()", queryContext.getConnVarName());
         }
         block.builder().addStatement("throw new $T(e)", LightRuntimeException.class);
-        if (canReleaseSet) {
+        if (queryContext.isCanReleaseSet()) {
             block.builder()
                     .nextControlFlow("finally")
-                    .addStatement("$N.release($L)", handlerName, connVarName);
+                    .addStatement("$N.release($L)",
+                            queryContext.getHandlerVarName(), queryContext.getConnVarName());
         }
         block.builder().endControlFlow();
     }

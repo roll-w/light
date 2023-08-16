@@ -48,11 +48,21 @@ public final class MethodNames {
     public static final String sRegisterAllTables = "registerAllTables";
 
     /**
+     * <ul>
+     *     <li>{@link ResultSetUtils#getColumnIndex(ResultSet, String)}</li>
+     *     <li>{@link ResultSetUtils#getColumnIndex(ResultSet, String, SQLEscaper)}</li>
+     *     <li>{@link SQLHandler#getColumnIndex(ResultSet, String)} )}</li>
+     * </ul>
+     */
+    public static final String sGetColumnIndex = "getColumnIndex";
+
+    /**
      * {@link ResultSetUtils#getColumnIndexSwallow(ResultSet, String, SQLEscaper)}
      * <p>
      * {@link ResultSetUtils#getColumnIndexSwallow(ResultSet, String)}
      */
     public static final String sGetColumnIndexSwallow = "getColumnIndexSwallow";
+
     /**
      * {@link ResultSetUtils#getColumnIndexOrThrow(ResultSet, String)}}
      */

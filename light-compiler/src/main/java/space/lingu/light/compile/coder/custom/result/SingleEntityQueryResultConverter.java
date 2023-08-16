@@ -17,34 +17,42 @@
 package space.lingu.light.compile.coder.custom.result;
 
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
 import space.lingu.light.compile.javac.TypeCompileType;
-
-import java.util.Collections;
 
 /**
  * Returns an entity.
  *
  * @author RollW
  */
-public class SingleEntityQueryResultConverter extends QueryResultConverter {
+public class SingleEntityQueryResultConverter extends AbstractQueryResultConverter {
     private final RowConverter mConverter;
 
     public SingleEntityQueryResultConverter(RowConverter converter) {
-        super(Collections.singletonList(converter));
+        super(converter);
         mConverter = converter;
     }
 
     @Override
-    public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
-        mConverter.onResultSetReady(resultSetName, block);
-        block.builder().addStatement("final $T $L", mConverter.getOutType().toTypeName(), outVarName)
-                .beginControlFlow("if ($L.next())", resultSetName);
-        mConverter.convert(outVarName, resultSetName, block);
-        block.builder().nextControlFlow("else")
-                .addStatement("$L = $L", outVarName,
+    public void convert(QueryContext queryContext, GenerateCodeBlock block) {
+        mConverter.onResultSetReady(queryContext, block);
+
+        block.builder()
+                .addStatement("final $T $L",
+                        mConverter.getOutType().toTypeName(),
+                        queryContext.getOutVarName())
+                .beginControlFlow("if ($L.next())",
+                        queryContext.getResultSetVarName());
+
+        mConverter.convert(queryContext, block);
+
+        block.builder()
+                .nextControlFlow("else")
+                .addStatement("$L = $L", queryContext.getOutVarName(),
                         getDefaultValue(mConverter.getOutType()))
                 .endControlFlow();
+
         mConverter.onResultSetFinish(block);
     }
 

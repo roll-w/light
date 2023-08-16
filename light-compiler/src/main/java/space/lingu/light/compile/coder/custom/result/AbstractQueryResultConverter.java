@@ -14,33 +14,28 @@
  * limitations under the License.
  */
 
-package space.lingu.light.compile.coder.custom.row;
+package space.lingu.light.compile.coder.custom.result;
 
 import space.lingu.light.compile.coder.GenerateCodeBlock;
 import space.lingu.light.compile.coder.custom.QueryContext;
-import space.lingu.light.compile.javac.TypeCompileType;
+import space.lingu.light.compile.coder.custom.row.RowConverter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author RollW
  */
-public class NoOpRowConverter extends RowConverter {
-    public NoOpRowConverter(TypeCompileType outType) {
-        super(outType);
+public abstract class AbstractQueryResultConverter implements QueryResultConverter {
+    protected final List<RowConverter> mConverters = new ArrayList<>();
+
+    public AbstractQueryResultConverter(List<RowConverter> converters) {
+        mConverters.addAll(converters);
     }
 
-    @Override
-    public void onResultSetReady(QueryContext queryContext, GenerateCodeBlock block) {
-        // no-op
+    public AbstractQueryResultConverter(RowConverter converter) {
+        mConverters.add(converter);
     }
 
-
-    @Override
-    public void convert(QueryContext queryContext, GenerateCodeBlock block) {
-        // no-op
-    }
-
-    @Override
-    public void onResultSetFinish(GenerateCodeBlock block) {
-        // no-op
-    }
+    public abstract void convert(QueryContext queryContext, GenerateCodeBlock block);
 }

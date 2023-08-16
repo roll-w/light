@@ -18,6 +18,7 @@ package space.lingu.light.compile.coder.custom.binder;
 
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 
 /**
  * @author RollW
@@ -47,9 +48,15 @@ public class DeleteResultBinder extends QueryResultBinder {
                 .beginControlFlow("try")
                 .addStatement("$T $L = $N.executeUpdate()",
                         TypeName.INT, outVar, stmtVarName);
-        end(handlerName, connVarName, stmtVarName, outVar,
-                canReleaseSet, isReturn,
-                inTransaction, block);
+        QueryContext queryContext = new QueryContext(
+                handlerName, connVarName,
+                stmtVarName, null,
+                outVar, canReleaseSet,
+                isReturn,
+                inTransaction
+        );
+
+        end(queryContext, block);
     }
 
     private static final class Singleton {

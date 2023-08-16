@@ -21,31 +21,32 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.coder.custom.row.RowConverter;
 import space.lingu.light.compile.javac.TypeUtils;
 
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
-import java.util.Collections;
 
 /**
  * @author RollW
  */
-public class ArrayQueryResultConverter extends QueryResultConverter {
+public class ArrayQueryResultConverter extends AbstractQueryResultConverter {
     public final RowConverter converter;
     private final TypeMirror type;
 
     public ArrayQueryResultConverter(RowConverter converter) {
-        super(Collections.singletonList(converter));
+        super(converter);
         this.converter = converter;
         this.type = converter.getOutType().getTypeMirror();
         // type here is not the array's original type.
-        // e.g. given long[], here the type is long.
+        // e.g., given long[], here the type is long.
     }
 
     @Override
-    public void convert(String outVarName, String resultSetName, GenerateCodeBlock block) {
-        converter.onResultSetReady(resultSetName, block);
+    public void convert(QueryContext queryContext, GenerateCodeBlock block) {
+        converter.onResultSetReady(queryContext, block);
+
         TypeName containerType = TypeName.get(type);
 
         TypeName arrayType = ArrayTypeName.of(containerType);
@@ -76,18 +77,22 @@ public class ArrayQueryResultConverter extends QueryResultConverter {
         }
         final String tempVar = block.getTempVar("_item");
         block.builder()
-                .beginControlFlow("while ($L.next())", resultSetName)
+                .beginControlFlow("while ($L.next())", queryContext.getResultSetVarName())
                 .addStatement("final $T $L", TypeName.get(type), tempVar);
-        converter.convert(tempVar, resultSetName, block);
+        QueryContext scopedContext = queryContext.fork(tempVar);
+        converter.convert(scopedContext, block);
+
         block.builder()
                 .addStatement("$L.add($L)", tempArrayListName, tempVar)
                 .endControlFlow();
         if (containerType.isPrimitive()) {
-            // needs convert if primitive
-            joinsArray(outVarName, tempArrayListName, arrayType, containerType, block);
+            // needs to convert if primitive
+            joinsArray(queryContext.getOutVarName(), tempArrayListName,
+                    arrayType, containerType, block
+            );
         } else {
             block.builder().addStatement("final $T $L = $L.toArray($L)",
-                    arrayType, outVarName, tempArrayListName, tempContainerName);
+                    arrayType, queryContext.getOutVarName(), tempArrayListName, tempContainerName);
         }
         converter.onResultSetFinish(block);
     }
@@ -103,8 +108,7 @@ public class ArrayQueryResultConverter extends QueryResultConverter {
                 .addStatement("final int $L = $L.size()",
                         listSizeVarName, arrayListName)
                 .addStatement("final $T $L = new $T[$L]",
-                        arrayType, outVarName, arrayContainerType, listSizeVarName);
-        block.builder()
+                        arrayType, outVarName, arrayContainerType, listSizeVarName)
                 .beginControlFlow("for (int $L = 0; $L < $L; $L++)",
                         tempIndexVarName, tempIndexVarName, listSizeVarName, tempIndexVarName)
                 .addStatement("$L[$L] = $L.get($L)",

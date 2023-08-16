@@ -17,6 +17,7 @@
 package space.lingu.light.compile.coder.custom.row;
 
 import space.lingu.light.compile.coder.GenerateCodeBlock;
+import space.lingu.light.compile.coder.custom.QueryContext;
 import space.lingu.light.compile.javac.TypeCompileType;
 
 /**
@@ -29,9 +30,11 @@ public abstract class RowConverter {
         this.outType = outType;
     }
 
-    public abstract void onResultSetReady(String resultSetName, GenerateCodeBlock block);
+    public abstract void onResultSetReady(QueryContext queryContext,
+                                          GenerateCodeBlock block);
 
-    public abstract void convert(String outVarName, String resultSetName, GenerateCodeBlock block);
+    public abstract void convert(QueryContext queryContext,
+                                 GenerateCodeBlock block);
 
     public abstract void onResultSetFinish(GenerateCodeBlock block);
 
