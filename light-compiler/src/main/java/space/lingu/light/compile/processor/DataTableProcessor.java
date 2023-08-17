@@ -17,7 +17,6 @@
 package space.lingu.light.compile.processor;
 
 import space.lingu.light.Configurations;
-import space.lingu.light.LightIgnore;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtils;
@@ -31,13 +30,7 @@ import space.lingu.light.compile.struct.Pojo;
 import space.lingu.light.compile.struct.PrimaryKey;
 import space.lingu.light.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,15 +61,20 @@ public class DataTableProcessor implements Processor<DataTable> {
 
         checkColumnName(fields);
 
-        if (pojo.getFields().isEmpty()) {
-            mEnv.getLog().error(CompileErrors.TABLE_NO_FIELDS, typeCompileType);
-        }
+        mEnv.getLog().error(
+                pojo.getFields().isEmpty(),
+                CompileErrors.TABLE_NO_FIELDS,
+                typeCompileType
+        );
 
         PrimaryKey primaryKey = findPrimaryKey(pojo.getFields());
-        if (primaryKey == PrimaryKey.MISSING &&
-                typeCompileType.getAnnotation(LightIgnore.class) == null) {
-            mEnv.getLog().warn(Warnings.PRIMARY_KEY_NOT_FOUND, typeCompileType);
-        }
+        mEnv.getLog().warn(
+                primaryKey == PrimaryKey.MISSING,
+                Warnings.PRIMARY_KEY_NOT_FOUND,
+                typeCompileType,
+                typeCompileType.getName()
+        );
+
         Configurations configurations = Configurable.createFrom(
                 anno.configuration(),
                 typeCompileType
@@ -87,7 +85,8 @@ public class DataTableProcessor implements Processor<DataTable> {
                 fields, pojo.getConstructor(),
                 tableName, primaryKey,
                 indices, Collections.emptyList(),
-                configurations);
+                configurations
+        );
     }
 
     @SuppressWarnings({"deprecation"})

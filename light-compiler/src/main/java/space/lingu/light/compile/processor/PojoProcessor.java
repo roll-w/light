@@ -18,7 +18,6 @@ package space.lingu.light.compile.processor;
 
 import space.lingu.light.DataColumn;
 import space.lingu.light.Embedded;
-import space.lingu.light.LightIgnore;
 import space.lingu.light.compile.CompileErrors;
 import space.lingu.light.compile.Warnings;
 import space.lingu.light.compile.javac.ElementUtils;
@@ -27,10 +26,22 @@ import space.lingu.light.compile.javac.TypeCompileType;
 import space.lingu.light.compile.javac.TypeUtils;
 import space.lingu.light.compile.javac.VariableCompileType;
 import space.lingu.light.compile.javac.types.JavacVariableCompileType;
-import space.lingu.light.compile.struct.*;
+import space.lingu.light.compile.struct.Constructor;
+import space.lingu.light.compile.struct.Field;
+import space.lingu.light.compile.struct.FieldGetter;
+import space.lingu.light.compile.struct.FieldSetter;
+import space.lingu.light.compile.struct.Pojo;
 
-import javax.lang.model.element.*;
-import java.util.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.VariableElement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -72,16 +83,17 @@ public class PojoProcessor implements Processor<Pojo> {
                 return;
             }
             boolean hasColumn = e.getAnnotation(DataColumn.class) != null;
-            boolean isIgnore = e.getAnnotation(LightIgnore.class) != null;
             if (ElementUtils.isStatic(e)) {
-                if (hasColumn && !isIgnore) {
-                    mEnv.getLog().warn(Warnings.CANNOT_APPLY_TO_STATIC_FIELD, e);
-                }
+                mEnv.getLog().warn(hasColumn,
+                        Warnings.CANNOT_APPLY_TO_STATIC_FIELD,
+                        e, e.getSimpleName()
+                );
                 return;
             }
-            if (!hasColumn && !isIgnore) {
-                mEnv.getLog().warn(Warnings.FIELD_NOT_ANNOTATED, e);
-            }
+            mEnv.getLog().warn(!hasColumn,
+                    Warnings.FIELD_NOT_ANNOTATED,
+                    e, e.getSimpleName()
+            );
             if (!hasColumn) {
                 return;
             }
@@ -100,7 +112,8 @@ public class PojoProcessor implements Processor<Pojo> {
         return fields;
     }
 
-    private void processEmbeddedField(VariableElement element, Embedded embedded) {
+    private void processEmbeddedField(VariableElement element,
+                                      Embedded embedded) {
 
     }
 

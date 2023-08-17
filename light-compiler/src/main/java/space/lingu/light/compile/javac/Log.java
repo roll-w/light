@@ -17,6 +17,7 @@
 package space.lingu.light.compile.javac;
 
 import space.lingu.light.compile.LightCompileException;
+import space.lingu.light.compile.Warnings;
 
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.AnnotationMirror;
@@ -26,6 +27,7 @@ import javax.tools.Diagnostic;
 
 /**
  * 编译时输出日志
+ *
  * @author RollW
  */
 public class Log {
@@ -43,10 +45,10 @@ public class Log {
                     Element element) {
         mMessager.printMessage(kind, "Light: " + charSequence, element);
     }
-    
+
     public void log(Diagnostic.Kind kind, CharSequence charSequence,
                     CompileType compileType) {
-        mMessager.printMessage(kind, "Light: " + charSequence, 
+        mMessager.printMessage(kind, "Light: " + charSequence,
                 compileType.getElement());
     }
 
@@ -73,11 +75,59 @@ public class Log {
         log(Diagnostic.Kind.WARNING, s);
     }
 
+    public void warn(boolean condition, Warnings.Warning warning,
+                     Element element, Object... args) {
+        if (!condition) {
+            return;
+        }
+        if (Warnings.isIgnored(warning, element)) {
+            return;
+        }
+        warn(warning, element, args);
+    }
+
+    public void warn(boolean condition, Warnings.Warning warning,
+                     CompileType compileType, Object... args) {
+        if (!condition) {
+            return;
+        }
+        if (Warnings.isIgnored(warning, compileType)) {
+            return;
+        }
+        warn(warning, compileType, args);
+    }
+
+    public void warn(Warnings.Warning warning) {
+        log(Diagnostic.Kind.WARNING, warning.getValue());
+    }
+
+    private void warn(Warnings.Warning warning, Element element, Object... args) {
+        log(Diagnostic.Kind.WARNING, warning.getValue(args), element);
+    }
+
+    private void warn(Warnings.Warning warning, CompileType compileType, Object... args) {
+        log(Diagnostic.Kind.WARNING, warning.getValue(args), compileType);
+    }
+
     public void error(CharSequence s, Element element) {
         error(s, element, true);
     }
-    
+
+    public void error(boolean condition, CharSequence s, Element element) {
+        if (!condition) {
+            return;
+        }
+        error(s, element, true);
+    }
+
     public void error(CharSequence s, CompileType compileType) {
+        error(s, compileType, true);
+    }
+
+    public void error(boolean condition, CharSequence s, CompileType compileType) {
+        if (!condition) {
+            return;
+        }
         error(s, compileType, true);
     }
 
@@ -87,8 +137,8 @@ public class Log {
             throw new LightCompileException(s.toString());
         }
     }
-    
-    public void error(CharSequence s, CompileType compileType, 
+
+    public void error(CharSequence s, CompileType compileType,
                       boolean throwsException) {
         log(Diagnostic.Kind.ERROR, s, compileType);
         if (throwsException) {
@@ -103,7 +153,7 @@ public class Log {
     public void warn(CharSequence s, CompileType compileType) {
         log(Diagnostic.Kind.WARNING, s, compileType);
     }
-    
+
     public void note(CharSequence s, Element element) {
         log(Diagnostic.Kind.NOTE, s, element);
     }

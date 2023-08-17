@@ -134,11 +134,11 @@ public final class CompileErrors {
         return String.format(TYPE_NOT_ITERATOR, element.getQualifiedName());
     }
 
-    public static final String UNKNOWN_IN_TYPE =
+    private static final String UNKNOWN_IN_TYPE =
             "Unknown column type: '%s' cannot be processed to read type, specify a @DataConverter method to convert it. " +
                     "Parsed data type: %s.";
 
-    public static final String UNKNOWN_OUT_TYPE =
+    private static final String UNKNOWN_OUT_TYPE =
             "Unknown column type: '%s', cannot be processed to out type, specify a @DataConverter method to convert it. " +
                     "Parsed data type: %s.";
 
