@@ -28,4 +28,10 @@ import java.lang.annotation.*;
         ElementType.CONSTRUCTOR, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LightIgnore {
+    /**
+     * Ignore or disable warnings by key.
+     *
+     * @return warning keys
+     */
+    String[] value() default {};
 }
