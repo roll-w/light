@@ -34,4 +34,9 @@ public @interface LightIgnore {
      * @return warning keys
      */
     String[] value() default {};
+
+    /**
+     * Ignore or disable all warnings (case-insensitive).
+     */
+    String ALL = "all";
 }

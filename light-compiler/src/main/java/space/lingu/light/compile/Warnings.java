@@ -102,6 +102,9 @@ public final class Warnings {
         }
         String[] ignoredKeys = ignore.value();
         for (String ignoredKey : ignoredKeys) {
+            if (ignoredKey.equalsIgnoreCase(LightIgnore.ALL)) {
+                return true;
+            }
             if (ignoredKey.equals(warning.getKey())) {
                 return true;
             }
