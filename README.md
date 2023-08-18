@@ -108,38 +108,50 @@ public interface UserDao {
 The `@Dao` annotation indicates that this is a DAO,
 and the DAO class needs to be an interface or abstract class.
 
-By use the `{}` to specify the SQL parameter, 
+By use the `{}` to specify the SQL parameter,
 Light will automatically replace the parameter with the corresponding value.
 
 What's more, you can write a simple expression in the `{}`. Such as:
 
 ```java
+
 @Query("SELECT * FROM User WHERE first_name = {user.getFirstName()} AND last_name = {user.getLastName()}")
 List<User> getByName(User user);
+
 ```
 
 > Currently, Light only supports field access and parameterless method calls in the expression.
 
 ### Create a database
 
-Define your database class, it needs to be an abstract class 
+After completing the above work, you also need to define a database class
+to get the DAO instance.
+
+Here is an example of a database class, it needs to be an abstract class
 and extends `LightDatabase`.
 
 ```java
+
 @Database(name = "example", version = 1, tables = {User.class})
 public abstract class ExampleDatabase extends LightDatabase {
     public abstract UserDao getUserDao();
 }
+
 ```
 
-When connecting to the database, Light will try to create database.
-But if database is already specified in the jdbc URL,
+When connecting to the database, Light will try to create the database.
+But if the database is already specified in the jdbc URL,
 this step will be skipped.
+
+After connecting to the database, Light will try to create tables 
+that are not yet created. 
 
 ### Set up connection URL
 
 When connecting to the database, you need to specify the connection URL
-and also the jdbc driver class name.
+and also the jdbc driver class name in the `light.properties` file
+(or you can specify the path in the `@Database` annotation) in the
+classpath.
 
 Here we use the MySQL database as an example.
 
@@ -173,7 +185,7 @@ public static ExampleDatabase buildDatabase() {
 
 Note: `DialectProvider` and `ConnectionPool` are must be specified.
 
-We suggest you to use a singleton pattern to save the database instance.
+We suggest that you use a singleton pattern to save the database instance.
 
 ## License
 
