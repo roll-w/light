@@ -56,6 +56,10 @@ public interface TypeCompileType extends CompileType {
      */
     List<MethodCompileType> getMethods();
 
+    TypeCompileType getSuperclass();
+
+    List<TypeCompileType> getInterfaces();
+
     // TODO: add getDeclaredFields,
     //  getFields, getDeclaredConstructors, getConstructors...
 }

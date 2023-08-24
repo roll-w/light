@@ -47,6 +47,8 @@ public class JavacTypeCompileType implements TypeCompileType {
     private final TypeMirror typeMirror;
     private final TypeElement element;
     private final ProcessEnv processEnv;
+    private final JavacTypeCompileType superclass;
+    private final List<JavacTypeCompileType> interfaces;
 
     public JavacTypeCompileType(TypeMirror typeMirror,
                                 TypeElement element,
@@ -54,7 +56,10 @@ public class JavacTypeCompileType implements TypeCompileType {
         this.typeMirror = typeMirror;
         this.element = element;
         this.processEnv = processEnv;
+        this.superclass = initSuperclass();
+        this.interfaces = initInterfaces();
     }
+
 
     @Override
     public TypeMirror getTypeMirror() {
@@ -119,6 +124,50 @@ public class JavacTypeCompileType implements TypeCompileType {
                 getSuperClassesMethods(declaredMethods);
         declaredMethods.addAll(superMethods);
         return null;
+    }
+
+    @Override
+    public TypeCompileType getSuperclass() {
+        return superclass;
+    }
+
+    private JavacTypeCompileType initSuperclass() {
+        if (element == null) {
+            return null;
+        }
+        TypeMirror superclass = element.getSuperclass();
+        if (superclass.getKind() == TypeKind.NONE) {
+            return null;
+        }
+        return new JavacTypeCompileType(
+                superclass,
+                (TypeElement) ((DeclaredType) superclass).asElement(),
+                processEnv
+        );
+    }
+
+    @Override
+    public List<TypeCompileType> getInterfaces() {
+        return Collections.unmodifiableList(interfaces);
+    }
+
+    private List<JavacTypeCompileType> initInterfaces() {
+        List<JavacTypeCompileType> res = new ArrayList<>();
+        if (element == null) {
+            return res;
+        }
+        List<? extends TypeMirror> interfaces = element.getInterfaces();
+        if (interfaces.isEmpty()) {
+            return res;
+        }
+        for (TypeMirror anInterface : interfaces) {
+            res.add(new JavacTypeCompileType(
+                    anInterface,
+                    (TypeElement) ((DeclaredType) anInterface).asElement(),
+                    processEnv
+            ));
+        }
+        return res;
     }
 
     private List<MethodCompileType> getAllMethods(TypeElement element) {
@@ -260,7 +309,8 @@ public class JavacTypeCompileType implements TypeCompileType {
         if (this == o) return true;
         if (!(o instanceof TypeCompileType)) return false;
         TypeCompileType that = (TypeCompileType) o;
-        return Objects.equals(typeMirror, that.getTypeMirror()) && Objects.equals(element, that.getElement());
+        return Objects.equals(typeMirror, that.getTypeMirror())
+                && Objects.equals(element, that.getElement());
     }
 
     @Override
@@ -276,8 +326,10 @@ public class JavacTypeCompileType implements TypeCompileType {
                 '}';
     }
 
+    private static final TypeCompileType INVALID =
+            new JavacTypeCompileType(null, null, null);
+
     public static TypeCompileType invalid() {
-        return new JavacTypeCompileType(null,
-                null, null);
+        return INVALID;
     }
 }
