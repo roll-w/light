@@ -29,27 +29,33 @@ import java.sql.SQLException;
  * <p>
  * If you are using a different version of {@code HikariCP} or
  * just don't want to import any more dependencies,
- * you can simply copy this file to your project.
+ * you can copy this file to your project.
  * <p>
- * In most cases it will work fine.
+ * In most cases, it works fine.
  *
  * @author RollW
  */
 public class HikariConnectionPool extends BaseConnectionPool {
     private HikariDataSource source;
+    private volatile DatasourceConfig datasourceConfig;
 
     public HikariConnectionPool() {
     }
 
     @Override
-    public void setDataSourceConfig(DatasourceConfig config) {
+    public final void setDataSourceConfig(DatasourceConfig config) {
+        if (this.datasourceConfig != null &&
+                this.datasourceConfig.equals(config)) {
+            logger.debug("Datasource config not changed, ignore.");
+            return;
+        }
         if (source != null) {
             source.close();
         }
         if (logger != null) {
             logger.debug("Set up HikariCP connection pool: " + config);
         }
-
+        this.datasourceConfig = config;
         HikariConfig hikariConfig = new HikariConfig();
         preSetupHikariConfig(hikariConfig, config);
         source = new HikariDataSource(hikariConfig);
@@ -101,7 +107,7 @@ public class HikariConnectionPool extends BaseConnectionPool {
 
     private void checkPool() {
         if (source == null) {
-            throw new LightRuntimeException("Not initialize Hikari datasource");
+            throw new LightRuntimeException("Not initialize Hikari datasource.");
         }
     }
 
