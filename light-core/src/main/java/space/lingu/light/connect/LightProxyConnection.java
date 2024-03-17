@@ -38,6 +38,8 @@ import java.util.Properties;
 import java.util.concurrent.Executor;
 
 /**
+ * Internal use only.
+ *
  * @author RollW
  */
 public class LightProxyConnection implements Connection, ConnectionWrapped {

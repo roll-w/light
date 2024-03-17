@@ -45,9 +45,8 @@ import java.util.Objects;
 public class LightProxyCallableStatement extends LightProxyPreparedStatement implements CallableStatement {
     private final CallableStatement delegate;
 
-    public LightProxyCallableStatement(
-            ManagedConnection connection,
-            CallableStatement delegate) {
+    public LightProxyCallableStatement(ManagedConnection connection,
+                                       CallableStatement delegate) {
         super(connection, delegate);
         this.delegate = delegate;
     }

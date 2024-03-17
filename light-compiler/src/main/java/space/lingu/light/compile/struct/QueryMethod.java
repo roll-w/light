@@ -23,7 +23,8 @@ import space.lingu.light.compile.javac.TypeCompileType;
 import java.util.List;
 
 /**
- * 查询方法
+ * Query method.
+ *
  * @author RollW
  */
 public class QueryMethod implements SQLCustomMethod {

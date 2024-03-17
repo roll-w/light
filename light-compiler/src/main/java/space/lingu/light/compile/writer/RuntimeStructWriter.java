@@ -206,7 +206,7 @@ public class RuntimeStructWriter {
         return primaryKeyVarName;
     }
 
-    private ParameterizedTypeName createArrayListType(Class<?> clz) {
+    private static ParameterizedTypeName createArrayListType(Class<?> clz) {
         return ParameterizedTypeName
                 .get(ClassName.get(ArrayList.class), ClassName.get(clz));
     }

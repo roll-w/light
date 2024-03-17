@@ -64,7 +64,6 @@ public class DatabaseWriter extends ClassWriter {
                 .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                 .addAnnotation(Override.class)
                 .returns(TypeName.VOID)
-
                 .build();
     }
 

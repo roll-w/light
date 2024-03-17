@@ -201,7 +201,6 @@ public abstract class InsertHandler<T> extends Handler<T> {
 
     private List<Long> iterableBind(Iterable<? extends T> entities, ManagedConnection conn, PreparedStatement stmt) throws SQLException {
         List<Long> res = new ArrayList<>();
-        int index = 0;
         for (T entity : entities) {
             bind(stmt, entity);
             conn.beginTransaction();
@@ -211,7 +210,6 @@ public abstract class InsertHandler<T> extends Handler<T> {
             if (set.next()) {
                 res.add(set.getLong(1));
             }
-            index++;
             set.close();
         }
         return res;

@@ -141,7 +141,7 @@ public class SQLParser {
 
     private List<? extends Element> getEnclosedElements(VariableElement element) {
         // call getEnclosedElements on VariableElement will get an empty list.
-        // But we want to get all members of this type.
+        // but we want to get all members of this type.
         TypeElement typeElement =
                 ElementUtils.asTypeElement(element.asType());
         if (typeElement != null) {
