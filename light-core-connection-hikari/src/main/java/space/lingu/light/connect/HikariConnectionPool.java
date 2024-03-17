@@ -23,6 +23,7 @@ import space.lingu.light.LightRuntimeException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.function.Consumer;
 
 /**
  * Hikari Connection Pool implementation of {@link ConnectionPool}.
@@ -36,10 +37,17 @@ import java.sql.SQLException;
  * @author RollW
  */
 public class HikariConnectionPool extends BaseConnectionPool {
+    private final Consumer<HikariConfig> configurable;
+
     private HikariDataSource source;
-    private volatile DatasourceConfig datasourceConfig;
+    private DatasourceConfig datasourceConfig;
 
     public HikariConnectionPool() {
+        this(null);
+    }
+
+    public HikariConnectionPool(Consumer<HikariConfig> configurable) {
+        this.configurable = configurable;
     }
 
     @Override
@@ -66,16 +74,15 @@ public class HikariConnectionPool extends BaseConnectionPool {
         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
         hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        if (configurable != null) {
+            configurable.accept(hikariConfig);
+        }
         setupHikariConfig(hikariConfig);
 
         hikariConfig.setUsername(config.getUsername());
         hikariConfig.setJdbcUrl(config.getUrl());
         hikariConfig.setPassword(config.getPassword());
         hikariConfig.setDriverClassName(config.getJdbcName());
-    }
-
-    private void resetDataSource(DatasourceConfig config) {
-        preSetupHikariConfig(source, config);
     }
 
     @Override
@@ -112,11 +119,16 @@ public class HikariConnectionPool extends BaseConnectionPool {
     }
 
     /**
-     * Set up your personal configuration.
+     * Override this method to set up your personal configuration.
+     * As an alternative, you can also use the constructor
+     * ({@link #HikariConnectionPool(Consumer)})
+     * to configure the {@link HikariConfig}.
+     * <p>
+     * The {@link Consumer#accept(Object)} method
+     * will be called before this method.
      *
      * @param config HikariConfig
      */
     protected void setupHikariConfig(HikariConfig config) {
-
     }
 }
