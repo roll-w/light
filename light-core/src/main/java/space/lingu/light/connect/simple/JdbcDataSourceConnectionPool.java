@@ -48,7 +48,7 @@ public class JdbcDataSourceConnectionPool extends BaseConnectionPool implements 
     }
 
     @Override
-    public void setDataSourceConfig(DatasourceConfig config) {
+    public void setDatasourceConfig(DatasourceConfig config) {
         if (StringUtils.isEmpty(config.getUsername()) ||
                 StringUtils.isEmpty(config.getPassword())) {
             return;

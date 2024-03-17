@@ -36,7 +36,14 @@ public interface ConnectionPool extends Closeable {
      *
      * @param config {@link DatasourceConfig}
      */
-    void setDataSourceConfig(DatasourceConfig config);
+    void setDatasourceConfig(DatasourceConfig config);
+
+    /**
+     * Get datasource configuration.
+     *
+     * @return {@link DatasourceConfig}
+     */
+    DatasourceConfig getDatasourceConfig();
 
     /**
      * Require connection from connection pool.

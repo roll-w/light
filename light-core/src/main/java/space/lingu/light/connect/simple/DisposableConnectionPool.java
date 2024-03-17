@@ -34,34 +34,31 @@ import java.sql.SQLException;
  * @author RollW
  */
 public class DisposableConnectionPool extends BaseConnectionPool implements ConnectionPool {
-    private DatasourceConfig mDatasourceConfig;
 
     public DisposableConnectionPool(DatasourceConfig config) {
-        mDatasourceConfig = config;
+        setDatasourceConfig(config);
     }
 
     public DisposableConnectionPool() {
     }
 
-    @Override
-    public void setDataSourceConfig(DatasourceConfig config) {
-        mDatasourceConfig = config;
-    }
 
     @Override
     public Connection requireConnection() {
-        if (mDatasourceConfig == null || mDatasourceConfig.getUrl() == null) {
+        DatasourceConfig datasourceConfig = getDatasourceConfig();
+
+        if (datasourceConfig == null || datasourceConfig.getUrl() == null) {
             throw new NullPointerException("DataSourceConfig is null or URL is null.");
         }
         try {
-            Class.forName(mDatasourceConfig.getJdbcName());
+            Class.forName(datasourceConfig.getJdbcName());
         } catch (ClassNotFoundException e) {
             throw new LightRuntimeException("Jdbc driver class not found, please check properties.", e);
         }
-        if (StringUtils.isEmpty(mDatasourceConfig.getPassword()) ||
-                StringUtils.isEmpty(mDatasourceConfig.getUsername())) {
+        if (StringUtils.isEmpty(datasourceConfig.getPassword()) ||
+                StringUtils.isEmpty(datasourceConfig.getUsername())) {
             try {
-                return DriverManager.getConnection(mDatasourceConfig.getUrl());
+                return DriverManager.getConnection(datasourceConfig.getUrl());
             } catch (SQLException e) {
                 if (logger != null)
                     logger.error(e);
@@ -69,8 +66,8 @@ public class DisposableConnectionPool extends BaseConnectionPool implements Conn
             }
         }
         try {
-            return DriverManager.getConnection(mDatasourceConfig.getUrl(),
-                    mDatasourceConfig.getUsername(), mDatasourceConfig.getPassword());
+            return DriverManager.getConnection(datasourceConfig.getUrl(),
+                    datasourceConfig.getUsername(), datasourceConfig.getPassword());
         } catch (SQLException e) {
             if (logger != null)
                 logger.error(e);

@@ -51,7 +51,7 @@ public class HikariConnectionPool extends BaseConnectionPool {
     }
 
     @Override
-    public final void setDataSourceConfig(DatasourceConfig config) {
+    public final void setDatasourceConfig(DatasourceConfig config) {
         if (this.datasourceConfig != null &&
                 this.datasourceConfig.equals(config)) {
             logger.debug("Datasource config not changed, ignore.");

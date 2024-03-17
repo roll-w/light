@@ -50,8 +50,13 @@ public class JdbcPooledConnectionPool implements ConnectionPool {
      * @param config {@link DatasourceConfig}
      */
     @Override
-    public void setDataSourceConfig(DatasourceConfig config) {
+    public void setDatasourceConfig(DatasourceConfig config) {
         // has no effect
+    }
+
+    @Override
+    public DatasourceConfig getDatasourceConfig() {
+        return null;
     }
 
     /**

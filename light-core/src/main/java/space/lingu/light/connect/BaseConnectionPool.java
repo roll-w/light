@@ -16,7 +16,9 @@
 
 package space.lingu.light.connect;
 
+import space.lingu.light.DatasourceConfig;
 import space.lingu.light.LightLogger;
+import space.lingu.light.log.LightEmptyLogger;
 
 /**
  * @author RollW
@@ -24,8 +26,14 @@ import space.lingu.light.LightLogger;
 public abstract class BaseConnectionPool implements ConnectionPool {
     protected LightLogger logger;
 
+    private volatile DatasourceConfig datasourceConfig;
+
     @Override
     public void setLogger(LightLogger logger) {
+        if (logger == null) {
+            this.logger = LightEmptyLogger.getInstance();
+            return;
+        }
         this.logger = logger;
     }
 
@@ -34,4 +42,13 @@ public abstract class BaseConnectionPool implements ConnectionPool {
         return logger;
     }
 
+    @Override
+    public DatasourceConfig getDatasourceConfig() {
+        return datasourceConfig;
+    }
+
+    @Override
+    public void setDatasourceConfig(DatasourceConfig datasourceConfig) {
+        this.datasourceConfig = datasourceConfig;
+    }
 }
