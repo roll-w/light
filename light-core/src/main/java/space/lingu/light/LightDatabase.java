@@ -104,7 +104,7 @@ public abstract class LightDatabase {
             mLogger.debug("Database created, new url: " + url);
             DatasourceConfig newConfig = rawConfig.fork(url);
             mSourceConfig = newConfig;
-            connectionPool.setDataSourceConfig(newConfig);
+            connectionPool.setDatasourceConfig(newConfig);
         }
 
         initDatabaseEnv(mDatabaseInfo);

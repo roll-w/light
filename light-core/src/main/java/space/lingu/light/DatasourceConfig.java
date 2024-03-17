@@ -24,13 +24,28 @@ import java.util.Objects;
  * @author RollW
  */
 public class DatasourceConfig {
+    /**
+     * JDBC URL.
+     */
     private final String url;
-    private final String jdbcName;
-    private final String username;// optional
-    private final String password;// optional
 
-    public DatasourceConfig(String url, String jdbcName, String username,
-                            String password) {
+    /**
+     * JDBC driver name.
+     */
+    private final String jdbcName;
+
+    /**
+     * Username(optional).
+     */
+    private final String username;
+
+    /**
+     * Password(optional).
+     */
+    private final String password;
+
+    public DatasourceConfig(String url, String jdbcName,
+                            String username, String password) {
         this.url = url;
         this.jdbcName = jdbcName;
         this.username = username;
@@ -77,9 +92,9 @@ public class DatasourceConfig {
     public String toString() {
         return "DataSourceConfig{" +
                 "url='" + url + '\'' +
-                "jdbcName='" + jdbcName + '\'' +
+                ", jdbcName='" + jdbcName + '\'' +
                 ", username='" + username + '\'' +
-                ", password=*" +
+                ", password=(*)" +
                 '}';
     }
 }

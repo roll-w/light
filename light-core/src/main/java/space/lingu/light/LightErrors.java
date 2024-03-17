@@ -34,7 +34,7 @@ public final class LightErrors {
             "Cannot use the default name 'data' in a properties that contains other's properties.";
 
     private static final String CONFIG_REQUIRED_KEY_EMPTY =
-            "The JdbcName and Url properties cannot be empty. Please check properties list in your file: \n%s";
+            "The 'jdbcName' and 'url' properties cannot be empty. Please check properties list in your file: \n%s";
 
     public static String errorConfigRequiredKeyEmpty(String emptyKeys) {
         return String.format(CONFIG_REQUIRED_KEY_EMPTY, emptyKeys);
