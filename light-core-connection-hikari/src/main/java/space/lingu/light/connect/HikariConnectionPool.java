@@ -23,6 +23,7 @@ import space.lingu.light.LightRuntimeException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -37,16 +38,25 @@ import java.util.function.Consumer;
  * @author RollW
  */
 public class HikariConnectionPool extends BaseConnectionPool {
-    private final Consumer<HikariConfig> configurable;
+    private final BiConsumer<HikariConfig, DatasourceConfig> configurable;
 
     private HikariDataSource source;
     private DatasourceConfig datasourceConfig;
 
     public HikariConnectionPool() {
-        this(null);
+        this((Consumer<HikariConfig>) null);
     }
 
     public HikariConnectionPool(Consumer<HikariConfig> configurable) {
+        this((config, datasourceConfig) -> {
+            if (configurable != null) {
+                configurable.accept(config);
+            }
+        });
+    }
+
+    public HikariConnectionPool(
+            BiConsumer<HikariConfig, DatasourceConfig> configurable) {
         this.configurable = configurable;
     }
 
@@ -75,7 +85,7 @@ public class HikariConnectionPool extends BaseConnectionPool {
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
         hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         if (configurable != null) {
-            configurable.accept(hikariConfig);
+            configurable.accept(hikariConfig, config);
         }
         setupHikariConfig(hikariConfig);
 
