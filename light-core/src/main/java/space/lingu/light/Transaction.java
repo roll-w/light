@@ -16,13 +16,17 @@
 
 package space.lingu.light;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Mark SQL transactions.
  * <p>
- * Transactions are always enabled if available,
- * except for the {@link Query} method.
+ * Transactions are always enabled if available, except for
+ * the {@link Query} method or custom {@link Delete} method.
  *
  * @author RollW
  */
@@ -30,4 +34,11 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Transaction {
+    /**
+     * Transaction isolation level.
+     *
+     * @return transaction isolation level
+     */
+    @LightExperimentalApi
+    TransactionIsolationLevel level() default TransactionIsolationLevel.NONE;
 }
