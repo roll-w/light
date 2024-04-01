@@ -25,7 +25,6 @@ import java.util.List;
 public class ParamEntity {
     private final DataTable dataTable;
     private final Pojo pojo;
-
     private final String tableName;
 
     public ParamEntity(DataTable table, Pojo pojo) {

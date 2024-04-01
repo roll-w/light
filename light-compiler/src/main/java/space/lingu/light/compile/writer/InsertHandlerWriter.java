@@ -66,7 +66,7 @@ public class InsertHandlerWriter {
                                 .addAnnotation(Override.class)
                                 .returns(JavaPoetClass.LangNames.STRING)
                                 .addStatement("return $N.getDialectProvider().getGenerator().insert($S, $T.$L, $L)",
-                                        DaoWriter.sDatabaseField,
+                                        DaoWriter.DATABASE_FIELD,
                                         tableName,
                                         JavaPoetClass.ON_CONFLICT_STRATEGY,
                                         onConflictStrategy,

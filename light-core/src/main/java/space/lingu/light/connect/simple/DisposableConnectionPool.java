@@ -60,8 +60,6 @@ public class DisposableConnectionPool extends BaseConnectionPool implements Conn
             try {
                 return DriverManager.getConnection(datasourceConfig.getUrl());
             } catch (SQLException e) {
-                if (logger != null)
-                    logger.error(e);
                 throw new LightRuntimeException(e);
             }
         }
@@ -69,20 +67,18 @@ public class DisposableConnectionPool extends BaseConnectionPool implements Conn
             return DriverManager.getConnection(datasourceConfig.getUrl(),
                     datasourceConfig.getUsername(), datasourceConfig.getPassword());
         } catch (SQLException e) {
-            if (logger != null)
-                logger.error(e);
             throw new LightRuntimeException(e);
         }
     }
 
     @Override
     public void release(Connection connection) {
-        if (connection == null) return;
+        if (connection == null) {
+            return;
+        }
         try {
             connection.close();
         } catch (SQLException e) {
-            if (logger != null)
-                logger.error(e);
             throw new LightRuntimeException(e);
         }
     }

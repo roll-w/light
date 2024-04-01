@@ -53,15 +53,15 @@ public class GenerateCodeBlock {
 
     public String getTempVar(String prefix) {
         if (!prefix.startsWith("_")) {
-            throw new IllegalArgumentException("temp variable prefixes should start with _");
+            throw new IllegalArgumentException("Temp variable prefixes should start with _");
         }
         if (prefix.startsWith(CLASS_PROPERTY_PREFIX)) {
-            throw new IllegalArgumentException("cannot use " + CLASS_PROPERTY_PREFIX + " for tmp variables");
+            throw new IllegalArgumentException("Cannot use " + CLASS_PROPERTY_PREFIX + " for temp variables");
         }
         int idx = tempVars.getOrDefault(prefix, 0);
-        String res = generateTmpVarName(prefix, idx);
         tempVars.put(prefix, idx + 1);
-        return res;
+
+        return generateTempVarName(prefix, idx);
     }
 
     public CodeBlock generate() {
@@ -74,8 +74,10 @@ public class GenerateCodeBlock {
         return block;
     }
 
-    private static String generateTmpVarName(String prefix, int idx) {
-        if (idx == 0) return prefix;
+    private static String generateTempVarName(String prefix, int idx) {
+        if (idx == 0) {
+            return prefix;
+        }
         return prefix + "_" + idx;
     }
 }

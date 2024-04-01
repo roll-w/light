@@ -57,7 +57,7 @@ public class QueryMethodProcessor implements Processor<QueryMethod> {
         if (queryAnno.value().isEmpty()) {
             mEnv.getLog().error(CompileErrors.QUERY_SQL_EMPTY, methodCompileType);
         }
-        DaoProcessor.sHandleAnnotations.forEach(anno -> {
+        DaoProcessor.HANDLE_ANNOTATIONS.forEach(anno -> {
             if (anno != Query.class && methodCompileType.getAnnotation(anno) != null) {
                 mEnv.getLog().error(
                         CompileErrors.DUPLICATED_METHOD_ANNOTATION,

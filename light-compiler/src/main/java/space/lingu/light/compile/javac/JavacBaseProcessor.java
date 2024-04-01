@@ -38,7 +38,7 @@ public abstract class JavacBaseProcessor extends AbstractProcessor {
         this.elementUtils = processingEnv.getElementUtils();
         this.filer = processingEnv.getFiler();
         this.typeUtils = processingEnv.getTypeUtils();
-        env = new ProcessEnv(filer, messager, elementUtils, typeUtils);
+        this.env = new ProcessEnv(filer, messager, elementUtils, typeUtils);
     }
 
     public ProcessEnv getEnv() {

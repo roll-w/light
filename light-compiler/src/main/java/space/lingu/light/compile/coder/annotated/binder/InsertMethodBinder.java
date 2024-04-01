@@ -31,10 +31,10 @@ import java.util.Map;
  * @author RollW
  */
 public abstract class InsertMethodBinder implements AnnotatedMethodBinder {
-    protected final InsertMethodTranslator mTranslator;
+    protected final InsertMethodTranslator translator;
 
     public InsertMethodBinder(InsertMethodTranslator translator) {
-        mTranslator = translator;
+        this.translator = translator;
     }
 
     @Override

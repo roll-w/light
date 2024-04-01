@@ -56,34 +56,34 @@ import java.util.stream.Collectors;
 public class TypeBinders {
     // TODO: refactor TypeBinders
 
-    private final ProcessEnv mEnv;
-    private final List<ColumnTypeBinder> mColumnTypeBinders = new ArrayList<>();
-    private final List<QueryResultConverter> mQueryResultConverters = new ArrayList<>();
-    private VoidColumnTypeBinder mVoidColumnTypeBinder;
+    private final ProcessEnv env;
+    private final List<ColumnTypeBinder> columnTypeBinders = new ArrayList<>();
+    private final List<QueryResultConverter> queryResultConverters = new ArrayList<>();
+    private static final VoidColumnTypeBinder VOID_COLUMN_TYPE_BINDER =
+            new VoidColumnTypeBinder();
 
-    private final List<TypeConverter> mTypeConverters = new LinkedList<>();
+    private final List<TypeConverter> typeConverters = new LinkedList<>();
 
     public TypeBinders(ProcessEnv env) {
-        mEnv = env;
+        this.env = env;
         initColumnTypeBinders();
     }
 
     private void initColumnTypeBinders() {
-        mColumnTypeBinders.add(StringColumnTypeBinder.create(mEnv));
-        mColumnTypeBinders.add(BigDecimalColumnTypeBinder.create(mEnv));
-        mColumnTypeBinders.add(ByteArrayColumnTypeBinder.create(mEnv));
+        columnTypeBinders.add(StringColumnTypeBinder.create(env));
+        columnTypeBinders.add(BigDecimalColumnTypeBinder.create(env));
+        columnTypeBinders.add(ByteArrayColumnTypeBinder.create(env));
         List<PrimitiveColumnTypeBinder> primitiveColumnTypeBinders =
-                PrimitiveColumnTypeBinder.create(mEnv);
-        mColumnTypeBinders.addAll(DateTypeBinder.create(mEnv));
-        mColumnTypeBinders.addAll(primitiveColumnTypeBinders);
-        mColumnTypeBinders.addAll(BoxedPrimitiveColumnTypeBinder.create(primitiveColumnTypeBinders, mEnv));
-        mVoidColumnTypeBinder = new VoidColumnTypeBinder();
+                PrimitiveColumnTypeBinder.create(env);
+        columnTypeBinders.addAll(DateTypeBinder.create(env));
+        columnTypeBinders.addAll(primitiveColumnTypeBinders);
+        columnTypeBinders.addAll(BoxedPrimitiveColumnTypeBinder.create(primitiveColumnTypeBinders, env));
 
-        loadInKnownTypes(mColumnTypeBinders);
+        loadInKnownTypes(columnTypeBinders);
         loadAllKnownTypes();
     }
 
-    private final Map<SQLDataType, List<TypeMirror>> mKnownTypes =
+    private final Map<SQLDataType, List<TypeMirror>> knownTypes =
             new HashMap<>();
 
     private void loadInKnownTypes(List<ColumnTypeBinder> binders) {
@@ -92,7 +92,7 @@ public class TypeBinders {
             if (dataType == null) {
                 continue;
             }
-            List<TypeMirror> types = mKnownTypes.computeIfAbsent(
+            List<TypeMirror> types = knownTypes.computeIfAbsent(
                     dataType, k -> new ArrayList<>());
             types.add(binder.type().getTypeMirror());
         }
@@ -157,13 +157,13 @@ public class TypeBinders {
     private TypeConverter findConverterInto(TypeMirror in, List<TypeMirror> out) {
         return findConverter(
                 Collections.singletonList(in),
-                (out == null || out.isEmpty()) ? mHandleableTypes : out
+                (out == null || out.isEmpty()) ? handleableTypes : out
         );
     }
 
     private TypeConverter findConverterRead(List<TypeMirror> in, TypeMirror out) {
         return findConverter(
-                (in == null || in.isEmpty()) ? mHandleableTypes : in,
+                (in == null || in.isEmpty()) ? handleableTypes : in,
                 Collections.singletonList(out)
         );
     }
@@ -181,7 +181,7 @@ public class TypeBinders {
         }
         for (TypeMirror in : ins) {
             if (outs.stream().anyMatch(out ->
-                    mEnv.getTypeUtils().isSameType(in, out))) {
+                    env.getTypeUtils().isSameType(in, out))) {
                 return new NoOpTypeConverter(in);
             }
         }
@@ -221,10 +221,10 @@ public class TypeBinders {
         TypeConverter fallback = null;
         for (TypeConverter converter : converters) {
             for (TypeMirror out : outs) {
-                if (mEnv.getTypeUtils().isSameType(out, converter.to)) {
+                if (env.getTypeUtils().isSameType(out, converter.to)) {
                     return converter;
                 } else if (fallback == null &&
-                        mEnv.getTypeUtils().isAssignable(out, converter.to)) {
+                        env.getTypeUtils().isAssignable(out, converter.to)) {
                     fallback = converter;
                 }
             }
@@ -233,16 +233,16 @@ public class TypeBinders {
     }
 
     private List<TypeConverter> getAllTypeConverters(TypeMirror in, List<TypeMirror> excludes) {
-        return mTypeConverters.stream()
+        return typeConverters.stream()
                 .filter(typeConverter ->
-                        mEnv.getTypeUtils().isAssignable(typeConverter.from, in) &&
-                                excludes.stream().noneMatch(con -> mEnv.getTypeUtils().isAssignable(con, in))
+                        env.getTypeUtils().isAssignable(typeConverter.from, in) &&
+                                excludes.stream().noneMatch(con -> env.getTypeUtils().isAssignable(con, in))
                 ).collect(Collectors.toList());
     }
 
     public void registerDataConverters(List<DataConverter> dataConverterList) {
         dataConverterList.forEach(dataConverter -> {
-            mTypeConverters.add(new DataConverterTypeConverter(dataConverter));
+            typeConverters.add(new DataConverterTypeConverter(dataConverter));
         });
     }
 
@@ -273,14 +273,14 @@ public class TypeBinders {
 
     private QueryParameterBinder tryFindQueryParamBinderCollection(
             TypeCompileType typeCompileType) {
-        if (!TypeUtils.isCollection(mEnv, typeCompileType.getTypeMirror())) {
+        if (!TypeUtils.isCollection(env, typeCompileType.getTypeMirror())) {
             return null;
         }
         List<? extends TypeMirror> genericTypes =
                 TypeUtils.getGenericTypes(typeCompileType.getTypeMirror());
         TypeMirror typeArg = TypeUtils.getExtendBoundOrSelf(
                 genericTypes.get(0));
-        TypeCompileType typeArgType = mEnv.getTypeCompileType(typeArg);
+        TypeCompileType typeArgType = env.getTypeCompileType(typeArg);
 
         SQLDataType dataType =
                 SQLDataTypeUtils.recognizeSQLDataType(null, typeArgType);
@@ -303,7 +303,7 @@ public class TypeBinders {
         TypeMirror componentType = TypeUtils
                 .getArrayElementType(typeCompileType.getTypeMirror());
         TypeCompileType componentTypeCompileType =
-                mEnv.getTypeCompileType(componentType);
+                env.getTypeCompileType(componentType);
         SQLDataType dataType =
                 SQLDataTypeUtils.recognizeSQLDataType(null, componentTypeCompileType);
         StatementBinder binder = findStatementBinder(componentTypeCompileType, dataType);
@@ -329,8 +329,8 @@ public class TypeBinders {
             throw new IllegalArgumentException("TypeCompileType cannot be null");
         }
         TypeMirror typeMirror = typeCompileType.getTypeMirror();
-        if (RawQueryResultConverter.isRaw(typeCompileType, mEnv)) {
-            return RawQueryResultConverter.create(mEnv);
+        if (RawQueryResultConverter.isRaw(typeCompileType, env)) {
+            return RawQueryResultConverter.create(env);
         }
 
         RowConverter arrayConverter = tryFindRowConverterArrayType(typeCompileType);
@@ -338,7 +338,7 @@ public class TypeBinders {
             return new ArrayQueryResultConverter(arrayConverter);
         }
 
-        boolean isIterable = TypeUtils.isIterable(mEnv, typeMirror);
+        boolean isIterable = TypeUtils.isIterable(env, typeMirror);
         if (isIterable) {
             RowConverter converter = tryFindRowConverterIterator(typeCompileType);
             if (converter != null) {
@@ -369,7 +369,7 @@ public class TypeBinders {
             return null;
         }
         TypeCompileType arrayElementType =
-                mEnv.getTypeCompileType(arrayType);
+                env.getTypeCompileType(arrayType);
 
         SQLDataType preprocess = SQLDataTypeUtils.recognizeSQLDataType(
                 null,
@@ -392,7 +392,7 @@ public class TypeBinders {
         TypeMirror typeArg = TypeUtils.getExtendBoundOrSelf(
                 genericTypes.get(0)
         );
-        TypeCompileType typeArgCompileType = mEnv
+        TypeCompileType typeArgCompileType = env
                 .getTypeCompileType(typeArg);
 
         SQLDataType preprocess = SQLDataTypeUtils.recognizeSQLDataType(
@@ -413,7 +413,7 @@ public class TypeBinders {
         if (typeCompileType.getElement() != null && !TypeUtils.isPrimitive(typeMirror)) {
             PojoProcessor processor = new PojoProcessor(
                     typeCompileType,
-                    mEnv
+                    env
             );
             Pojo pojo = processor.process();
             // TODO: other check
@@ -430,7 +430,7 @@ public class TypeBinders {
             return null;
         }
         if (type.getKind() == TypeKind.VOID) {
-            return mVoidColumnTypeBinder;
+            return VOID_COLUMN_TYPE_BINDER;
         }
         //  no more attempts to enum type here, put it last
         for (ColumnTypeBinder binder : getAllColumnBinders(type)) {
@@ -443,7 +443,7 @@ public class TypeBinders {
 
     private ColumnTypeBinder findDefaultTypeBinder(TypeCompileType type) {
         // here provides fallback builtin type binder, if any.
-        // now here are just enum type.
+        // now here are just enum types.
         return findEnumColumnTypeBinder(type);
     }
 
@@ -463,33 +463,33 @@ public class TypeBinders {
     }
 
     private List<ColumnTypeBinder> getAllColumnBinders(TypeMirror element) {
-        return mColumnTypeBinders.stream()
+        return columnTypeBinders.stream()
                 .filter(binder -> TypeUtils.equalTypeMirror(
                         binder.type.getTypeMirror(), element))
                 .collect(Collectors.toList());
     }
 
-    private final List<TypeMirror> mHandleableTypes = new LinkedList<>();
+    private final List<TypeMirror> handleableTypes = new LinkedList<>();
 
     private void loadAllKnownTypes() {
-        mHandleableTypes.clear();
+        handleableTypes.clear();
         for (SQLDataType value : SQLDataType.values()) {
-            mHandleableTypes.addAll(getTypes(value));
+            handleableTypes.addAll(getTypes(value));
         }
     }
 
     private List<TypeMirror> findTypesFor(SQLDataType dataType, boolean findsAll) {
         if (findsAll || dataType == null || dataType == SQLDataType.UNDEFINED) {
-            return mHandleableTypes;
+            return handleableTypes;
         }
         return getTypes(dataType);
     }
 
     private List<TypeMirror> getTypes(SQLDataType dataType) {
         if (dataType == null || dataType == SQLDataType.UNDEFINED) {
-            return mHandleableTypes;
+            return handleableTypes;
         }
-        List<TypeMirror> typeMirrors = mKnownTypes.get(dataType);
+        List<TypeMirror> typeMirrors = knownTypes.get(dataType);
         if (typeMirrors == null) {
             return Collections.emptyList();
         }

@@ -34,16 +34,16 @@ import java.util.List;
  * @author RollW
  */
 public class TransactionMethodProcessor implements Processor<TransactionMethod> {
-    private final TypeCompileType mContaining;
     private final MethodCompileType methodCompileType;
-    private final ProcessEnv mEnv;
+    private final TypeCompileType containing;
+    private final ProcessEnv env;
 
     public TransactionMethodProcessor(MethodCompileType methodCompileType,
                                       TypeCompileType containing,
                                       ProcessEnv env) {
         this.methodCompileType = methodCompileType;
-        mContaining = containing;
-        mEnv = env;
+        this.containing = containing;
+        this.env = env;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class TransactionMethodProcessor implements Processor<TransactionMethod> 
 
     private TransactionMethod.CallType getCallType() {
         ExecutableElement executableElement = methodCompileType.getElement();
-        TypeElement typeElement = mContaining.getElement();
+        TypeElement typeElement = containing.getElement();
         if (!ElementUtils.isDefault(executableElement)) {
             return TransactionMethod.CallType.DIRECT;
         }

@@ -27,10 +27,10 @@ import java.sql.SQLException;
  * @author RollW
  */
 public abstract class QueryResultBinder {
-    protected final QueryResultConverter mConverter;
+    protected final QueryResultConverter converter;
 
     public QueryResultBinder(QueryResultConverter converter) {
-        this.mConverter = converter;
+        this.converter = converter;
     }
 
 

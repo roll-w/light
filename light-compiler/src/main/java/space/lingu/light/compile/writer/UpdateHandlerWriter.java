@@ -34,25 +34,25 @@ import java.util.stream.IntStream;
  * @author RollW
  */
 public class UpdateHandlerWriter {
-    private final ParamEntity mEntity;
-    private final String mTableName;
-    private final Pojo mPojo;
-    private final UpdateMethod mMethod;
+    private final ParamEntity entity;
+    private final String tableName;
+    private final Pojo pojo;
+    private final UpdateMethod method;
 
     public UpdateHandlerWriter(ParamEntity entity, UpdateMethod updateMethod) {
-        mEntity = entity;
-        mPojo = entity.getPojo();
-        mTableName = entity.getTableName();
-        mMethod = updateMethod;
+        this.entity = entity;
+        this.pojo = entity.getPojo();
+        this.tableName = entity.getTableName();
+        this.method = updateMethod;
     }
 
     public TypeSpec createAnonymous(ClassWriter writer, String dbParam) {
         StringJoiner keys = new StringJoiner(", ");
         StringJoiner params = new StringJoiner(", ");
-        mEntity.getPrimaryKey().getFields().getFields().forEach(field ->
+        entity.getPrimaryKey().getFields().getFields().forEach(field ->
                 keys.add("\"" + field.getColumnName() + "\""));
 
-        mEntity.getPojo().getFields().getFields().forEach(field ->
+        entity.getPojo().getFields().getFields().forEach(field ->
                 params.add("\"" + field.getColumnName() + "\""));
 
         GenerateCodeBlock queryBlock = new GenerateCodeBlock(writer);
@@ -73,13 +73,13 @@ public class UpdateHandlerWriter {
 
         queryBlock.builder()
                 .addStatement("return $N.getDialectProvider().getGenerator().update($S, $T.$L, $L, $L)",
-                        DaoWriter.sDatabaseField, mTableName,
+                        DaoWriter.DATABASE_FIELD, tableName,
                         JavaPoetClass.ON_CONFLICT_STRATEGY,
-                        mMethod.getOnConflict(),
+                        method.getOnConflict(),
                         primaryKeysVar, paramsVar);
 
         TypeSpec.Builder builder = TypeSpec.anonymousClassBuilder("$L", dbParam)
-                .superclass(ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER, mPojo.getTypeName()))
+                .superclass(ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER, pojo.getTypeName()))
                 .addField(primaryKeysField)
                 .addField(paramsField)
                 .addMethod(
@@ -98,22 +98,22 @@ public class UpdateHandlerWriter {
                 .addParameter(ParameterSpec.builder(JavaPoetClass.JdbcNames.PREPARED_STMT, "stmt")
                         .build())
                 .addParameter(ParameterSpec
-                        .builder(mPojo.getTypeName(), "value")
+                        .builder(pojo.getTypeName(), "value")
                         .build())
                 .returns(TypeName.VOID);
 
         List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
-        IntStream.range(0, mPojo.getFields().getFields().size()).forEach(value -> {
-            Field field = mPojo.getFields().getFields().get(value);
+        IntStream.range(0, pojo.getFields().getFields().size()).forEach(value -> {
+            Field field = pojo.getFields().getFields().get(value);
             fieldWithNumberList.add(new FieldReadWriteWriter.FieldWithNumber(
                     field,
                     String.valueOf(value + 1))
             );
         });
 
-        final int primaryKeyStart = mPojo.getFields().getFields().size();
-        IntStream.range(0, mEntity.getPrimaryKey().getFields().getFields().size()).forEach(value -> {
-            Field field = mEntity.getPrimaryKey().getFields().getFields().get(value);
+        final int primaryKeyStart = pojo.getFields().getFields().size();
+        IntStream.range(0, entity.getPrimaryKey().getFields().getFields().size()).forEach(value -> {
+            Field field = entity.getPrimaryKey().getFields().getFields().get(value);
             fieldWithNumberList.add(new FieldReadWriteWriter.FieldWithNumber(
                     field,
                     String.valueOf(value + 1 + primaryKeyStart))

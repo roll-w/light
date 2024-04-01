@@ -26,15 +26,15 @@ import space.lingu.light.compile.struct.QueryParameter;
  */
 public class QueryParameterProcessor implements Processor<QueryParameter> {
     private final VariableCompileType variableCompileType;
-    private final CompileType mContaining;
-    private final ProcessEnv mEnv;
+    private final CompileType containing;
+    private final ProcessEnv env;
 
     public QueryParameterProcessor(VariableCompileType variableCompileType,
                                    CompileType containing,
                                    ProcessEnv env) {
         this.variableCompileType = variableCompileType;
-        mContaining = containing;
-        mEnv = env;
+        this.containing = containing;
+        this.env = env;
     }
 
     @Override

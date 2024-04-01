@@ -31,8 +31,8 @@ import java.util.StringJoiner;
  */
 public class DatasourceLoader {
     public static final String DEFAULT_PATH = "light.properties";
-    private final String mPath;
-    private final String mName;
+    private final String path;
+    private final String name;
 
     public DatasourceLoader() {
         this(DEFAULT_PATH);
@@ -43,8 +43,8 @@ public class DatasourceLoader {
     }
 
     public DatasourceLoader(String path, String name) {
-        this.mPath = path;
-        this.mName = name;
+        this.path = path;
+        this.name = name;
     }
 
     public DatasourceConfig load() {
@@ -54,7 +54,7 @@ public class DatasourceLoader {
             throw new IllegalPropertiesException(
                     "Load data properties failed. Check whether the Properties file exists. " +
                             "If you enter a custom path, check whether the path is correct.",
-                    mPath);
+                    path);
         }
 
         try {
@@ -73,32 +73,32 @@ public class DatasourceLoader {
             if (PropertiesKeys.checkKey(key)) {
                 throw new IllegalPropertiesException(
                         "Property key contains unusable placeholders '$N' in " + key,
-                        mPath);
+                        path);
             }
-            if (PropertiesKeys.isPropertyKey(key, mName)) {
+            if (PropertiesKeys.isPropertyKey(key, name)) {
                 containsName = true;
             }
             if (PropertiesKeys.isPropertyKey(key, PropertiesKeys.DEFAULT_NAME)) {
                 containsDefault = true;
             }
-            if (PropertiesKeys.isNotAnyPropertyKey(key, mName)) {
+            if (PropertiesKeys.isNotAnyPropertyKey(key, name)) {
                 containsOther = true;
             }
         }
-        if (mName.equals(PropertiesKeys.DEFAULT_NAME) &&
+        if (name.equals(PropertiesKeys.DEFAULT_NAME) &&
                 containsName && containsDefault) {
             throw new IllegalPropertiesException(
-                    LightErrors.errorConfigDefaultNameWithExist(mName),
-                    mPath);
+                    LightErrors.errorConfigDefaultNameWithExist(name),
+                    path);
         }
         if (containsOther && containsDefault) {
             throw new IllegalPropertiesException(
                     LightErrors.CONFIG_DEFAULT_NAME_WITH_CONTAINS_OTHER,
-                    mPath);
+                    path);
         }
 
         if (containsName) {
-            return readByName(properties, mName);
+            return readByName(properties, name);
         }
         return readByName(properties, PropertiesKeys.DEFAULT_NAME);
     }
@@ -113,40 +113,40 @@ public class DatasourceLoader {
 
     private InputStream tryPaths() throws IOException {
         // try root path
-        File root = new File(mPath);
+        File root = new File(path);
         if (root.exists()) {
             return Files.newInputStream(root.toPath());
         }
 
         // try conf/path
-        File confFile = new File("conf", mPath);
+        File confFile = new File("conf", path);
         if (confFile.exists()) {
             return Files.newInputStream(confFile.toPath());
         }
 
         // try config/path
-        File configFile = new File("config", mPath);
+        File configFile = new File("config", path);
         if (configFile.exists()) {
             return Files.newInputStream(configFile.toPath());
         }
 
         // try resource/path
-        File resourceFile = new File("resource", mPath);
+        File resourceFile = new File("resource", path);
         if (resourceFile.exists()) {
             return Files.newInputStream(configFile.toPath());
         }
 
         // last try the resource or the file in jar.
-        return Light.loadResource(mPath);
+        return Light.loadResource(path);
     }
 
     private String listEmptyPropertiesKeys(String url, String jdbcName) {
         StringJoiner joiner = new StringJoiner(",\n");
         if (StringUtils.isEmpty(url)) {
-            joiner.add(PropertiesKeys.getActualUrlKey(mName));
+            joiner.add(PropertiesKeys.getActualUrlKey(name));
         }
         if (StringUtils.isEmpty(jdbcName)) {
-            joiner.add(PropertiesKeys.getActualJdbcNameKey(mName));
+            joiner.add(PropertiesKeys.getActualJdbcNameKey(name));
         }
         return joiner.toString();
     }
@@ -160,7 +160,7 @@ public class DatasourceLoader {
         if (StringUtils.isEmpty(url) || StringUtils.isEmpty(jdbcName)) {
             throw new IllegalPropertiesException(LightErrors.errorConfigRequiredKeyEmpty(
                     listEmptyPropertiesKeys(url, jdbcName)),
-                    mPath);
+                    path);
         }
 
         return new DatasourceConfig(url, jdbcName, username, password);

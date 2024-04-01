@@ -43,10 +43,10 @@ import java.util.StringJoiner;
  * @see space.lingu.light.struct
  */
 public class RuntimeStructWriter {
-    private final DataTable mTable;
+    private final DataTable dataTable;
 
     public RuntimeStructWriter(DataTable dataTable) {
-        mTable = dataTable;
+        this.dataTable = dataTable;
     }
 
     public String writeDatabase(GenerateCodeBlock block) {
@@ -54,13 +54,12 @@ public class RuntimeStructWriter {
     }
 
     /**
-     * 将表映射到{@link space.lingu.light.struct.Table}
+     * Mapping table to {@link space.lingu.light.struct.Table}
      *
-     * @param block 代码块
-     * @return 生成临时变量的名称
+     * @return The name of the temporary variable
      */
     public String writeDataTable(GenerateCodeBlock block, String databaseConfVarName) {
-        String classSimpleName = ((ClassName) mTable.getTypeName()).simpleName();
+        String classSimpleName = ((ClassName) dataTable.getTypeName()).simpleName();
         final String tableVarName = block.getTempVar("_tableOf" + StringUtils.firstUpperCase(classSimpleName));
         final String columnListVarName = block.getTempVar("_columnListOf" + StringUtils.firstUpperCase(classSimpleName));
         final String indexListVarName = block.getTempVar("_indexListOf" + StringUtils.firstUpperCase(classSimpleName));
@@ -75,19 +74,19 @@ public class RuntimeStructWriter {
         block.builder()
                 .addStatement("$T $L = new $T()", columnListType, columnListVarName, columnArrayListType)
                 .addStatement("$T $L = new $T()", indexListType, indexListVarName, indexArrayListType);
-        String tableConfVarName = writeConfigurationsAndFork(mTable,
-                "TbOf" + mTable.getTypeCompileType().getSimpleName().toString(),
+        String tableConfVarName = writeConfigurationsAndFork(dataTable,
+                "TbOf" + dataTable.getTypeCompileType().getSimpleName().toString(),
                 databaseConfVarName, block);
-        mTable.getIndices().forEach(index ->
+        dataTable.getIndices().forEach(index ->
                 writeIndex(block, index, indexListVarName, tableConfVarName));
-        mTable.getFields().getFields().forEach(field ->
+        dataTable.getFields().getFields().forEach(field ->
                 writeTableColumn(block, field, columnListVarName, tableConfVarName));
-        final String pkVarName = writePrimaryKey(block, columnListVarName, mTable.getPrimaryKey());
+        final String pkVarName = writePrimaryKey(block, columnListVarName, dataTable.getPrimaryKey());
 
         block.builder()
                 .addStatement("$T $L = new $T($S, $L, $L, $L, $L)",
                         Table.class, tableVarName, Table.class,
-                        mTable.getTableName(),
+                        dataTable.getTableName(),
                         columnListVarName,
                         pkVarName,
                         indexListVarName,
@@ -113,8 +112,8 @@ public class RuntimeStructWriter {
                                   String tableConfVarName) {
         final String tableColumnVarName = block.getTempVar("_tableColumn" + StringUtils.firstUpperCase(field.getName()));
         boolean autoGen = false;
-        if (mTable.getPrimaryKey().getFields().hasField(field)) {
-            autoGen = mTable.getPrimaryKey().isAutoGenerate();
+        if (dataTable.getPrimaryKey().getFields().hasField(field)) {
+            autoGen = dataTable.getPrimaryKey().isAutoGenerate();
         }
         String fieldConfVarName = writeConfigurationsAndFork(field,
                 "ColumnOf" + StringUtils.firstUpperCase(field.getName()),
@@ -173,7 +172,7 @@ public class RuntimeStructWriter {
                         indexColumnsArrayVarName, columnsJoiner.toString())
                 .addStatement("$T $L = new $T($S, $S, $L, $L, $L, $L)",
                         TableIndex.class, tableIndexVarName, TableIndex.class,
-                        mTable.getTableName(),
+                        dataTable.getTableName(),
                         index.getName(), index.isUnique(),
                         indexOrderArrayVarName,
                         indexColumnsArrayVarName, indexConfVarName
@@ -184,7 +183,7 @@ public class RuntimeStructWriter {
     private String writePrimaryKey(GenerateCodeBlock block,
                                    String listVarName,
                                    PrimaryKey key) {
-        final String simpleName = mTable.getTypeCompileType().getSimpleName().toString();
+        final String simpleName = dataTable.getTypeCompileType().getSimpleName().toString();
         final String primaryKeyVarName = block.getTempVar("_pkOf" + simpleName);
         String pkColumnsVarName = block.getTempVar("_pkTableColumnsOf" + simpleName);
         TypeName keyArrayListType = createArrayListType(TableColumn.class);

@@ -32,7 +32,9 @@ public final class ResultSetUtils {
     public static int getColumnIndexOrThrow(ResultSet set, String name) {
         try {
             int index = getColumnIndex(set, name);
-            if (index >= 0) return index;
+            if (index >= 0) {
+                return index;
+            }
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }

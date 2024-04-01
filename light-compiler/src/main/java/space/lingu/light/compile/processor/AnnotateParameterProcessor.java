@@ -41,13 +41,13 @@ import java.util.List;
 public class AnnotateParameterProcessor implements Processor<AnnotateParameter> {
     private final VariableCompileType variableCompileType;
     private final TypeCompileType containing;
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
 
     public AnnotateParameterProcessor(VariableCompileType compileType,
                                       TypeCompileType containing,
                                       ProcessEnv env) {
-        variableCompileType = compileType;
-        mEnv = env;
+        this.variableCompileType = compileType;
+        this.env = env;
         this.containing = containing;
     }
 
@@ -56,7 +56,7 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
         final String name = variableCompileType.getName();
 
         if (name.startsWith(ClassWriter.CLASS_MEMBER_PREFIX)) {
-            mEnv.getLog().error(CompileErrors.PARAM_NON_COMPLIANCE, variableCompileType);
+            env.getLog().error(CompileErrors.PARAM_NON_COMPLIANCE, variableCompileType);
         }
         Pair<TypeCompileType, Boolean> pair = extractPojo(
                 variableCompileType.getTypeMirror());
@@ -73,13 +73,13 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
         List<? extends Element> elements = type.getEnclosedElements();
         for (Element e : elements) {
             if (isPublicMethod(e) && e.getSimpleName().contentEquals("iterator")) {
-                TypeMirror asMember = mEnv.getTypeUtils()
+                TypeMirror asMember = env.getTypeUtils()
                         .asMemberOf(declaredType, e);
                 return getGenericTypes(
                         TypeUtils.asExecutable(asMember).getReturnType()).get(0);
             }
         }
-        mEnv.getLog().error(
+        env.getLog().error(
                 CompileErrors.typeNotIterator(type),
                 variableCompileType);
         return null;
@@ -89,7 +89,7 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
         List<TypeCompileType> typeElementList = new ArrayList<>();
         List<? extends TypeMirror> typeMirrors = MoreTypes.asDeclared(mirror).getTypeArguments();
         typeMirrors.forEach(typeMirror -> {
-            typeElementList.add(mEnv.getTypeCompileType(typeMirror));
+            typeElementList.add(env.getTypeCompileType(typeMirror));
         });
         return typeElementList;
     }
@@ -104,17 +104,17 @@ public class AnnotateParameterProcessor implements Processor<AnnotateParameter> 
             // It must be able to convert to TypeElement,
             // or its parameter types do not follow the rules
             TypeMirror innerMirror = TypeUtils.getArrayElementType(typeMirror);
-            TypeCompileType compileType = mEnv.getTypeCompileType(innerMirror);
+            TypeCompileType compileType = env.getTypeCompileType(innerMirror);
             return Pair.createPair(compileType, true);
         }
 
         DeclaredType declaredType = TypeUtils.asDeclared(typeMirror);
         if (declaredType.getTypeArguments() == null || declaredType.getTypeArguments().isEmpty()) {
-            TypeCompileType compileType = mEnv.getTypeCompileType(typeMirror);
+            TypeCompileType compileType = env.getTypeCompileType(typeMirror);
 
             return Pair.createPair(compileType, false);
         }
-        TypeElement iterEle = mEnv.getElementUtils().getTypeElement("java.lang.Iterable");
+        TypeElement iterEle = env.getElementUtils().getTypeElement("java.lang.Iterable");
         TypeCompileType compileType = extractTypeFromIterator(iterEle, declaredType);
         return Pair.createPair(compileType, true);
     }

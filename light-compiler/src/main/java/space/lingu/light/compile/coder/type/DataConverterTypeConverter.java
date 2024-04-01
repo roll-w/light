@@ -24,27 +24,27 @@ import space.lingu.light.compile.struct.DataConverter;
  * @author RollW
  */
 public class DataConverterTypeConverter extends SingleStatementTypeConverter {
-    private final DataConverter mConverter;
+    private final DataConverter converter;
 
     public DataConverterTypeConverter(DataConverter dataConverter) {
         super(dataConverter.getFromType().getTypeMirror(),
                 dataConverter.getToType().getTypeMirror());
-        mConverter = dataConverter;
+        converter = dataConverter;
     }
 
     @Override
     protected CodeBlock buildStatement(String inputVar, GenerateCodeBlock block) {
         // may support non-static method future
         return CodeBlock.of("$T.$L($L)",
-                mConverter.getEnclosingClass().toTypeName(),
-                mConverter.getMethodName(),
+                converter.getEnclosingClass().toTypeName(),
+                converter.getMethodName(),
                 inputVar);
     }
 
     @Override
     public String toString() {
         return "DataConverterTypeConverter{" +
-                "mConverter=" + mConverter +
+                "mConverter=" + converter +
                 '}';
     }
 }

@@ -37,12 +37,12 @@ import java.util.List;
  * @author RollW
  */
 public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements StatementBinder, ColumnValueReader {
-    private final PrimitiveColumnTypeBinder mBinder;
+    private final PrimitiveColumnTypeBinder binder;
 
     public BoxedPrimitiveColumnTypeBinder(TypeCompileType type,
                                           PrimitiveColumnTypeBinder primitiveBinder) {
         super(type, primitiveBinder.getDataType());
-        mBinder = primitiveBinder;
+        binder = primitiveBinder;
     }
 
     private static TypeCompileType getBoxedFromPrimitive(TypeCompileType primitive,
@@ -79,7 +79,7 @@ public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements 
                 outVarName);
         block.builder().addStatement("$T $L", typeName,
                 readVarName);
-        mBinder.readFromResultSet(readVarName,
+        binder.readFromResultSet(readVarName,
                 resultSetName, indexName, block,
                 false, false);
         block.builder()
@@ -103,7 +103,7 @@ public class BoxedPrimitiveColumnTypeBinder extends ColumnTypeBinder implements 
                 .addStatement("throw new $T(e)", LightRuntimeException.class)
                 .endControlFlow()
                 .nextControlFlow("else");
-        mBinder.bindToStatement(stmtVarName, indexVarName, valueVarName, block);
+        binder.bindToStatement(stmtVarName, indexVarName, valueVarName, block);
         block.builder().endControlFlow();
     }
 }

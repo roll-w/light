@@ -33,14 +33,14 @@ import java.util.List;
  * @author RollW
  */
 public class PojoRowConverter extends RowConverter {
-    private final Pojo mPojo;
+    private final Pojo pojo;
     private final List<Field> usedFields = new ArrayList<>();
     private final List<FieldReadWriteWriter.FieldWithNumber> fieldWithNumberList = new ArrayList<>();
 
     public PojoRowConverter(Pojo pojo, TypeCompileType outType) {
         super(outType);
-        mPojo = pojo;
-        usedFields.addAll(mPojo.getFields().getFields());
+        this.pojo = pojo;
+        this.usedFields.addAll(pojo.getFields().getFields());
     }
 
     @Override
@@ -60,7 +60,7 @@ public class PojoRowConverter extends RowConverter {
     @Override
     public void convert(QueryContext queryContext, GenerateCodeBlock block) {
         FieldReadWriteWriter.readFromResultSet(
-                queryContext.getOutVarName(), mPojo,
+                queryContext.getOutVarName(), pojo,
                 queryContext.getResultSetVarName(),
                 fieldWithNumberList,
                 block

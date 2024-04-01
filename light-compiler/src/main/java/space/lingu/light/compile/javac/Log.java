@@ -26,41 +26,41 @@ import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
 
 /**
- * 编译时输出日志
+ * Log at compile time
  *
  * @author RollW
  */
 public class Log {
-    private final Messager mMessager;
+    private final Messager messager;
 
     public Log(Messager messager) {
-        mMessager = messager;
+        this.messager = messager;
     }
 
     public void log(Diagnostic.Kind kind, CharSequence charSequence) {
-        mMessager.printMessage(kind, "Light: " + charSequence);
+        messager.printMessage(kind, "Light: " + charSequence);
     }
 
     public void log(Diagnostic.Kind kind, CharSequence charSequence,
                     Element element) {
-        mMessager.printMessage(kind, "Light: " + charSequence, element);
+        messager.printMessage(kind, "Light: " + charSequence, element);
     }
 
     public void log(Diagnostic.Kind kind, CharSequence charSequence,
                     CompileType compileType) {
-        mMessager.printMessage(kind, "Light: " + charSequence,
+        messager.printMessage(kind, "Light: " + charSequence,
                 compileType.getElement());
     }
 
     public void log(Diagnostic.Kind kind, CharSequence msg,
                     Element e, AnnotationMirror a) {
-        mMessager.printMessage(kind, "Light: " + msg, e, a);
+        messager.printMessage(kind, "Light: " + msg, e, a);
     }
 
     public void log(Diagnostic.Kind kind, CharSequence msg,
                     Element e, AnnotationMirror a,
                     AnnotationValue v) {
-        mMessager.printMessage(kind, "Light: " + msg, e, a, v);
+        messager.printMessage(kind, "Light: " + msg, e, a, v);
     }
 
     public void error(CharSequence s) {

@@ -39,21 +39,21 @@ import java.util.stream.Collectors;
 public class DataTableProcessor implements Processor<DataTable> {
     private final TypeCompileType typeCompileType;
     private final space.lingu.light.DataTable anno;
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
 
     public DataTableProcessor(TypeCompileType typeCompileType,
                               ProcessEnv env) {
-        this.mEnv = env;
+        this.env = env;
         this.typeCompileType = typeCompileType;
         this.anno = typeCompileType.getAnnotation(space.lingu.light.DataTable.class);
         if (anno == null) {
-            mEnv.getLog().error(CompileErrors.DATA_TABLE_NOT_ANNOTATED, typeCompileType);
+            env.getLog().error(CompileErrors.DATA_TABLE_NOT_ANNOTATED, typeCompileType);
         }
     }
 
     @Override
     public DataTable process() {
-        PojoProcessor processor = new PojoProcessor(typeCompileType, mEnv);
+        PojoProcessor processor = new PojoProcessor(typeCompileType, env);
         final String tableName = getTableName(anno);
 
         Pojo pojo = processor.process();
@@ -61,14 +61,14 @@ public class DataTableProcessor implements Processor<DataTable> {
 
         checkColumnName(fields);
 
-        mEnv.getLog().error(
+        env.getLog().error(
                 pojo.getFields().isEmpty(),
                 CompileErrors.TABLE_NO_FIELDS,
                 typeCompileType
         );
 
         PrimaryKey primaryKey = findPrimaryKey(pojo.getFields());
-        mEnv.getLog().warn(
+        env.getLog().warn(
                 primaryKey == PrimaryKey.MISSING,
                 Warnings.PRIMARY_KEY_NOT_FOUND,
                 typeCompileType,
@@ -160,7 +160,7 @@ public class DataTableProcessor implements Processor<DataTable> {
             return filtered.get(0);
         }
 
-        mEnv.getLog().error(CompileErrors.MULTIPLE_PRIMARY_KEY_FOUND, typeCompileType);
+        env.getLog().error(CompileErrors.MULTIPLE_PRIMARY_KEY_FOUND, typeCompileType);
         return null;
     }
 
@@ -168,7 +168,7 @@ public class DataTableProcessor implements Processor<DataTable> {
         Set<String> names = new HashSet<>();
         fields.getFields().forEach(field -> {
             if (names.contains(field.getColumnName())) {
-                mEnv.getLog().error(
+                env.getLog().error(
                         CompileErrors.duplicatedTableColumnName(field.getColumnName()),
                         field.getVariableCompileType()
                 );
@@ -188,7 +188,7 @@ public class DataTableProcessor implements Processor<DataTable> {
             for (String columnName : index.value()) {
                 Field field = fields.findFieldByColumnName(columnName);
                 if (field == null) {
-                    mEnv.getLog().error(CompileErrors.cannotFoundIndexField(columnName), typeCompileType);
+                    env.getLog().error(CompileErrors.cannotFoundIndexField(columnName), typeCompileType);
                     continue;
                 }
                 indexFields.add(field);

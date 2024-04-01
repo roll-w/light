@@ -32,12 +32,12 @@ import java.sql.SQLException;
  */
 @LightExperimentalApi
 public class JdbcPooledConnectionPool implements ConnectionPool {
-    private PooledConnection mConnection;
+    private PooledConnection pooledConnection;
     private LightLogger logger = null;
 
     public JdbcPooledConnectionPool(PooledConnection connection) {
-        this.mConnection = connection;
-        if (mConnection == null) {
+        this.pooledConnection = connection;
+        if (pooledConnection == null) {
             throw new LightRuntimeException("PooledConnection cannot be null.");
         }
     }
@@ -65,23 +65,23 @@ public class JdbcPooledConnectionPool implements ConnectionPool {
      * @param connection an instance of {@link PooledConnection}, cannot be null.
      */
     public void setPooledConnection(PooledConnection connection) {
-        this.mConnection = connection;
-        if (mConnection == null) {
+        this.pooledConnection = connection;
+        if (pooledConnection == null) {
             throw new LightRuntimeException("PooledConnection cannot be null.");
         }
     }
 
     public PooledConnection getPooledConnection() {
-        return mConnection;
+        return pooledConnection;
     }
 
     @Override
     public Connection requireConnection() {
-        if (mConnection == null) {
+        if (pooledConnection == null) {
             throw new LightRuntimeException("Not set yet.");
         }
         try {
-            return mConnection.getConnection();
+            return pooledConnection.getConnection();
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
@@ -112,7 +112,7 @@ public class JdbcPooledConnectionPool implements ConnectionPool {
     @Override
     public void close() throws IOException {
         try {
-            mConnection.close();
+            pooledConnection.close();
         } catch (SQLException e) {
             throw new IOException(e);
         }

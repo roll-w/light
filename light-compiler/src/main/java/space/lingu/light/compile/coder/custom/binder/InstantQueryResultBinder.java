@@ -51,7 +51,7 @@ public class InstantQueryResultBinder extends QueryResultBinder {
         block.builder().beginControlFlow("try ($T $L = $N.executeQuery())",
                 JavaPoetClass.JdbcNames.RESULT_SET, setVar, stmtVarName);
         if (isReturn) {
-            mConverter.convert(queryContext, block);
+            converter.convert(queryContext, block);
         }
         end(queryContext, block);
     }

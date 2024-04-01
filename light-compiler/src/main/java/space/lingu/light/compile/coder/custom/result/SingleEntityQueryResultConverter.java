@@ -27,33 +27,33 @@ import space.lingu.light.compile.javac.TypeCompileType;
  * @author RollW
  */
 public class SingleEntityQueryResultConverter extends AbstractQueryResultConverter {
-    private final RowConverter mConverter;
+    private final RowConverter converter;
 
     public SingleEntityQueryResultConverter(RowConverter converter) {
         super(converter);
-        mConverter = converter;
+        this.converter = converter;
     }
 
     @Override
     public void convert(QueryContext queryContext, GenerateCodeBlock block) {
-        mConverter.onResultSetReady(queryContext, block);
+        converter.onResultSetReady(queryContext, block);
 
         block.builder()
                 .addStatement("final $T $L",
-                        mConverter.getOutType().toTypeName(),
+                        converter.getOutType().toTypeName(),
                         queryContext.getOutVarName())
                 .beginControlFlow("if ($L.next())",
                         queryContext.getResultSetVarName());
 
-        mConverter.convert(queryContext, block);
+        converter.convert(queryContext, block);
 
         block.builder()
                 .nextControlFlow("else")
                 .addStatement("$L = $L", queryContext.getOutVarName(),
-                        getDefaultValue(mConverter.getOutType()))
+                        getDefaultValue(converter.getOutType()))
                 .endControlFlow();
 
-        mConverter.onResultSetFinish(block);
+        converter.onResultSetFinish(block);
     }
 
     private String getDefaultValue(TypeCompileType typeCompileType) {

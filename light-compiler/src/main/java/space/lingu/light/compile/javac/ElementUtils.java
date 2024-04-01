@@ -35,10 +35,14 @@ import java.util.Objects;
 /**
  * @author RollW
  */
-public class ElementUtils {
+public final class ElementUtils {
     public static boolean equalTypeElement(TypeElement f, TypeElement s) {
-        if (f == null || s == null) return false;
-        if (f == s) return true;
+        if (f == null || s == null) {
+            return false;
+        }
+        if (f == s) {
+            return true;
+        }
         final String firstQualified = f.getQualifiedName().toString();
         final String secondQualified = s.getQualifiedName().toString();
         return Objects.equals(firstQualified, secondQualified);
@@ -157,7 +161,8 @@ public class ElementUtils {
     public static List<TypeElement> getGenericElements(TypeMirror mirror) {
         // TypeElement will lose infos
         List<TypeElement> typeElementList = new ArrayList<>();
-        List<? extends TypeMirror> typeMirrors = MoreTypes.asDeclared(mirror).getTypeArguments();
+        List<? extends TypeMirror> typeMirrors = MoreTypes.asDeclared(mirror)
+                .getTypeArguments();
         typeMirrors.forEach(typeMirror ->
             typeElementList.add(asTypeElement(typeMirror)));
         return typeElementList;

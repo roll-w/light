@@ -40,7 +40,7 @@ import java.util.List;
  * @author RollW
  */
 public class EnumColumnTypeBinder extends ColumnTypeBinder {
-    private final TypeElement mElement;
+    private final TypeElement type;
     private final List<VariableElement> enumConstants;
 
     public EnumColumnTypeBinder(TypeCompileType type) {
@@ -49,13 +49,13 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
                 type.getElement().getKind() != ElementKind.ENUM) {
             throw new IllegalArgumentException("Not an enum kind.");
         }
-        mElement = type.getElement();
-        enumConstants = getEnumConstants();
+        this.type = type.getElement();
+        this.enumConstants = getEnumConstants();
     }
 
     private List<VariableElement> getEnumConstants() {
         List<VariableElement> elements = new ArrayList<>();
-        mElement.getEnclosedElements().forEach(element -> {
+        type.getEnclosedElements().forEach(element -> {
             if (element.getKind() == ElementKind.ENUM_CONSTANT) {
                 elements.add((VariableElement) element);
             }
@@ -103,15 +103,15 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
     }
 
     private MethodSpec stringToEnumMethod(GenerateCodeBlock block) {
-        return block.writer.getOrCreateMethod(new ClassWriter.SharedMethodSpec(mElement.getSimpleName() + "_StringToEnum") {
+        return block.writer.getOrCreateMethod(new ClassWriter.SharedMethodSpec(type.getSimpleName() + "_StringToEnum") {
             @Override
             protected String getUniqueKey() {
-                return "stringToEnum_" + ClassName.get(mElement);
+                return "stringToEnum_" + ClassName.get(type);
             }
 
             @Override
             protected void prepare(String methodName, ClassWriter writer, MethodSpec.Builder builder) {
-                ClassName className = ClassName.get(mElement);
+                ClassName className = ClassName.get(type);
                 ParameterSpec parameter = ParameterSpec
                         .builder(JavaPoetClass.LangNames.STRING, "_value", Modifier.FINAL)
                         .build();
@@ -136,15 +136,15 @@ public class EnumColumnTypeBinder extends ColumnTypeBinder {
     }
 
     private MethodSpec enumToStringMethod(GenerateCodeBlock block) {
-        return block.writer.getOrCreateMethod(new ClassWriter.SharedMethodSpec(mElement.getSimpleName() + "_EnumToString") {
+        return block.writer.getOrCreateMethod(new ClassWriter.SharedMethodSpec(type.getSimpleName() + "_EnumToString") {
             @Override
             protected String getUniqueKey() {
-                return "enumToString_" + ClassName.get(mElement);
+                return "enumToString_" + ClassName.get(type);
             }
 
             @Override
             protected void prepare(String methodName, ClassWriter writer, MethodSpec.Builder builder) {
-                ClassName className = ClassName.get(mElement);
+                ClassName className = ClassName.get(type);
                 ParameterSpec parameter = ParameterSpec
                         .builder(className, "_value", Modifier.FINAL)
                         .build();

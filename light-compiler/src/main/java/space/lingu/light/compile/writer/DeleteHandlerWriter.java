@@ -34,42 +34,42 @@ import java.util.StringJoiner;
  * @author RollW
  */
 public class DeleteHandlerWriter {
-    private final ParamEntity mEntity;
+    private final ParamEntity entity;
     private final String tableName;
-    private final Pojo mPojo;
+    private final Pojo pojo;
 
     public DeleteHandlerWriter(ParamEntity entity) {
-        mEntity = entity;
-        mPojo = entity.getPojo();
-        tableName = entity.getTableName();
+        this.entity = entity;
+        this.pojo = entity.getPojo();
+        this.tableName = entity.getTableName();
     }
 
     public TypeSpec createAnonymous(ClassWriter writer, String dbParam) {
         StringJoiner args = new StringJoiner(", ");
-        if (mEntity.getPrimaryKey() == PrimaryKey.MISSING) {
-            mEntity.getPojo().getFields().getFields().forEach(field ->
+        if (entity.getPrimaryKey() == PrimaryKey.MISSING) {
+            entity.getPojo().getFields().getFields().forEach(field ->
                     args.add("\"" + field.getColumnName() + "\""));
         } else {
-            mEntity.getPrimaryKey().getFields().getFields().forEach(field -> {
+            entity.getPrimaryKey().getFields().getFields().forEach(field -> {
                 args.add("\"" + field.getColumnName() + "\"");
             });
         }
-        AnnotatedMethodWriter delegate = new AnnotatedMethodWriter(mPojo);
+        AnnotatedMethodWriter delegate = new AnnotatedMethodWriter(pojo);
         TypeSpec.Builder builder = TypeSpec.anonymousClassBuilder("$L", dbParam)
-                .superclass(ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER, mPojo.getTypeName()))
+                .superclass(ParameterizedTypeName.get(JavaPoetClass.DELETE_UPDATE_HANDLER, pojo.getTypeName()))
                 .addMethod(
                         MethodSpec.methodBuilder("createQuery")
                                 .addModifiers(Modifier.PUBLIC)
                                 .addAnnotation(Override.class)
                                 .returns(ClassName.get("java.lang", "String"))
                                 .addStatement("return $N.getDialectProvider().getGenerator().delete($S, $L)",
-                                        DaoWriter.sDatabaseField, tableName, args.toString())
+                                        DaoWriter.DATABASE_FIELD, tableName, args.toString())
                                 .build());
         List<Field> needsBind;
-        if (mEntity.getPrimaryKey() == PrimaryKey.MISSING) {
-            needsBind = mEntity.getPojo().getFields().getFields();
+        if (entity.getPrimaryKey() == PrimaryKey.MISSING) {
+            needsBind = entity.getPojo().getFields().getFields();
         } else {
-            needsBind = mEntity.getPrimaryKey().getFields().getFields();
+            needsBind = entity.getPrimaryKey().getFields().getFields();
         }
         builder.addMethod(
                 delegate.createBindMethod(writer, needsBind)

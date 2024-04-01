@@ -49,11 +49,11 @@ import java.util.stream.Collectors;
  */
 public class PojoProcessor implements Processor<Pojo> {
     private final TypeCompileType typeCompileType;
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
 
     public PojoProcessor(TypeCompileType typeCompileType, ProcessEnv env) {
         this.typeCompileType = typeCompileType;
-        mEnv = env;
+        this.env = env;
     }
 
     @Override
@@ -84,13 +84,13 @@ public class PojoProcessor implements Processor<Pojo> {
             }
             boolean hasColumn = e.getAnnotation(DataColumn.class) != null;
             if (ElementUtils.isStatic(e)) {
-                mEnv.getLog().warn(hasColumn,
+                env.getLog().warn(hasColumn,
                         Warnings.CANNOT_APPLY_TO_STATIC_FIELD,
                         e, e.getSimpleName()
                 );
                 return;
             }
-            mEnv.getLog().warn(!hasColumn,
+            env.getLog().warn(!hasColumn,
                     Warnings.FIELD_NOT_ANNOTATED,
                     e, e.getSimpleName()
             );
@@ -103,9 +103,9 @@ public class PojoProcessor implements Processor<Pojo> {
                 VariableCompileType variableCompileType =
                         new JavacVariableCompileType(
                                 variableElement.asType(),
-                                variableElement, mEnv
+                                variableElement, env
                         );
-                Field field = new FieldProcessor(variableCompileType, mEnv).process();
+                Field field = new FieldProcessor(variableCompileType, env).process();
                 fields.add(field);
             }
         });
@@ -136,7 +136,7 @@ public class PojoProcessor implements Processor<Pojo> {
         candidates.sort(Comparator.comparingInt(e -> e.getParameters().size()));
         Collections.reverse(candidates);
         if (candidates.isEmpty()) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.cannotFoundConstructor(typeCompileType.getName()),
                     typeCompileType
             );
@@ -145,7 +145,7 @@ public class PojoProcessor implements Processor<Pojo> {
         if (constructor != null) {
             return constructor;
         }
-        mEnv.getLog().error(
+        env.getLog().error(
                 CompileErrors.cannotFoundConstructor(typeCompileType.getName()),
                 typeCompileType
         );
@@ -162,13 +162,13 @@ public class PojoProcessor implements Processor<Pojo> {
             return null;
         }
         if (annotated.size() > 1) {
-            mEnv.getLog().error(CompileErrors.MULTIPLE_CONSTRUCTOR_ANNOTATED, typeCompileType);
+            env.getLog().error(CompileErrors.MULTIPLE_CONSTRUCTOR_ANNOTATED, typeCompileType);
         }
         Constructor chosen = chooseCandidatesConstructors(annotated, fields);
         if (chosen != null) {
             return chosen;
         }
-        mEnv.getLog().error(CompileErrors.CANNOT_MATCH_CONSTRUCTOR, typeCompileType);
+        env.getLog().error(CompileErrors.CANNOT_MATCH_CONSTRUCTOR, typeCompileType);
         return null;
     }
 
@@ -233,7 +233,7 @@ public class PojoProcessor implements Processor<Pojo> {
                                 candidates.contains(executableElement.getSimpleName().toString()))
                 .collect(Collectors.toList());
         if (filteredElements.isEmpty()) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.cannotFoundGetter(candidates),
                     field.getVariableCompileType()
             );
@@ -276,7 +276,7 @@ public class PojoProcessor implements Processor<Pojo> {
                 )
                 .collect(Collectors.toList());
         if (filteredElements.isEmpty()) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.cannotFoundSetter(candidates),
                     field.getVariableCompileType()
             );

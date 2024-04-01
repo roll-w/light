@@ -30,10 +30,10 @@ import java.util.List;
  * @author RollW
  */
 public class DirectInsertMethodBinderProvider implements InsertMethodBinderProvider {
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
 
     public DirectInsertMethodBinderProvider(ProcessEnv env) {
-        mEnv = env;
+        this.env = env;
     }
 
     @Override
@@ -46,9 +46,9 @@ public class DirectInsertMethodBinderProvider implements InsertMethodBinderProvi
                                       List<Parameter> params) {
         return new DirectInsertMethodBinder(InsertMethodTranslator.create(
                 executableElement,
-                mEnv,
-                params)
-        );
+                env,
+                params
+        ));
     }
 
 }

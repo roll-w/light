@@ -32,16 +32,16 @@ import java.util.List;
  * @author RollW
  */
 public class DataConverterProcessor implements Processor<DataConverter> {
-    private final TypeCompileType mContaining;
     private final MethodCompileType methodCompileType;
-    private final ProcessEnv mEnv;
+    private final TypeCompileType containing;
+    private final ProcessEnv env;
 
     public DataConverterProcessor(MethodCompileType methodCompileType,
                                   TypeCompileType containing,
                                   ProcessEnv env) {
-        mContaining = containing;
         this.methodCompileType = methodCompileType;
-        mEnv = env;
+        this.containing = containing;
+        this.env = env;
     }
 
     // TODO: supports DataConverter different define domains
@@ -50,25 +50,25 @@ public class DataConverterProcessor implements Processor<DataConverter> {
     @Override
     public DataConverter process() {
         if (!ElementUtils.isPublic(methodCompileType.getElement())) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.DATA_CONVERTER_METHOD_NOT_PUBLIC,
                     methodCompileType
             );
         }
         if (!ElementUtils.isStatic(methodCompileType.getElement())) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.DATA_CONVERTER_METHOD_NOT_STATIC,
                     methodCompileType
             );
         }
         if (methodCompileType.getParameters().size() > 1) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.DATA_CONVERTER_TOO_MUCH_PARAMS,
                     methodCompileType
             );
         }
         if (methodCompileType.getParameters().isEmpty()) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.DATA_CONVERTER_NO_PARAM,
                     methodCompileType
             );
@@ -76,12 +76,12 @@ public class DataConverterProcessor implements Processor<DataConverter> {
 
         TypeCompileType returnType = methodCompileType.getReturnType();
         if (isInvalidReturnType(returnType.getTypeMirror())) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.DATA_CONVERTER_INVALID_RETURN_TYPE,
                     methodCompileType
             );
         }
-        return  new DataConverter(mContaining, methodCompileType,
+        return new DataConverter(containing, methodCompileType,
                 methodCompileType.getParameters().get(0).getType(),
                 methodCompileType.getReturnType());
     }
