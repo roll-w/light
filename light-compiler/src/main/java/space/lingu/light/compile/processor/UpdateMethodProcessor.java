@@ -38,27 +38,27 @@ import java.util.Map;
 public class UpdateMethodProcessor implements Processor<UpdateMethod> {
     private final MethodCompileType methodCompileType;
     private final TypeCompileType containing;
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
 
     public UpdateMethodProcessor(MethodCompileType methodCompileType,
                                  TypeCompileType containing,
                                  ProcessEnv env) {
         this.methodCompileType = methodCompileType;
         this.containing = containing;
-        mEnv = env;
+        this.env = env;
     }
 
     @Override
     public UpdateMethod process() {
-        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(methodCompileType, mEnv);
+        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(methodCompileType, env);
 
         Update updateAnno = methodCompileType.getAnnotation(Update.class);
         if (updateAnno == null) {
             throw new IllegalStateException("A update method must be annotated with @Update.");
         }
-        DaoProcessor.sHandleAnnotations.forEach(anno -> {
+        DaoProcessor.HANDLE_ANNOTATIONS.forEach(anno -> {
             if (anno != Update.class && methodCompileType.getAnnotation(anno) != null) {
-                mEnv.getLog().error(
+                env.getLog().error(
                         CompileErrors.DUPLICATED_METHOD_ANNOTATION,
                         methodCompileType
                 );
@@ -73,7 +73,7 @@ public class UpdateMethodProcessor implements Processor<UpdateMethod> {
                         pair.second
                 );
         if (translator == null) {
-            mEnv.getLog().error(CompileErrors.UPDATE_INVALID_RETURN, methodCompileType);
+            env.getLog().error(CompileErrors.UPDATE_INVALID_RETURN, methodCompileType);
         }
         AutoDeleteUpdateMethodBinder binder =
                 new DirectAutoDeleteUpdateMethodBinder(translator);

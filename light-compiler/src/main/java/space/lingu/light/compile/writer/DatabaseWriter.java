@@ -38,11 +38,11 @@ import javax.lang.model.element.Modifier;
  * @author RollW
  */
 public class DatabaseWriter extends ClassWriter {
-    private final Database mDatabase;
+    private final Database database;
 
     public DatabaseWriter(Database database, ProcessEnv env) {
         super(database.getImplClassName(), database.getSuperClassName(), env);
-        mDatabase = database;
+        this.database = database;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class DatabaseWriter extends ClassWriter {
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addMethod(createClearAllTablesMethod())
                 .addMethod(createRegisterTablesMethod())
-                .superclass(ClassName.get(mDatabase.getSuperClassElement()));
+                .superclass(ClassName.get(database.getSuperClassElement()));
         writeDaos();
         addDaoImpl(builder);
         return builder;
@@ -70,7 +70,7 @@ public class DatabaseWriter extends ClassWriter {
     private CodeBlock createRegisterRuntimeStructCode() {
         GenerateCodeBlock block = new GenerateCodeBlock(this);
         String dbConfVarName = writeDatabaseConf(block);
-        mDatabase.getDataTableList().forEach(dataTable -> {
+        database.getDataTableList().forEach(dataTable -> {
             String qualifiedName = dataTable.getTypeCompileType().getQualifiedName().toString();
             block.builder().add("\n// start create " + qualifiedName + " structure. \n");
             RuntimeStructWriter writer = new RuntimeStructWriter(dataTable);
@@ -83,16 +83,16 @@ public class DatabaseWriter extends ClassWriter {
     }
 
     private String writeDatabaseConf(GenerateCodeBlock block) {
-        return Configurable.writeConfiguration(mDatabase, "Db", block);
+        return Configurable.writeConfiguration(database, "Db", block);
     }
 
 
     private void writeDaos() {
         // write all daos
 
-        mDatabase.getDatabaseDaoMethods().forEach(method -> {
+        database.getDatabaseDaoMethods().forEach(method -> {
             DaoWriter writer = new DaoWriter(method.getDao(),
-                    mDatabase.getSuperClassElement(), mEnv);
+                    database.getSuperClassElement(), env);
             try {
                 writer.write();
             } catch (FilterWriteException ignored) {
@@ -102,7 +102,7 @@ public class DatabaseWriter extends ClassWriter {
 
     private void addDaoImpl(TypeSpec.Builder builder) {
         GenerateCodeBlock block = new GenerateCodeBlock(this);
-        mDatabase.getDatabaseDaoMethods().forEach(method -> {
+        database.getDatabaseDaoMethods().forEach(method -> {
             String name = method.getDao().getSimpleName();
             String fieldName = block.getTempVar("_" + name);
             FieldSpec field = FieldSpec.builder(
@@ -140,7 +140,7 @@ public class DatabaseWriter extends ClassWriter {
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PROTECTED)
                 .returns(TypeName.VOID);
-        mDatabase.getDataTableList().forEach(dataTable -> {
+        database.getDataTableList().forEach(dataTable -> {
             builder.addStatement("this.destroyTable($S)", dataTable.getTableName());
         });
 

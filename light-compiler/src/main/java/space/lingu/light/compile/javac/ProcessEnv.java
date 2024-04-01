@@ -29,7 +29,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 /**
- * 处理环境
+ * Process environment
  *
  * @author RollW
  */

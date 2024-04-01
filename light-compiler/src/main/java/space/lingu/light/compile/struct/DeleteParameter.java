@@ -22,7 +22,7 @@ import space.lingu.light.compile.javac.VariableCompileType;
 /**
  * @author RollW
  */
-public class DeleteParameter extends AnnotateParameter implements SQLCustomParameter{
+public class DeleteParameter extends AnnotateParameter implements SQLCustomParameter {
     public DeleteParameter(VariableCompileType variableCompileType,
                            TypeCompileType wrapperCompileType,
                            boolean isMultiple) {

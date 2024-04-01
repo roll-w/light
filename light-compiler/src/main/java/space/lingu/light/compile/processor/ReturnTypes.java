@@ -23,7 +23,7 @@ import javax.lang.model.element.TypeElement;
 /**
  * @author RollW
  */
-public class ReturnTypes {
+public final class ReturnTypes {
     // List, Collection, Iterable
     public static boolean isLegalCollectionReturnType(TypeElement typeElement) {
         if (ElementUtils.isList(typeElement)) {

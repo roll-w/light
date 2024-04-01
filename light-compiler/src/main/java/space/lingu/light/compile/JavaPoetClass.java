@@ -36,7 +36,7 @@ import java.sql.ResultSet;
 /**
  * @author RollW
  */
-public class JavaPoetClass {
+public final class JavaPoetClass {
     public static final String LIGHT_PACKAGE = "space.lingu.light";
 
     public static final ClassName LIGHT_DATABASE = ClassName.get(LightDatabase.class);

@@ -26,19 +26,19 @@ import space.lingu.light.compile.writer.DataTableResultSetConverterWriter;
  * @author RollW
  */
 public class DataTableRowConverter extends RowConverter {
-    private final DataTable mTable;
+    private final DataTable dataTable;
     private MethodSpec methodSpec;
 
-    protected DataTableRowConverter(DataTable table) {
-        super(table.getTypeCompileType());
-        mTable = table;
+    protected DataTableRowConverter(DataTable dataTable) {
+        super(dataTable.getTypeCompileType());
+        this.dataTable = dataTable;
     }
 
     @Override
     public void onResultSetReady(QueryContext queryContext,
                                  GenerateCodeBlock block) {
         methodSpec = block.writer.getOrCreateMethod(
-                new DataTableResultSetConverterWriter(queryContext, mTable)
+                new DataTableResultSetConverterWriter(queryContext, dataTable)
         );
     }
 

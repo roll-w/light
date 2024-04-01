@@ -16,6 +16,8 @@
 
 package space.lingu.light.compile.parser;
 
+import space.lingu.Experimental;
+import space.lingu.light.LightExperimentalApi;
 import space.lingu.light.compile.javac.ElementUtils;
 import space.lingu.light.compile.javac.MethodCompileType;
 import space.lingu.light.compile.javac.ProcessEnv;
@@ -41,19 +43,20 @@ import java.util.stream.Collectors;
 /**
  * @author RollW
  */
+@LightExperimentalApi
 public class SQLParser {
-    // TODO
+    // TODO: now is a temp solution, will be replaced by a more elegant way later
     private final String sql;
     private final MethodCompileType methodCompileType;
     private final List<String> expressions;
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
 
     public SQLParser(String sql, MethodCompileType methodCompileType,
-                     ProcessEnv processEnv) {
+                     ProcessEnv env) {
         this.sql = sql;
         this.methodCompileType = methodCompileType;
         this.expressions = new SQLExpressionParser(sql).getExpressions();
-        this.mEnv = processEnv;
+        this.env = env;
     }
 
     public List<String> expressions() {
@@ -135,7 +138,7 @@ public class SQLParser {
         return new JavacTypeCompileType(
                 iter,
                 ElementUtils.asTypeElement(iter),
-                mEnv
+                env
         );
     }
 

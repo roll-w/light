@@ -24,6 +24,7 @@ import java.util.List;
 
 /**
  * DataTable
+ *
  * @author RollW
  */
 public class DataTable extends Pojo implements Configurable {

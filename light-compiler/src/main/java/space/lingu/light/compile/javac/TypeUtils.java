@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author RollW
  */
-public class TypeUtils {
+public final class TypeUtils {
     public static boolean isAssignedFrom(Types util, TypeMirror f, TypeMirror s) {
         return util.isAssignable(util.erasure(f), s);
     }
@@ -168,6 +168,4 @@ public class TypeUtils {
 
     private TypeUtils() {
     }
-
-
 }

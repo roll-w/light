@@ -39,8 +39,9 @@ public class FieldSetter {
                 break;
             }
         }
-        if (statement == null) return;
-
+        if (statement == null) {
+            return;
+        }
         builder.addStatement(statement, owner, name, in);
     }
 

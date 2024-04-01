@@ -38,28 +38,28 @@ import java.util.Map;
 
 /**
  * A general processor that provides
- * general process for parsing method
+ * a general process for parsing method
  * processors that use annotations directly.
  *
  * @author RollW
  */
 public class AnnotateMethodProcessor {
     private final MethodCompileType methodCompileType;
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
 
     public AnnotateMethodProcessor(MethodCompileType methodCompileType,
                                    ProcessEnv env) {
         this.methodCompileType = methodCompileType;
-        mEnv = env;
+        this.env = env;
     }
 
     public List<Parameter> extractRawParameters(TypeCompileType compileType) {
         List<VariableCompileType> parameterTypes = methodCompileType.getParameters();
         List<Parameter> parameters = new ArrayList<>();
         parameterTypes.forEach(e -> {
-            checkUnbound(e, mEnv);
+            checkUnbound(e, env);
             Processor<AnnotateParameter> processor =
-                    new AnnotateParameterProcessor(e, compileType, mEnv);
+                    new AnnotateParameterProcessor(e, compileType, env);
             parameters.add(processor.process());
         });
         return parameters;
@@ -89,7 +89,7 @@ public class AnnotateMethodProcessor {
             }
 
             if (entityType == null) {
-                mEnv.getLog().error(
+                env.getLog().error(
                         CompileErrors.DAO_INVALID_METHOD_PARAMETER,
                         methodCompileType
                 );
@@ -97,14 +97,14 @@ public class AnnotateMethodProcessor {
             }
 
             // TODO: support fragment type
-            Pojo pojo = new PojoProcessor(entityType, mEnv).process();
+            Pojo pojo = new PojoProcessor(entityType, env).process();
             if (entityType.getAnnotation(space.lingu.light.DataTable.class) == null) {
-                mEnv.getLog().error(CompileErrors.ACTUAL_PARAM_ANNOTATED_DATATABLE, methodCompileType);
+                env.getLog().error(CompileErrors.ACTUAL_PARAM_ANNOTATED_DATATABLE, methodCompileType);
                 return;
             }
             DataTable dataTable = new DataTableProcessor(
                     param.getWrappedCompileType(),
-                    mEnv).process();
+                    env).process();
             ParamEntity paramEntity = new ParamEntity(dataTable, null);
             entityMap.put(param.getName(), paramEntity);
         });

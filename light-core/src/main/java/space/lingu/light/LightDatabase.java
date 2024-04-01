@@ -38,26 +38,24 @@ import java.util.stream.Collectors;
 public abstract class LightDatabase {
     private static final String IMPL_SUFFIX = "_Impl";
 
-    private DialectProvider mDialectProvider;
-    private ConnectionPool mConnectionPool;
-    private DatasourceConfig mSourceConfig;
-
-    private Executor mQueryExecutor;
-
-    private String mName;
+    private DialectProvider dialectProvider;
+    private ConnectionPool connectionPool;
+    private DatasourceConfig sourceConfig;
+    private Executor queryExecutor;
+    private String name;
 
     public final DatasourceConfig getDatasourceConfig() {
-        return mSourceConfig;
+        return sourceConfig;
     }
 
     public final ConnectionPool getConnectionPool() {
-        return mConnectionPool;
+        return connectionPool;
     }
 
-    private LightLogger mLogger = JdkDefaultLogger.getGlobalLogger();
+    private LightLogger logger = JdkDefaultLogger.getGlobalLogger();
 
     public final LightLogger getLogger() {
-        return mLogger;
+        return logger;
     }
 
     /**
@@ -69,7 +67,7 @@ public abstract class LightDatabase {
         if (logger == null) {
             return;
         }
-        this.mLogger = logger;
+        this.logger = logger;
     }
 
     public LightDatabase() {
@@ -81,29 +79,29 @@ public abstract class LightDatabase {
         registerAllTables();
         DatasourceConfig rawConfig = conf.datasourceConfig;
 
-        this.mName = conf.name;
-        this.mSourceConfig = rawConfig;
+        this.name = conf.name;
+        this.sourceConfig = rawConfig;
         if (conf.logger != null) {
-            this.mLogger = conf.logger;
+            this.logger = conf.logger;
         }
-        this.mDialectProvider = conf.dialectProvider;
+        this.dialectProvider = conf.dialectProvider;
 
         ConnectionPool connectionPool = conf.connectionPool;
-        connectionPool.setLogger(mLogger);
-        connectionPool.setDataSourceConfig(mSourceConfig);
-        this.mConnectionPool = connectionPool;
+        connectionPool.setLogger(logger);
+        connectionPool.setDatasourceConfig(sourceConfig);
+        this.connectionPool = connectionPool;
 
-        mDatabaseInfo = new DatabaseInfo(mName, conf.databaseConfigurations);
+        mDatabaseInfo = new DatabaseInfo(name, conf.databaseConfigurations);
 
         if (!checkContainsDatabase()) {
             createDatabase(mDatabaseInfo);
-            String url = mDialectProvider.getJdbcUrl(
+            String url = dialectProvider.getJdbcUrl(
                     rawConfig.getUrl(),
                     mDatabaseInfo
             );
-            mLogger.debug("Database created, new url: " + url);
+            logger.debug("Database created, new url: " + url);
             DatasourceConfig newConfig = rawConfig.fork(url);
-            mSourceConfig = newConfig;
+            sourceConfig = newConfig;
             connectionPool.setDatasourceConfig(newConfig);
         }
 
@@ -129,7 +127,7 @@ public abstract class LightDatabase {
     }
 
     protected void createDatabase(DatabaseInfo info) {
-        final String sql = mDialectProvider.create(info);
+        final String sql = dialectProvider.create(info);
         if (sql == null) {
             return;
         }
@@ -138,7 +136,7 @@ public abstract class LightDatabase {
     }
 
     private void initDatabaseEnv(DatabaseInfo info) {
-        String initEnv = mDialectProvider.initDatabaseEnvironment(info);
+        String initEnv = dialectProvider.initDatabaseEnvironment(info);
         if (initEnv == null) {
             return;
         }
@@ -153,12 +151,12 @@ public abstract class LightDatabase {
                         // TODO: remove this while complete.
                         return null;
                     }
-                    return mDialectProvider.create(table);
+                    return dialectProvider.create(table);
                 })
                 .collect(Collectors.toList());
         for (String statement : statements) {
-            if (mLogger != null) {
-                mLogger.debug("Execute create table statement, statement: " + statement);
+            if (logger != null) {
+                logger.debug("Execute create table statement, statement: " + statement);
             }
             executeRawSqlWithNoReturn(statement);
         }
@@ -172,13 +170,13 @@ public abstract class LightDatabase {
                         return new ArrayList<String>();
                     }
                     return table.getIndices().stream().map(index ->
-                                    mDialectProvider.create(index))
+                                    dialectProvider.create(index))
                             .collect(Collectors.toList());
                 })
                 .collect(ArrayList::new, ArrayList::addAll, ArrayList::addAll);
         for (String statement : statements) {
-            if (mLogger != null) {
-                mLogger.debug("Execute create index statement, statement: " + statement);
+            if (logger != null) {
+                logger.debug("Execute create index statement, statement: " + statement);
             }
             try {
                 executeRawSqlWithNoReturn(statement);
@@ -227,7 +225,7 @@ public abstract class LightDatabase {
 
     private Connection rawConnection() {
         checkConnectionPool();
-        return mConnectionPool.requireConnection();
+        return connectionPool.requireConnection();
     }
 
     public Connection requireConnection() throws LightRuntimeException {
@@ -252,17 +250,17 @@ public abstract class LightDatabase {
 
     public void releaseConnection(Connection connection) throws LightRuntimeException, NullPointerException {
         checkConnectionPool();
-        mConnectionPool.release(connection);
+        connectionPool.release(connection);
     }
 
     private void checkConnectionPool() {
-        if (mConnectionPool == null) {
+        if (connectionPool == null) {
             throw new NullPointerException("ConnectionPool cannot be null.");
         }
     }
 
     public DialectProvider getDialectProvider() {
-        return mDialectProvider;
+        return dialectProvider;
     }
 
     @Deprecated
@@ -278,7 +276,7 @@ public abstract class LightDatabase {
                 stmt = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             }
         } catch (SQLException e) {
-            mLogger.error("An error occurred while require a PreparedStatement.", e);
+            logger.error("An error occurred while require a PreparedStatement.", e);
             throw new LightRuntimeException(e);
         }
 
@@ -295,7 +293,7 @@ public abstract class LightDatabase {
         if (table == null) {
             return;
         }
-        executeRawSqlWithNoReturn(mDialectProvider.drop(table));
+        executeRawSqlWithNoReturn(dialectProvider.drop(table));
     }
 
     private final Map<String, Table> mTableStructCache =
@@ -315,13 +313,13 @@ public abstract class LightDatabase {
         return mTableStructCache.get(tableName);
     }
 
-    private volatile Metadata mMetadata;
-    private final byte[] mLock = new byte[0];
+    private volatile Metadata metadata;
+    private final byte[] metadataLock = new byte[0];
 
     public Metadata getMetadata() {
-        if (mMetadata == null) {
-            synchronized (mLock) {
-                if (mMetadata == null) {
+        if (metadata == null) {
+            synchronized (metadataLock) {
+                if (metadata == null) {
                     boolean supportsBatch;
                     boolean supportsTransaction;
                     try {
@@ -338,12 +336,12 @@ public abstract class LightDatabase {
                         throw new LightRuntimeException(e);
                     }
 
-                    mMetadata = new Metadata(supportsBatch, supportsTransaction);
+                    metadata = new Metadata(supportsBatch, supportsTransaction);
                 }
             }
         }
 
-        return mMetadata;
+        return metadata;
     }
 
     public static class Metadata {
@@ -431,27 +429,28 @@ public abstract class LightDatabase {
     }
 
     public static class Builder<T extends LightDatabase> {
-        private final Class<T> mDatabaseClass;
-        private final String mName;
+        private final Class<T> databaseClass;
+        private final String name;
         private final Database database;
-        private DatasourceConfig mConfig;
-        private final DialectProvider mProvider;
-        private ConnectionPool mConnectionPool;
-        private LightLogger mLogger;
-        private final MigrationContainer mMigrationContainer;
+        private final DialectProvider dialectProvider;
+        private final MigrationContainer migrationContainer;
+
+        private DatasourceConfig datasourceConfig;
+        private ConnectionPool connectionPool;
+        private LightLogger logger;
 
         Builder(Class<T> clazz, DialectProvider provider) {
             if (clazz == null || provider == null) {
                 throw new IllegalArgumentException("Cannot be null!");
             }
-            mDatabaseClass = clazz;
-            mProvider = provider;
+            databaseClass = clazz;
+            dialectProvider = provider;
             database = clazz.getAnnotation(Database.class);
             if (database == null) {
                 throw new IllegalStateException("Must be annotated with '@Database'!");
             }
-            mName = database.name();
-            mMigrationContainer = new MigrationContainer();
+            name = database.name();
+            migrationContainer = new MigrationContainer();
         }
 
         Builder(Class<T> clazz, Class<? extends DialectProvider> providerClass) {
@@ -459,20 +458,20 @@ public abstract class LightDatabase {
         }
 
         public Builder<T> setLogger(LightLogger logger) {
-            mLogger = logger;
+            this.logger = logger;
             return this;
         }
 
         @LightExperimentalApi
         public Builder<T> addMigrations(Migration... migrations) {
-            mMigrationContainer.addMigrations(migrations);
+            migrationContainer.addMigrations(migrations);
             return this;
         }
 
 
         @LightExperimentalApi
         public Builder<T> addMigration(Migration migration) {
-            mMigrationContainer.addMigration(migration);
+            migrationContainer.addMigration(migration);
             return this;
         }
 
@@ -493,24 +492,24 @@ public abstract class LightDatabase {
             return this;
         }
 
-        public Builder<T> datasource(DatasourceConfig config) {
-            mConfig = config;
+        public Builder<T> datasource(DatasourceConfig datasourceConfig) {
+            this.datasourceConfig = datasourceConfig;
             return this;
         }
 
         public Builder<T> setConnectionPool(Class<? extends ConnectionPool> poolClass) {
-            mConnectionPool = Light.createConnectionPoolInstance(poolClass);
+            this.connectionPool = Light.createConnectionPoolInstance(poolClass);
             return this;
         }
 
         public Builder<T> setConnectionPool(ConnectionPool connectionPool) {
-            mConnectionPool = connectionPool;
+            this.connectionPool = connectionPool;
             return this;
         }
 
         private DatasourceConfig generateConfig() {
-            if (mConfig != null) {
-                return mConfig;
+            if (datasourceConfig != null) {
+                return datasourceConfig;
             }
 
             if (database.datasourceConfig().isEmpty()) {
@@ -522,33 +521,33 @@ public abstract class LightDatabase {
         }
 
         private DatabaseConfiguration createConf() {
-            if (mProvider == null) {
+            if (dialectProvider == null) {
                 throw new IllegalStateException("DialectProvider cannot be null!");
             }
             DatasourceConfig config = generateConfig();
             Configurations configurations = getConfigurations();
             return new DatabaseConfiguration(
-                    mName,
+                    name,
                     config,
-                    mConnectionPool,
-                    mProvider,
-                    mLogger,
-                    mMigrationContainer,
+                    connectionPool,
+                    dialectProvider,
+                    logger,
+                    migrationContainer,
                     configurations
             );
         }
 
         private Configurations getConfigurations() {
-            Database database = mDatabaseClass.getAnnotation(Database.class);
+            Database database = databaseClass.getAnnotation(Database.class);
             LightConfiguration[] databaseConfigurations = database.configuration();
             List<LightConfiguration> lightConfigurations = new ArrayList<>(
                     Arrays.asList(databaseConfigurations)
             );
-            LightConfiguration configuration = mDatabaseClass.getAnnotation(LightConfiguration.class);
+            LightConfiguration configuration = databaseClass.getAnnotation(LightConfiguration.class);
             if (configuration != null) {
                 lightConfigurations.add(configuration);
             }
-            LightConfigurations annotation = mDatabaseClass.getAnnotation(LightConfigurations.class);
+            LightConfigurations annotation = databaseClass.getAnnotation(LightConfigurations.class);
             if (annotation != null) {
                 lightConfigurations.addAll(Arrays.asList(annotation.value()));
             }
@@ -560,7 +559,7 @@ public abstract class LightDatabase {
         }
 
         public T build() {
-            T database = Light.getGeneratedImplInstance(mDatabaseClass,
+            T database = Light.getGeneratedImplInstance(databaseClass,
                     IMPL_SUFFIX);
             database.init(createConf());
             return database;

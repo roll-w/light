@@ -35,10 +35,10 @@ import java.util.stream.Collectors;
  * @author RollW
  */
 public class SQLCustomMethodWriter {
-    private final SQLCustomMethod mMethod;
+    private final SQLCustomMethod method;
 
-    public SQLCustomMethodWriter(SQLCustomMethod queryMethod) {
-        mMethod = queryMethod;
+    public SQLCustomMethodWriter(SQLCustomMethod method) {
+        this.method = method;
     }
 
     public void prepare(String stmtVar, String connName,
@@ -56,7 +56,7 @@ public class SQLCustomMethodWriter {
         final String argCountArray = block.getTempVar("_argsCountArray");
         List<String> argsSizeParams = new ArrayList<>();
 
-        mMethod.getExpressionBinds().forEach(bind -> {
+        method.getExpressionBinds().forEach(bind -> {
             if (!bind.getBinder().isMultiple) {
                 argsSizeParams.add("1");
                 pairList.add(Pair.createPair(bind, "1"));

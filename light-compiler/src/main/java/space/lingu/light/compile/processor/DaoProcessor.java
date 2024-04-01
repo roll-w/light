@@ -65,18 +65,18 @@ import java.util.stream.Collectors;
  */
 public class DaoProcessor implements Processor<Dao> {
     private final TypeCompileType typeCompileType;
-    private final ProcessEnv mEnv;
-    private final Configurations mConfigurations;
+    private final ProcessEnv env;
+    private final Configurations configurations;
 
-    public static final List<Class<? extends Annotation>> sHandleAnnotations =
+    public static final List<Class<? extends Annotation>> HANDLE_ANNOTATIONS =
             Arrays.asList(Insert.class, Query.class, Delete.class, Update.class);
 
     public DaoProcessor(TypeCompileType typeCompileType,
                         ProcessEnv env,
                         Configurations configurations) {
         this.typeCompileType = typeCompileType;
-        mEnv = env;
-        mConfigurations = configurations;
+        this.env = env;
+        this.configurations = configurations;
     }
 
     @Override
@@ -99,7 +99,7 @@ public class DaoProcessor implements Processor<Dao> {
                 methods.deleteMethods,
                 methods.queryMethods,
                 methods.transactionMethods,
-                mConfigurations
+                configurations
         );
     }
 
@@ -121,7 +121,7 @@ public class DaoProcessor implements Processor<Dao> {
 
         boolean isInterface = typeCompileType.getElement().getKind() == ElementKind.INTERFACE;
 
-        sHandleAnnotations.forEach(anno ->
+        HANDLE_ANNOTATIONS.forEach(anno ->
                 methods.put(anno, new ArrayList<>()));
 
         checkMethodsAnnotation(allMethods, methods, isInterface);
@@ -151,19 +151,19 @@ public class DaoProcessor implements Processor<Dao> {
             if (methodCompileType.getAnnotation(Transaction.class) == null) {
                 return;
             }
-            for (Class<? extends Annotation> annotation : sHandleAnnotations) {
+            for (Class<? extends Annotation> annotation : HANDLE_ANNOTATIONS) {
                 if (methodCompileType.getAnnotation(annotation) != null) {
                     return;
                 }
             }
             if (isInterface) {
                 if (!ElementUtils.isDefault(methodCompileType.getElement())) {
-                    mEnv.getLog().error(CompileErrors.TRANSACTION_METHOD_NOT_DEFAULT, methodCompileType);
+                    env.getLog().error(CompileErrors.TRANSACTION_METHOD_NOT_DEFAULT, methodCompileType);
                     return;
                 }
             } else {
                 if (ElementUtils.isAbstract(methodCompileType.getElement())) {
-                    mEnv.getLog().error(CompileErrors.TRANSACTION_METHOD_ABSTRACT, methodCompileType);
+                    env.getLog().error(CompileErrors.TRANSACTION_METHOD_ABSTRACT, methodCompileType);
                     return;
                 }
             }
@@ -179,14 +179,14 @@ public class DaoProcessor implements Processor<Dao> {
                 return;
             }
             AtomicBoolean annotatedFlag = new AtomicBoolean(false);
-            sHandleAnnotations.forEach(anno -> {
+            HANDLE_ANNOTATIONS.forEach(anno -> {
                 if (method.getAnnotation(anno) != null) {
                     methods.get(anno).add(method);
                     annotatedFlag.set(true);
                 }
             });
             if (!annotatedFlag.get()) {
-                mEnv.getLog().error(
+                env.getLog().error(
                         CompileErrors.DAO_INVALID_ABSTRACT_METHOD,
                         method
                 );
@@ -231,27 +231,27 @@ public class DaoProcessor implements Processor<Dao> {
     }
 
     private QueryMethod processQueryMethod(MethodCompileType methodElement) {
-        Processor<QueryMethod> processor = new QueryMethodProcessor(methodElement, typeCompileType, mEnv);
+        Processor<QueryMethod> processor = new QueryMethodProcessor(methodElement, typeCompileType, env);
         return processor.process();
     }
 
     private DeleteMethod processDeleteMethod(MethodCompileType methodElement) {
-        Processor<DeleteMethod> processor = new DeleteMethodProcessor(methodElement, typeCompileType, mEnv);
+        Processor<DeleteMethod> processor = new DeleteMethodProcessor(methodElement, typeCompileType, env);
         return processor.process();
     }
 
     private InsertMethod processInsertMethod(MethodCompileType methodElement) {
-        Processor<InsertMethod> processor = new InsertMethodProcessor(methodElement, typeCompileType, mEnv);
+        Processor<InsertMethod> processor = new InsertMethodProcessor(methodElement, typeCompileType, env);
         return processor.process();
     }
 
     private UpdateMethod processUpdateMethod(MethodCompileType methodElement) {
-        Processor<UpdateMethod> processor = new UpdateMethodProcessor(methodElement, typeCompileType, mEnv);
+        Processor<UpdateMethod> processor = new UpdateMethodProcessor(methodElement, typeCompileType, env);
         return processor.process();
     }
 
     private TransactionMethod processTransactionMethod(MethodCompileType methodElement) {
-        Processor<TransactionMethod> processor = new TransactionMethodProcessor(methodElement, typeCompileType, mEnv);
+        Processor<TransactionMethod> processor = new TransactionMethodProcessor(methodElement, typeCompileType, env);
         return processor.process();
     }
 
@@ -273,7 +273,7 @@ public class DaoProcessor implements Processor<Dao> {
             ExecutableType executableType = TypeUtils.asExecutable(methodElement.asType());
             MethodCompileType methodCompileType = new JavacMethodCompileType(
                     executableType, methodElement,
-                    this.typeCompileType, mEnv);
+                    this.typeCompileType, env);
             methodElements.add(methodCompileType);
         }
         return methodElements;
@@ -327,7 +327,7 @@ public class DaoProcessor implements Processor<Dao> {
         List<MethodCompileType> unimplementedMethods = new ArrayList<>();
         for (MethodCompileType superMethod : superMethods) {
             ExecutableType executableType = (ExecutableType)
-                    mEnv.getTypeUtils().asMemberOf(declaredType, superMethod.getElement());
+                    env.getTypeUtils().asMemberOf(declaredType, superMethod.getElement());
             if (isMethodImplemented(implementedMethods, superMethod)) {
                 continue;
             }
@@ -335,7 +335,7 @@ public class DaoProcessor implements Processor<Dao> {
                     new JavacMethodCompileType(
                             executableType,
                             superMethod.getElement(),
-                            this.typeCompileType, mEnv
+                            this.typeCompileType, env
                     );
             unimplementedMethods.add(methodCompileType);
         }
@@ -345,7 +345,7 @@ public class DaoProcessor implements Processor<Dao> {
     private boolean isMethodImplemented(List<MethodCompileType> implementedMethods,
                                         MethodCompileType superMethod) {
         for (MethodCompileType implementedMethod : implementedMethods) {
-            if (mEnv.getElementUtils().overrides(
+            if (env.getElementUtils().overrides(
                     superMethod.getElement(),
                     implementedMethod.getElement(),
                     typeCompileType.getElement())) {
@@ -376,7 +376,7 @@ public class DaoProcessor implements Processor<Dao> {
         if (superClass.getKind() != TypeKind.NONE) {
             interfaces.add(superClass);
         }
-        TypeMirror daoConnectionGetter = mEnv.getElementUtils()
+        TypeMirror daoConnectionGetter = env.getElementUtils()
                 .getTypeElement(DaoConnectionGetter.class.getCanonicalName())
                 .asType();
         List<? extends TypeMirror> unprocessedInterfaces = element.getInterfaces();

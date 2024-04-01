@@ -27,7 +27,7 @@ import java.time.LocalTime;
 /**
  * @author RollW
  */
-public class DateTimeUtils {
+public final class DateTimeUtils {
     // --- raws
     public static Date raw(Date date) {
         return date;

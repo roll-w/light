@@ -33,7 +33,7 @@ import java.util.List;
 public class SQLBindProcessor implements Processor<List<ExpressionBind>> {
     private final MethodCompileType methodCompileType;
     private final String sql;
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
 
 
     public SQLBindProcessor(MethodCompileType methodCompileType,
@@ -41,27 +41,27 @@ public class SQLBindProcessor implements Processor<List<ExpressionBind>> {
                             ProcessEnv env) {
         this.methodCompileType = methodCompileType;
         this.sql = sql;
-        mEnv = env;
+        this.env = env;
     }
 
     @Override
     public List<ExpressionBind> process() {
-        SQLParser parser = new SQLParser(sql, methodCompileType, mEnv);
+        SQLParser parser = new SQLParser(sql, methodCompileType, env);
         List<String> expressions = parser.expressions();
         List<ExpressionBind> binds = new ArrayList<>();
         expressions.forEach(expression -> {
             TypeCompileType compileType = parser.findType(expression);
             if (compileType == null) {
-                mEnv.getLog().error(
+                env.getLog().error(
                         CompileErrors.QUERY_UNKNOWN_PARAM + " In expression of '" + expression + "'.",
                         methodCompileType
                 );
             }
 
-            QueryParameterBinder binder = mEnv.getBinders()
+            QueryParameterBinder binder = env.getBinders()
                     .findQueryParameterBinder(compileType);
             if (binder == null) {
-                mEnv.getLog().error(
+                env.getLog().error(
                         CompileErrors.QUERY_UNKNOWN_PARAM + " In type of '" + expression + "'.",
                         methodCompileType
                 );

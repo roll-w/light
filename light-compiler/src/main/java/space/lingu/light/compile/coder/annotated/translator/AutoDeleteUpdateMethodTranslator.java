@@ -32,16 +32,16 @@ import java.util.Map;
  * @author RollW
  */
 public class AutoDeleteUpdateMethodTranslator {
-    private final TypeMirror mReturnType;
+    private final TypeMirror returnType;
 
-    private AutoDeleteUpdateMethodTranslator(TypeMirror mirror) {
-        mReturnType = mirror;
+    private AutoDeleteUpdateMethodTranslator(TypeMirror returnType) {
+        this.returnType = returnType;
     }
 
-    public static AutoDeleteUpdateMethodTranslator create(TypeMirror typeMirror,
+    public static AutoDeleteUpdateMethodTranslator create(TypeMirror returnType,
                                                           List<Parameter> params) {
-        if (check(typeMirror, params)) {
-            return new AutoDeleteUpdateMethodTranslator(typeMirror);
+        if (check(returnType, params)) {
+            return new AutoDeleteUpdateMethodTranslator(returnType);
         }
         return null;
     }
@@ -50,8 +50,8 @@ public class AutoDeleteUpdateMethodTranslator {
     public void createMethodBody(List<Parameter> params,
                                  Map<String, Pair<FieldSpec, TypeSpec>> handlers,
                                  GenerateCodeBlock block) {
-        boolean returnsInt = isReturnInt(mReturnType);
-        boolean returnsNull = isReturnNull(mReturnType);
+        boolean returnsInt = isReturnInt(returnType);
+        boolean returnsNull = isReturnNull(returnType);
         final String returnVarName = returnsInt ? block.getTempVar("_resultTotal") : null;
         final String methodName = handlerMethodName(params.get(0).isMultiple());
 

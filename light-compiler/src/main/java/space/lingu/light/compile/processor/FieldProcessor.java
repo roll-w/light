@@ -34,14 +34,14 @@ import space.lingu.light.util.StringUtils;
  */
 public class FieldProcessor implements Processor<Field> {
     private final VariableCompileType variableCompileType;
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
     private final DataColumn dataColumn;
 
     public FieldProcessor(VariableCompileType variableCompileType,
                           ProcessEnv env) {
         this.variableCompileType = variableCompileType;
-        dataColumn = this.variableCompileType.getAnnotation(DataColumn.class);
-        mEnv = env;
+        this.dataColumn = this.variableCompileType.getAnnotation(DataColumn.class);
+        this.env = env;
     }
 
     @Override
@@ -71,11 +71,11 @@ public class FieldProcessor implements Processor<Field> {
                 variableCompileType
         );
 
-        ColumnValueReader reader = mEnv.getBinders().findColumnReader(
+        ColumnValueReader reader = env.getBinders().findColumnReader(
                 variableCompileType.getType(),
                 preprocessType);
         if (reader == null) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.unknownInType(
                             variableCompileType,
                             preprocessType),
@@ -83,19 +83,19 @@ public class FieldProcessor implements Processor<Field> {
             );
         }
         SQLDataType finalType = reader.getDataType();
-        StatementBinder binder = mEnv.getBinders()
+        StatementBinder binder = env.getBinders()
                 .findStatementBinder(
                         variableCompileType.getType(),
                         finalType
                 );
         if (binder == null) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.unknownOutType(variableCompileType, finalType),
                     variableCompileType
             );
         }
         if (!assignableSQLDataType(finalType, binder.getDataType())) {
-            mEnv.getLog().error(
+            env.getLog().error(
                     CompileErrors.typeMismatch(finalType, binder.getDataType()),
                     variableCompileType
             );

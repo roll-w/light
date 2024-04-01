@@ -35,8 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SQLHandler {
     private final String sql;
-    private final LightDatabase mDatabase;
-    private final Map<String, ColumnIndex> mColumnIndexMap;
+    private final LightDatabase database;
+    private final Map<String, ColumnIndex> columnIndexMap;
 
     public SQLHandler(LightDatabase database, String sql) {
         this(database, sql, Collections.emptyList());
@@ -50,9 +50,9 @@ public class SQLHandler {
     public SQLHandler(LightDatabase database, String sql,
                       List<ColumnIndex> initialIndexes) {
         this.sql = sql;
-        this.mDatabase = database;
-        this.mColumnIndexMap = new ConcurrentHashMap<>();
-        initialIndexes.forEach(index -> mColumnIndexMap.put(index.getName(), index));
+        this.database = database;
+        this.columnIndexMap = new ConcurrentHashMap<>();
+        initialIndexes.forEach(index -> columnIndexMap.put(index.getName(), index));
     }
 
     protected String replaceWithPlaceholders(int[] args) {
@@ -61,7 +61,7 @@ public class SQLHandler {
         }
         String[] placeholders = new String[args.length + 1];
         for (int n = 0; n < args.length; n++) {
-            placeholders[n] = mDatabase
+            placeholders[n] = database
                     .getDialectProvider()
                     .getGenerator()
                     .placeHolders(args[n]);
@@ -90,7 +90,7 @@ public class SQLHandler {
     }
 
     public LightDatabase getDatabase() {
-        return mDatabase;
+        return database;
     }
 
     public String getSql() {
@@ -98,7 +98,7 @@ public class SQLHandler {
     }
 
     public ManagedConnection newConnection() {
-        return mDatabase.requireManagedConnection();
+        return database.requireManagedConnection();
     }
 
     /**
@@ -121,13 +121,13 @@ public class SQLHandler {
      * @return the index of column, -1 if not found.
      */
     public int getColumnIndex(ResultSet resultSet, String name) {
-        ColumnIndex columnIndex = mColumnIndexMap.get(name);
+        ColumnIndex columnIndex = columnIndexMap.get(name);
         if (columnIndex != null) {
             return columnIndex.getIndex();
         }
         int index = ResultSetUtils.getColumnIndexSwallow(resultSet, name);
         ColumnIndex newIndex = new ColumnIndex(index, name);
-        mColumnIndexMap.put(name, newIndex);
+        columnIndexMap.put(name, newIndex);
         return index;
     }
 

@@ -30,7 +30,7 @@ public class JdkDefaultLogger implements LightLogger {
     private static final String THROWABLE_INFO = " Throwable info: \n";
     private static final LightLogger GLOBAL_LOGGER = new JdkDefaultLogger(Logger.getGlobal());
 
-    private final Logger mJdkLogger;
+    private final Logger logger;
     private boolean isDebug = false;
 
 
@@ -43,7 +43,7 @@ public class JdkDefaultLogger implements LightLogger {
     }
 
     private JdkDefaultLogger(Logger jdkLogger) {
-        mJdkLogger = jdkLogger;
+        logger = jdkLogger;
     }
 
     @Override
@@ -58,63 +58,67 @@ public class JdkDefaultLogger implements LightLogger {
 
     @Override
     public void debug(String message) {
-        if (!isDebugEnabled()) return;
-        mJdkLogger.log(Level.INFO, message);
+        if (!isDebugEnabled()) {
+            return;
+        }
+        logger.log(Level.INFO, message);
     }
 
     @Override
     public void debug(String message, Throwable throwable) {
-        if (!isDebugEnabled()) return;
-        mJdkLogger.log(Level.INFO, message + THROWABLE_INFO + throwable.getMessage());
+        if (!isDebugEnabled()) {
+            return;
+        }
+        logger.log(Level.INFO, message + THROWABLE_INFO + throwable.getMessage());
     }
 
     @Override
     public void error(String message) {
-        mJdkLogger.log(Level.SEVERE, message);
+        logger.log(Level.SEVERE, message);
     }
 
     @Override
     public void error(String message, Throwable throwable) {
-        mJdkLogger.log(Level.SEVERE, message + THROWABLE_INFO + throwable.getMessage());
+        logger.log(Level.SEVERE, message + THROWABLE_INFO + throwable.getMessage());
     }
 
     @Override
     public void error(Throwable throwable) {
-        mJdkLogger.log(Level.SEVERE, THROWABLE_INFO + throwable.getMessage());
+        logger.log(Level.SEVERE, THROWABLE_INFO + throwable.getMessage());
     }
 
     @Override
     public void info(String message) {
-        mJdkLogger.log(Level.INFO, message);
+        logger.log(Level.INFO, message);
     }
 
     @Override
     public void info(String message, Throwable throwable) {
-        mJdkLogger.log(Level.INFO, message + THROWABLE_INFO + throwable.getMessage());
+        logger.log(Level.INFO, message + THROWABLE_INFO + throwable.getMessage());
     }
 
     @Override
     public void trace(String message) {
-        mJdkLogger.log(Level.FINE, message);
+        logger.log(Level.FINE, message);
     }
 
     @Override
     public void trace(String message, Throwable throwable) {
-        mJdkLogger.log(Level.FINE, message + THROWABLE_INFO + LightLogger.formatStackTraces(throwable.getStackTrace()));
+        logger.log(Level.FINE, message + THROWABLE_INFO + LightLogger.formatStackTraces(throwable.getStackTrace()));
     }
 
     @Override
     public void trace(Throwable throwable) {
-        mJdkLogger.log(Level.FINE, "Throwable info: " + LightLogger.formatStackTraces(throwable.getStackTrace()));
+        logger.log(Level.FINE, "Throwable info: " + LightLogger.formatStackTraces(throwable.getStackTrace()));
     }
 
     @Override
     public void warn(String message) {
-        mJdkLogger.log(Level.WARNING, message);
+        logger.log(Level.WARNING, message);
     }
 
     @Override
     public void warn(String message, Throwable throwable) {
-        mJdkLogger.log(Level.WARNING, message + THROWABLE_INFO + throwable.getMessage());
+        logger.log(Level.WARNING, message + THROWABLE_INFO + throwable.getMessage());
     }
 }

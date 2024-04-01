@@ -38,6 +38,6 @@ public class DirectAutoDeleteUpdateMethodBinder extends AutoDeleteUpdateMethodBi
     public void writeBlock(List<Parameter> params,
                            Map<String, Pair<FieldSpec, TypeSpec>> handlers,
                            GenerateCodeBlock block) {
-        mTranslator.createMethodBody(params, handlers, block);
+        translator.createMethodBody(params, handlers, block);
     }
 }

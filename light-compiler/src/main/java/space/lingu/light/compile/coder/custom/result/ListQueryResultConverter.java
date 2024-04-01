@@ -33,33 +33,33 @@ import java.util.List;
  * @author RollW
  */
 public class ListQueryResultConverter extends AbstractQueryResultConverter {
-    private final TypeCompileType mType;
-    private final RowConverter mConverter;
+    private final TypeCompileType type;
+    private final RowConverter converter;
 
     public ListQueryResultConverter(TypeCompileType type, RowConverter converter) {
         super(converter);
-        mConverter = converter;
-        mType = type;
+        this.converter = converter;
+        this.type = type;
     }
 
     @Override
     public void convert(QueryContext queryContext, GenerateCodeBlock block) {
-        mConverter.onResultSetReady(queryContext, block);
+        converter.onResultSetReady(queryContext, block);
 
         TypeName listType = ParameterizedTypeName
-                .get(ClassName.get(List.class), mType.toTypeName());
+                .get(ClassName.get(List.class), type.toTypeName());
         TypeName arrayListType = ParameterizedTypeName
-                .get(ClassName.get(ArrayList.class), mType.toTypeName());
+                .get(ClassName.get(ArrayList.class), type.toTypeName());
         final String tempVar = block.getTempVar("_item");
         block.builder().addStatement("final $T $L = new $T()", listType,
                         queryContext.getOutVarName(), arrayListType)
                 .beginControlFlow("try")
                 .beginControlFlow("while ($L.next())", queryContext.getResultSetVarName())
-                .addStatement("final $T $L", mType.toTypeName(), tempVar);
+                .addStatement("final $T $L", type.toTypeName(), tempVar);
 
         QueryContext scopeContext = queryContext.fork(tempVar);
 
-        mConverter.convert(scopeContext, block);
+        converter.convert(scopeContext, block);
         block.builder().addStatement("$L.add($L)", queryContext.getOutVarName(), tempVar)
                 .endControlFlow()
                 .nextControlFlow("catch ($T e)", SQLException.class)

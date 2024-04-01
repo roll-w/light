@@ -45,22 +45,22 @@ import java.util.Map;
 public class DeleteMethodProcessor implements Processor<DeleteMethod> {
     private final MethodCompileType methodCompileType;
     private final TypeCompileType containing;
-    private final ProcessEnv mEnv;
+    private final ProcessEnv env;
 
     public DeleteMethodProcessor(MethodCompileType methodCompileType,
                                  TypeCompileType containing,
                                  ProcessEnv env) {
         this.methodCompileType = methodCompileType;
         this.containing = containing;
-        mEnv = env;
+        this.env = env;
     }
 
     @Override
     public DeleteMethod process() {
-        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(methodCompileType, mEnv);
-        DaoProcessor.sHandleAnnotations.forEach(anno -> {
+        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(methodCompileType, env);
+        DaoProcessor.HANDLE_ANNOTATIONS.forEach(anno -> {
             if (anno != Delete.class && methodCompileType.getAnnotation(anno) != null) {
-                mEnv.getLog().error(
+                env.getLog().error(
                         CompileErrors.DUPLICATED_METHOD_ANNOTATION,
                         methodCompileType
                 );
@@ -74,7 +74,7 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
 
         if (!isAutoGenerate) {
             if (sql.isEmpty()) {
-                mEnv.getLog().error(
+                env.getLog().error(
                         CompileErrors.SQL_CANNOT_BE_EMPTY,
                         methodCompileType
                 );
@@ -88,7 +88,7 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
                         toParameters(parameters)
                 );
         if (translator == null) {
-            mEnv.getLog().error(CompileErrors.DELETE_INVALID_RETURN, methodCompileType);
+            env.getLog().error(CompileErrors.DELETE_INVALID_RETURN, methodCompileType);
         }
 
         if (isAutoGenerate) {
@@ -108,11 +108,11 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
         List<SQLCustomParameter> deleteParameters = new ArrayList<>();
         methodCompileType.getParameters().forEach(variableElement -> {
             Processor<DeleteParameter> deleteParameterProcessor =
-                    new DeleteParameterProcessor(variableElement, containing, mEnv);
+                    new DeleteParameterProcessor(variableElement, containing, env);
             deleteParameters.add(deleteParameterProcessor.process());
         });
         Processor<List<ExpressionBind>>
-                processor = new SQLBindProcessor(methodCompileType, sql, mEnv);
+                processor = new SQLBindProcessor(methodCompileType, sql, env);
         List<ExpressionBind> binds = processor.process();
         return new DeleteMethod(
                 methodCompileType, sql,
@@ -133,7 +133,7 @@ public class DeleteMethodProcessor implements Processor<DeleteMethod> {
         List<SQLCustomParameter> deleteParameters = new ArrayList<>();
         methodCompileType.getParameters().forEach(variableCompileType -> {
             Processor<DeleteParameter> deleteParameterProcessor =
-                    new DeleteParameterProcessor(variableCompileType, containing, mEnv);
+                    new DeleteParameterProcessor(variableCompileType, containing, env);
             deleteParameters.add(deleteParameterProcessor.process());
         });
         return deleteParameters;

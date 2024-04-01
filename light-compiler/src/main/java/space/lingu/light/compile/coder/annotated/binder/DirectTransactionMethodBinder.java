@@ -44,7 +44,7 @@ public class DirectTransactionMethodBinder extends TransactionMethodBinder {
         }
 
         block.builder().beginControlFlow("try");
-        mTranslator.createMethodBody(returnType, params, dao, daoImpl, resultVar, block);
+        translator.createMethodBody(returnType, params, dao, daoImpl, resultVar, block);
         if (returnsValue) {
             block.builder().addStatement("return $N", resultVar);
         }

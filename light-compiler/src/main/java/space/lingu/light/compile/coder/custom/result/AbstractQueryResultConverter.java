@@ -27,14 +27,14 @@ import java.util.List;
  * @author RollW
  */
 public abstract class AbstractQueryResultConverter implements QueryResultConverter {
-    protected final List<RowConverter> mConverters = new ArrayList<>();
+    protected final List<RowConverter> rowConverters = new ArrayList<>();
 
     public AbstractQueryResultConverter(List<RowConverter> converters) {
-        mConverters.addAll(converters);
+        rowConverters.addAll(converters);
     }
 
     public AbstractQueryResultConverter(RowConverter converter) {
-        mConverters.add(converter);
+        rowConverters.add(converter);
     }
 
     public abstract void convert(QueryContext queryContext, GenerateCodeBlock block);

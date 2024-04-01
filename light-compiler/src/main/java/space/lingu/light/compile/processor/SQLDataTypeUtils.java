@@ -26,7 +26,7 @@ import javax.lang.model.type.TypeMirror;
 /**
  * @author RollW
  */
-public class SQLDataTypeUtils {
+public final class SQLDataTypeUtils {
     public static SQLDataType recognizeSQLDataType(SQLDataType sqlDataType,
                                                    CompileType compileType) {
         if (sqlDataType != null && sqlDataType != SQLDataType.UNDEFINED) {
@@ -78,4 +78,6 @@ public class SQLDataTypeUtils {
         return value.equals(ArrayTypeName.of(type));
     }
 
+    private SQLDataTypeUtils() {
+    }
 }

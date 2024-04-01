@@ -30,10 +30,10 @@ import java.util.Map;
  * @author RollW
  */
 public abstract class AutoDeleteUpdateMethodBinder implements AnnotatedMethodBinder {
-    protected final AutoDeleteUpdateMethodTranslator mTranslator;
+    protected final AutoDeleteUpdateMethodTranslator translator;
 
     public AutoDeleteUpdateMethodBinder(AutoDeleteUpdateMethodTranslator translator) {
-        mTranslator = translator;
+        this.translator = translator;
     }
 
     @Override

@@ -27,10 +27,10 @@ import java.util.List;
  * @author RollW
  */
 public abstract class TransactionMethodBinder {
-    public final TransactionMethodTranslator mTranslator;
+    public final TransactionMethodTranslator translator;
 
     public TransactionMethodBinder(TransactionMethodTranslator translator) {
-        mTranslator = translator;
+        this.translator = translator;
     }
 
     public abstract void writeBlock(TypeMirror returnType,

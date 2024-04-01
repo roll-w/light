@@ -49,7 +49,7 @@ public abstract class ClassWriter {
     protected final ClassName implClassName;
     protected final ClassName superClassName;
     protected final Filer filer;
-    protected final ProcessEnv mEnv;
+    protected final ProcessEnv env;
 
     protected final Map<String, FieldSpec> sharedFieldSpecs = new HashMap<>();
     protected final Map<String, MethodSpec> sharedMethodSpecs = new HashMap<>();
@@ -67,8 +67,8 @@ public abstract class ClassWriter {
                        ProcessEnv env) {
         this.implClassName = implClassName;
         this.superClassName = superClassName;
-        mEnv = env;
-        filer = env.getFiler();
+        this.env = env;
+        this.filer = env.getFiler();
     }
 
     public FieldSpec getOrCreateField(SharedFieldSpec fieldSpec) {

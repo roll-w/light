@@ -39,8 +39,9 @@ public class FieldGetter {
                 break;
             }
         }
-        if (statement == null) return;
-
+        if (statement == null) {
+            return;
+        }
         builder.addStatement(statement, variableCompileType.getTypeMirror(),
                 out, owner, name);
     }

@@ -38,30 +38,30 @@ import java.util.Map;
  * @author RollW
  */
 public class InsertMethodProcessor implements Processor<InsertMethod> {
-    private final TypeCompileType mContaining;
     private final MethodCompileType methodCompileType;
-    private final ProcessEnv mEnv;
+    private final TypeCompileType containing;
+    private final ProcessEnv env;
 
     public InsertMethodProcessor(MethodCompileType methodCompileType,
                                  TypeCompileType containing,
                                  ProcessEnv env) {
-        mContaining = containing;
         this.methodCompileType = methodCompileType;
-        mEnv = env;
+        this.containing = containing;
+        this.env = env;
     }
 
     @Override
     public InsertMethod process() {
-        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(methodCompileType, mEnv);
+        AnnotateMethodProcessor delegate = new AnnotateMethodProcessor(methodCompileType, env);
 
         Insert insertAnno = methodCompileType.getAnnotation(Insert.class);
         if (insertAnno == null) {
             // but this will never happen.
             throw new IllegalStateException("An insertion method must be annotated with @Insert.");
         }
-        DaoProcessor.sHandleAnnotations.forEach(anno -> {
+        DaoProcessor.HANDLE_ANNOTATIONS.forEach(anno -> {
             if (anno != Insert.class && methodCompileType.getAnnotation(anno) != null) {
-                mEnv.getLog().error(
+                env.getLog().error(
                         CompileErrors.DUPLICATED_METHOD_ANNOTATION,
                         methodCompileType
                 );
@@ -71,11 +71,11 @@ public class InsertMethodProcessor implements Processor<InsertMethod> {
         checkUnbound(returnType);
 
         Pair<Map<String, ParamEntity>, List<Parameter>> pair =
-                delegate.extractParameters(mContaining);
+                delegate.extractParameters(containing);
         InsertMethodBinder binder = new DirectInsertMethodBinder(
                 InsertMethodTranslator.create(
                         methodCompileType.getElement(),
-                        mEnv,
+                        env,
                         pair.second)
         );
 
@@ -86,6 +86,6 @@ public class InsertMethodProcessor implements Processor<InsertMethod> {
     }
 
     private void checkUnbound(TypeCompileType typeMirror) {
-        AnnotateMethodProcessor.checkUnbound(typeMirror, mEnv);
+        AnnotateMethodProcessor.checkUnbound(typeMirror, env);
     }
 }
