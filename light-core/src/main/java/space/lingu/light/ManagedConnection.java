@@ -26,6 +26,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -43,6 +44,54 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg, Connec
     private final LightProxyConnection connection;
     private final LightDatabase.Metadata metadata;
     private final Map<Statement, byte[]> statements = new ConcurrentHashMap<>();
+    private final Map<String, Metadata> metaspace = new ConcurrentHashMap<>();
+
+    public static class Metadata {
+        private final List<ColumnIndex> indexes;
+
+        private Metadata(List<ColumnIndex> indexes) {
+            this.indexes = indexes;
+        }
+
+        public int getIndexOf(String label,
+                              ResultSet resultSet) {
+            for (ColumnIndex index : indexes) {
+                if (index.isLabel(label)) {
+                    return index.getIndex();
+                }
+            }
+            try {
+                int idx = resultSet.findColumn(label);
+                ColumnIndex columnIndex = new ColumnIndex(-1, label);
+                indexes.add(columnIndex);
+                return idx;
+            } catch (SQLException e) {
+                return -1;
+            }
+        }
+    }
+
+    private static final class ColumnIndex {
+        private final int index;
+        private final String name;
+
+        ColumnIndex(int index, String name) {
+            this.index = index;
+            this.name = name;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean isLabel(String label) {
+            return name.equalsIgnoreCase(label);
+        }
+    }
 
     public ManagedConnection(LightDatabase database) {
         this.database = database;
