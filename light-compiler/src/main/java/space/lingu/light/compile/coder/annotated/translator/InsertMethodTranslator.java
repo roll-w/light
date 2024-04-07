@@ -76,21 +76,23 @@ public class InsertMethodTranslator {
             return type == InsertType.VOID || type == InsertType.VOID_OBJECT;
         }
         if (params.get(0).isMultiple()) {
-            return sMultipleList.contains(type);
+            return MULTIPLE_LIST.contains(type);
         }
-        return type == InsertType.VOID ||
-                type == InsertType.VOID_OBJECT ||
-                type == InsertType.SINGLE_ID;
+        return type == InsertType.VOID || type == InsertType.VOID_OBJECT ||
+                type == InsertType.LONG || type == InsertType.INT;
     }
 
-    private static final List<InsertType> sMultipleList = new ArrayList<>();
+    private static final List<InsertType> MULTIPLE_LIST = new ArrayList<>();
 
     static {
-        sMultipleList.add(InsertType.VOID);
-        sMultipleList.add(InsertType.VOID_OBJECT);
-        sMultipleList.add(InsertType.ID_ARRAY);
-        sMultipleList.add(InsertType.ID_ARRAY_BOXED);
-        sMultipleList.add(InsertType.ID_LIST);
+        MULTIPLE_LIST.add(InsertType.VOID);
+        MULTIPLE_LIST.add(InsertType.VOID_OBJECT);
+        MULTIPLE_LIST.add(InsertType.LONG_ARRAY);
+        MULTIPLE_LIST.add(InsertType.LONG_ARRAY_BOXED);
+        MULTIPLE_LIST.add(InsertType.LONG_LIST);
+        MULTIPLE_LIST.add(InsertType.INT_ARRAY);
+        MULTIPLE_LIST.add(InsertType.INT_ARRAY_BOXED);
+        MULTIPLE_LIST.add(InsertType.INT_LIST);
     }
 
     private static InsertType getInsertType(ProcessEnv env,
@@ -98,33 +100,64 @@ public class InsertMethodTranslator {
                                             TypeMirror typeMirror) {
         if (typeElement == null) {
             if (typeMirror.getKind() == TypeKind.LONG) {
-                return InsertType.SINGLE_ID;
+                return InsertType.LONG;
+            }
+            if (typeMirror.getKind() == TypeKind.INT) {
+                return InsertType.INT;
             }
             if (typeMirror.getKind() == TypeKind.VOID) {
                 return InsertType.VOID;
             }
             if (typeMirror.getKind() == TypeKind.ARRAY) {
-                TypeMirror arrayType = TypeUtils.getArrayElementType(typeMirror);
-                if (TypeUtils.isLong(arrayType)) {
-                    return InsertType.ID_ARRAY;
-                }
-                if (ElementUtils.isLongBoxed(ElementUtils.asTypeElement(arrayType))) {
-                    return InsertType.ID_ARRAY_BOXED;
-                }
+                return getArrayInsertType(typeMirror);
             }
             return null;
         }
 
         if (ElementUtils.isLong(typeElement)) {
-            return InsertType.SINGLE_ID;
+            return InsertType.LONG;
+        }
+
+        if (ElementUtils.isInt(typeElement)) {
+            return InsertType.INT;
         }
 
         if (ReturnTypes.isLegalCollectionReturnType(typeElement)) {
-            if (ElementUtils.isLong(ElementUtils.getGenericElements(typeMirror).get(0))) {
-                return InsertType.ID_LIST;
-            }
+            return getCollectionInsertType(typeMirror);
         }
 
+        return null;
+    }
+
+    private static InsertType getCollectionInsertType(TypeMirror typeMirror) {
+        List<TypeElement> genericElements =
+                ElementUtils.getGenericElements(typeMirror);
+        TypeElement genericType = genericElements.get(0);
+
+        if (ElementUtils.isLong(genericType)) {
+            return InsertType.LONG_LIST;
+        }
+        if (ElementUtils.isInt(genericType)) {
+            return InsertType.INT_LIST;
+        }
+        return null;
+    }
+
+    private static InsertType getArrayInsertType(TypeMirror typeMirror) {
+        TypeMirror arrayType = TypeUtils.getArrayElementType(typeMirror);
+        TypeElement arrayElement = ElementUtils.asTypeElement(arrayType);
+        if (TypeUtils.isLong(arrayType)) {
+            return InsertType.LONG_ARRAY;
+        }
+        if (ElementUtils.isLongBoxed(arrayElement)) {
+            return InsertType.LONG_ARRAY_BOXED;
+        }
+        if (TypeUtils.isInt(arrayType)) {
+            return InsertType.INT_ARRAY;
+        }
+        if (ElementUtils.isIntBoxed(arrayElement)) {
+            return InsertType.INT_ARRAY_BOXED;
+        }
         return null;
     }
 
@@ -141,10 +174,17 @@ public class InsertMethodTranslator {
             // now we don't need to manually open the transaction,
             // the handler will do it for us.
             if (needsReturn) {
-                block.builder().addStatement("$T $L = $N.$L($L)", insertType.returnType, returnVarName,
-                        insertHandlerField, insertType.methodName, param.getName());
+                block.builder().addStatement("$T $L = $N.$L($L)",
+                        insertType.getReturnType(), returnVarName,
+                        insertHandlerField,
+                        insertType.getMethodName(), param.getName()
+                );
             } else {
-                block.builder().addStatement("$N.$L($L)", insertHandlerField, insertType.methodName, param.getName());
+                block.builder().addStatement("$N.$L($L)",
+                        insertHandlerField,
+                        insertType.getMethodName(),
+                        param.getName()
+                );
             }
 
             if (needsReturn) {
@@ -169,34 +209,70 @@ public class InsertMethodTranslator {
          * return void
          */
         VOID("insert", TypeName.VOID),
+
         /**
          * return void
          */
         VOID_OBJECT("insert", TypeName.VOID.box()),
+
         /**
          * return long/Long
          */
-        SINGLE_ID("insertAndReturnId", TypeName.LONG),
+        LONG("insertAndReturnLong", TypeName.LONG),
+
         /**
          * return long[]
          */
-        ID_ARRAY("insertAndReturnIdsArray", ArrayTypeName.of(TypeName.LONG)),
+        LONG_ARRAY("insertAndReturnLongArray", ArrayTypeName.of(TypeName.LONG)),
+
         /**
          * return Long[]
          */
-        ID_ARRAY_BOXED("insertAndReturnIdsArrayBox",
+        LONG_ARRAY_BOXED("insertAndReturnLongArrayBox",
                 ArrayTypeName.of(TypeName.LONG.box())),
+
         /**
          * return {@code List<Long>}
          */
-        ID_LIST("insertAndReturnIdsList",
-                ParameterizedTypeName.get(ClassName.get(List.class), TypeName.LONG.box()));
-        public final String methodName;
-        public final TypeName returnType;
+        LONG_LIST("insertAndReturnLongList",
+                ParameterizedTypeName.get(ClassName.get(List.class), TypeName.LONG.box())),
+
+        /**
+         * return int/Integer
+         */
+        INT("insertAndReturnInt", TypeName.INT),
+
+        /**
+         * return int[]
+         */
+        INT_ARRAY("insertAndReturnIntArray", ArrayTypeName.of(TypeName.INT)),
+
+        /**
+         * return Integer[]
+         */
+        INT_ARRAY_BOXED("insertAndReturnIntArrayBox",
+                ArrayTypeName.of(TypeName.INT.box())),
+
+        /**
+         * return {@code List<Integer>}
+         */
+        INT_LIST("insertAndReturnIntList",
+                ParameterizedTypeName.get(ClassName.get(List.class), TypeName.INT.box()));
+
+        private final String methodName;
+        private final TypeName returnType;
 
         InsertType(String methodName, TypeName returnType) {
             this.methodName = methodName;
             this.returnType = returnType;
+        }
+
+        public String getMethodName() {
+            return methodName;
+        }
+
+        public TypeName getReturnType() {
+            return returnType;
         }
     }
 }

@@ -19,8 +19,11 @@ package space.lingu.light.handler;
 import space.lingu.light.LightDatabase;
 import space.lingu.light.LightRuntimeException;
 import space.lingu.light.ManagedConnection;
+import space.lingu.light.util.SQLExceptionFunction;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -70,14 +73,13 @@ public abstract class InsertHandler<T> extends Handler<T> {
                 }
                 stmt.executeBatch();
             } else {
+                conn.beginTransaction();
                 for (T entity : entities) {
                     stmt.clearParameters();
                     bind(stmt, entity);
-
-                    conn.beginTransaction();
                     stmt.execute();
-                    conn.commit();
                 }
+                conn.commit();
             }
 
         } catch (SQLException e) {
@@ -88,7 +90,25 @@ public abstract class InsertHandler<T> extends Handler<T> {
         }
     }
 
-    public final long insertAndReturnId(T entity) {
+    public final long insertAndReturnLong(T entity) {
+        Long result = insertAndReturn(
+                entity,
+                resultSet -> resultSet.getLong(1)
+        );
+        return result == null ? -1 : result;
+    }
+
+    public final int insertAndReturnInt(T entity) {
+        Integer result = insertAndReturn(
+                entity,
+                resultSet -> resultSet.getInt(1)
+        );
+        return result == null ? -1 : result;
+    }
+
+    private <I> I insertAndReturn(
+            T entity,
+            SQLExceptionFunction<ResultSet, I> provider) {
         final ManagedConnection conn = newConnection();
         final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
         try {
@@ -99,7 +119,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
 
             ResultSet set = stmt.getGeneratedKeys();
             if (set.next()) {
-                return set.getLong(1);
+                return provider.apply(set);
             }
             set.close();
         } catch (SQLException e) {
@@ -108,21 +128,19 @@ public abstract class InsertHandler<T> extends Handler<T> {
         } finally {
             conn.close();
         }
-        return -1;
+        return null;
     }
 
-    public final long[] insertAndReturnIdsArray(Collection<? extends T> entities) {
+    public final long[] insertAndReturnLongArray(Collection<? extends T> entities) {
         final ManagedConnection conn = newConnection();
         final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
         try {
             final long[] result = new long[entities.size()];
             int index = 0;
+            conn.beginTransaction();
             for (T entity : entities) {
                 bind(stmt, entity);
-                conn.beginTransaction();
                 stmt.execute();
-                conn.commit();
-
                 ResultSet set = stmt.getGeneratedKeys();
                 if (set.next()) {
                     result[index] = set.getLong(1);
@@ -130,6 +148,7 @@ public abstract class InsertHandler<T> extends Handler<T> {
                 index++;
                 set.close();
             }
+            conn.commit();
             return result;
         } catch (SQLException e) {
             conn.rollback();
@@ -139,43 +158,24 @@ public abstract class InsertHandler<T> extends Handler<T> {
         }
     }
 
-    public final long[] insertAndReturnIdsArray(Iterable<? extends T> entities) {
+    public final int[] insertAndReturnIntArray(Collection<? extends T> entities) {
         final ManagedConnection conn = newConnection();
         final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
         try {
-            List<Long> result = iterableBind(entities, conn, stmt);
-            return convert(result);
-        } catch (SQLException e) {
-            conn.rollback();
-            throw new LightRuntimeException(e);
-        } finally {
-            conn.close();
-        }
-    }
-
-    public final long[] insertAndReturnIdsArray(T[] entities) {
-        return insertAndReturnIdsArray(Arrays.asList(entities));
-    }
-
-    public final Long[] insertAndReturnIdsArrayBox(Collection<? extends T> entities) {
-        final ManagedConnection conn = newConnection();
-        final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
-        try {
-            final Long[] result = new Long[entities.size()];
+            final int[] result = new int[entities.size()];
             int index = 0;
+            conn.beginTransaction();
             for (T entity : entities) {
                 bind(stmt, entity);
-                conn.beginTransaction();
                 stmt.execute();
-                conn.commit();
-
                 ResultSet set = stmt.getGeneratedKeys();
                 if (set.next()) {
-                    result[index] = set.getLong(1);
+                    result[index] = set.getInt(1);
                 }
-                set.close();
                 index++;
+                set.close();
             }
+            conn.commit();
             return result;
         } catch (SQLException e) {
             conn.rollback();
@@ -185,11 +185,82 @@ public abstract class InsertHandler<T> extends Handler<T> {
         }
     }
 
-    public final Long[] insertAndReturnIdsArrayBox(Iterable<? extends T> entities) {
+    public final long[] insertAndReturnLongArray(Iterable<? extends T> entities) {
         final ManagedConnection conn = newConnection();
         final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
         try {
-            List<Long> result = iterableBind(entities, conn, stmt);
+            List<Long> result = insertIterable(
+                    entities, conn, stmt,
+                    resultSet -> resultSet.getLong(1)
+            );
+            return convertLong(result);
+        } catch (SQLException e) {
+            conn.rollback();
+            throw new LightRuntimeException(e);
+        } finally {
+            conn.close();
+        }
+    }
+
+    public final int[] insertAndReturnIntArray(Iterable<? extends T> entities) {
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
+        try {
+            List<Integer> result = insertIterable(
+                    entities, conn, stmt,
+                    resultSet -> resultSet.getInt(1)
+            );
+            return convertInteger(result);
+        } catch (SQLException e) {
+            conn.rollback();
+            throw new LightRuntimeException(e);
+        } finally {
+            conn.close();
+        }
+    }
+
+    private static int[] copyFrom(long[] longArray) {
+        int[] res = new int[longArray.length];
+        for (int i = 0; i < longArray.length; i++) {
+            res[i] = (int) longArray[i];
+        }
+        return res;
+    }
+
+    public final long[] insertAndReturnLongArray(T[] entities) {
+        return insertAndReturnLongArray(Arrays.asList(entities));
+    }
+
+    public final int[] insertAndReturnIntArray(T[] entities) {
+        return insertAndReturnIntArray(Arrays.asList(entities));
+    }
+
+    public final Long[] insertAndReturnLongArrayBox(Collection<? extends T> entities) {
+        long[] res = insertAndReturnLongArray(entities);
+        Long[] boxedValues = new Long[res.length];
+        for (int i = 0; i < res.length; i++) {
+            boxedValues[i] = res[i];
+        }
+        return boxedValues;
+    }
+
+    public final Integer[] insertAndReturnIntArrayBox(Collection<? extends T> entities) {
+        int[] res = insertAndReturnIntArray(entities);
+        Integer[] boxedValues = new Integer[res.length];
+        for (int i = 0; i < res.length; i++) {
+            boxedValues[i] = res[i];
+        }
+        return boxedValues;
+    }
+
+    public final Long[] insertAndReturnLongArrayBox(Iterable<? extends T> entities) {
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
+        try {
+            List<Long> result = insertIterable(
+                    entities, conn, stmt,
+                    resultSet -> resultSet.getLong(1)
+            );
             return result.toArray(new Long[0]);
         } catch (SQLException e) {
             conn.rollback();
@@ -199,39 +270,78 @@ public abstract class InsertHandler<T> extends Handler<T> {
         }
     }
 
-    private List<Long> iterableBind(Iterable<? extends T> entities, ManagedConnection conn, PreparedStatement stmt) throws SQLException {
-        List<Long> res = new ArrayList<>();
+    public final Integer[] insertAndReturnIntArrayBox(Iterable<? extends T> entities) {
+        final ManagedConnection conn = newConnection();
+        final PreparedStatement stmt = acquireReturnsGenerateKey(conn);
+        try {
+            List<Integer> result = insertIterable(
+                    entities, conn, stmt,
+                    resultSet -> resultSet.getInt(1)
+            );
+            return result.toArray(new Integer[0]);
+        } catch (SQLException e) {
+            conn.rollback();
+            throw new LightRuntimeException(e);
+        } finally {
+            conn.close();
+        }
+    }
+
+    private <I> List<I> insertIterable(
+            Iterable<? extends T> entities,
+            ManagedConnection conn,
+            PreparedStatement stmt,
+            SQLExceptionFunction<ResultSet, I> provider
+    ) throws SQLException {
+        List<I> res = new ArrayList<>();
+        conn.beginTransaction();
         for (T entity : entities) {
             bind(stmt, entity);
-            conn.beginTransaction();
             stmt.execute();
-            conn.commit();
             ResultSet set = stmt.getGeneratedKeys();
             if (set.next()) {
-                res.add(set.getLong(1));
+                I value = provider.apply(set);
+                res.add(value);
             }
             set.close();
         }
+        conn.commit();
         return res;
     }
 
-    public final Long[] insertAndReturnIdsArrayBox(T[] entities) {
-        return insertAndReturnIdsArrayBox(Arrays.asList(entities));
+    public final Long[] insertAndReturnLongArrayBox(T[] entities) {
+        return insertAndReturnLongArrayBox(Arrays.asList(entities));
     }
 
-    public final List<Long> insertAndReturnIdsList(T[] entities) {
-        return new ArrayList<>(Arrays.asList(insertAndReturnIdsArrayBox(entities)));
+    public final List<Long> insertAndReturnLongList(T[] entities) {
+        return Arrays.asList(insertAndReturnLongArrayBox(entities));
     }
 
-    public final List<Long> insertAndReturnIdsList(Collection<? extends T> entities) {
-        return new ArrayList<>(Arrays.asList(insertAndReturnIdsArrayBox(entities)));
+    public final List<Long> insertAndReturnLongList(Collection<? extends T> entities) {
+        return Arrays.asList(insertAndReturnLongArrayBox(entities));
     }
 
-    public final List<Long> insertAndReturnIdsList(Iterable<? extends T> entities) {
-        return new ArrayList<>(Arrays.asList(insertAndReturnIdsArrayBox(entities)));
+    public final List<Long> insertAndReturnLongList(Iterable<? extends T> entities) {
+        return Arrays.asList(insertAndReturnLongArrayBox(entities));
     }
 
-    private static long[] convert(List<Long> longList) {
+    public final Integer[] insertAndReturnIntArrayBox(T[] entities) {
+        return insertAndReturnIntArrayBox(Arrays.asList(entities));
+    }
+
+    public final List<Integer> insertAndReturnIntList(T[] entities) {
+        return Arrays.asList(insertAndReturnIntArrayBox(entities));
+    }
+
+    public final List<Integer> insertAndReturnIntList(Collection<? extends T> entities) {
+        return Arrays.asList(insertAndReturnIntArrayBox(entities));
+    }
+
+    public final List<Integer> insertAndReturnIntList(Iterable<? extends T> entities) {
+        return Arrays.asList(insertAndReturnIntArrayBox(entities));
+    }
+
+    private static long[] convertLong(List<Long> longList) {
         long[] longs = new long[longList.size()];
         int i = 0;
         for (Long l : longList) {
@@ -240,4 +350,12 @@ public abstract class InsertHandler<T> extends Handler<T> {
         return longs;
     }
 
+    private static int[] convertInteger(List<Integer> integers) {
+        int[] ints = new int[integers.size()];
+        int i = 0;
+        for (Integer l : integers) {
+            ints[i++] = l;
+        }
+        return ints;
+    }
 }

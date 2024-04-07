@@ -49,7 +49,7 @@ public final class ElementUtils {
     }
 
     public static PackageElement getPackage(Element element) {
-        while(element.getKind() != ElementKind.PACKAGE) {
+        while (element.getKind() != ElementKind.PACKAGE) {
             element = element.getEnclosingElement();
         }
 
@@ -100,6 +100,10 @@ public final class ElementUtils {
         return isLongBoxed(element) || isLongUnboxed(element);
     }
 
+    public static boolean isInt(Element element) {
+        return isIntBoxed(element) || isIntUnboxed(element);
+    }
+
     public static boolean isLongUnboxed(Element element) {
         return element.asType().getKind() == TypeKind.LONG;
     }
@@ -109,6 +113,17 @@ public final class ElementUtils {
             return false;
         }
         return ClassName.get((TypeElement) element).equals(TypeName.LONG.box());
+    }
+
+    public static boolean isIntUnboxed(Element element) {
+        return element.asType().getKind() == TypeKind.INT;
+    }
+
+    public static boolean isIntBoxed(Element element) {
+        if (!(element instanceof TypeElement)) {
+            return false;
+        }
+        return ClassName.get((TypeElement) element).equals(TypeName.INT.box());
     }
 
     public static boolean isVoidBoxed(Element element) {
@@ -164,7 +179,7 @@ public final class ElementUtils {
         List<? extends TypeMirror> typeMirrors = MoreTypes.asDeclared(mirror)
                 .getTypeArguments();
         typeMirrors.forEach(typeMirror ->
-            typeElementList.add(asTypeElement(typeMirror)));
+                typeElementList.add(asTypeElement(typeMirror)));
         return typeElementList;
     }
 
