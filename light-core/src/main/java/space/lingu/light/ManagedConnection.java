@@ -44,6 +44,11 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg, Connec
     private final LightDatabase.Metadata metadata;
     private final Map<Statement, byte[]> statements = new ConcurrentHashMap<>();
 
+    private boolean closed = false;
+
+    private volatile boolean transaction = false;
+    private volatile boolean autoCommit = true;
+
     public ManagedConnection(LightDatabase database) {
         this.database = database;
         this.connection = new LightProxyConnection(
@@ -171,22 +176,40 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg, Connec
         return connection;
     }
 
+    public void setTransactionIsolation(TransactionIsolationLevel level) {
+        if (notSupportTransaction() || level == TransactionIsolationLevel.NONE) {
+            return;
+        }
+        if (level == null) {
+            throw new NullPointerException("TransactionIsolationLevel cannot be null");
+        }
+        try {
+            connection.setTransactionIsolation(level.getLevel());
+        } catch (SQLException e) {
+            throw new LightRuntimeException(e);
+        }
+    }
+
     /**
      * Begin transaction if database supports.
      */
     public void beginTransaction() {
-        if (notSupportTransaction()) {
+        if (notSupportTransaction() || transaction) {
             return;
         }
+        if (connection == null) {
+            return;
+        }
+        transaction = true;
         autoCommit(false);
     }
 
     /**
-     * Commit the current transaction if database supports,
+     * Commit the current transaction if the database supports,
      * and close the transaction.
      */
     public void commit() {
-        if (notSupportTransaction()) {
+        if (notSupportTransaction() || !transaction) {
             return;
         }
         if (connection == null) {
@@ -197,6 +220,7 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg, Connec
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         } finally {
+            transaction = false;
             autoCommit(true);
         }
     }
@@ -209,7 +233,7 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg, Connec
     }
 
     /**
-     * Rollback current transaction if database supports,
+     * Rollback current transaction if the database supports,
      * and close the transaction.
      */
     public void rollback() {
@@ -224,8 +248,18 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg, Connec
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         } finally {
+            transaction = false;
             autoCommit(true);
         }
+    }
+
+    /**
+     * Check if the connection is in a transaction.
+     *
+     * @return true if the connection is in a transaction
+     */
+    public boolean isInTransaction() {
+        return transaction;
     }
 
     /**
@@ -236,6 +270,10 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg, Connec
      */
     @Override
     public void close() throws LightRuntimeException {
+        if (closed) {
+            return;
+        }
+        closed = true;
         for (Statement statement : statements.keySet()) {
             try {
                 statement.close();
@@ -249,7 +287,7 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg, Connec
     /**
      * Release the statement.
      *
-     * @throws LightRuntimeException if release statement failed.
+     * @throws LightRuntimeException if statement release failed.
      */
     public void release(Statement statement) throws LightRuntimeException {
         try {
@@ -268,8 +306,12 @@ public class ManagedConnection implements RuntimeCloseable, StatementReg, Connec
     }
 
     private void autoCommit(boolean autoCommit) {
+        if (this.autoCommit == autoCommit) {
+            return;
+        }
         try {
             connection.setAutoCommit(autoCommit);
+            this.autoCommit = autoCommit;
         } catch (SQLException e) {
             throw new LightRuntimeException(e);
         }
